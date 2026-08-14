@@ -9,6 +9,7 @@ import {
   Sparkles,
   TimerReset,
 } from "lucide-react";
+import { ProviderMark } from "@/components/provider-icon";
 import {
   PROVIDER_COLOR,
   PROVIDER_ORDER,
@@ -190,7 +191,7 @@ export function DecisionLab({ metrics }: DecisionLabProps) {
       <div className="mx-auto max-w-[1600px] px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
         <div className="grid gap-8 xl:grid-cols-[.72fr_1.28fr] xl:items-end">
           <div>
-            <div className="mega-label mb-3 text-mega-blue-text">Interactive decision lab</div>
+            <div className="mega-label mb-3 text-foreground">Interactive decision lab</div>
             <h2
               id="decision-lab-heading"
               className="pixel-heading max-w-3xl text-3xl font-semibold sm:text-5xl"
@@ -232,7 +233,7 @@ export function DecisionLab({ metrics }: DecisionLabProps) {
                     type="button"
                     aria-pressed={active}
                     onClick={() => setWeights(preset.weights)}
-                    className="group border border-border bg-card p-4 text-left outline-none transition-colors hover:border-mega-blue-text focus-visible:border-mega-blue-text focus-visible:ring-2 focus-visible:ring-mega-blue-text/40 aria-pressed:border-mega-blue-text aria-pressed:bg-mega-blue/10"
+                    className="group border border-border bg-card p-4 text-left outline-none transition-colors hover:border-border focus-visible:border-border focus-visible:ring-2 focus-visible:ring-mega-blue-text/40 aria-pressed:border-border aria-pressed:bg-card"
                   >
                     <span className="flex items-center justify-between gap-3">
                       <span className="font-mono text-xs font-semibold uppercase tracking-wider">
@@ -264,7 +265,7 @@ export function DecisionLab({ metrics }: DecisionLabProps) {
                     <div className="mb-3 flex items-start justify-between gap-4">
                       <label htmlFor={`decision-${metric}`} className="flex min-w-0 gap-3">
                         <span className="grid size-8 shrink-0 place-items-center border border-border bg-card">
-                          <Icon className="size-4 text-mega-blue-text" aria-hidden="true" />
+                          <Icon className="size-4 text-foreground" aria-hidden="true" />
                         </span>
                         <span>
                           <span className="block text-sm font-medium">{meta.label}</span>
@@ -321,7 +322,7 @@ export function DecisionLab({ metrics }: DecisionLabProps) {
                   fractions. Quality keeps its direct score-to-100 meaning.
                 </p>
               </div>
-              <Scale className="size-5 text-mega-blue-text" aria-hidden="true" />
+              <Scale className="size-5 text-foreground" aria-hidden="true" />
             </div>
 
             <div className="mt-7 grid gap-3 lg:grid-cols-3" aria-live="polite" aria-atomic="true">
@@ -342,13 +343,8 @@ export function DecisionLab({ metrics }: DecisionLabProps) {
                     <div className="flex items-start justify-between gap-4">
                       <div>
                         <div className="mega-label">Rank {index + 1}</div>
-                        <div className="mt-2 flex items-center gap-2 text-base font-semibold">
-                          <span
-                            className="size-2"
-                            style={{ backgroundColor: PROVIDER_COLOR[result.provider] }}
-                            aria-hidden="true"
-                          />
-                          {PROVIDER_SHORT[result.provider]}
+                        <div className="mt-2 text-base font-semibold">
+                          <ProviderMark provider={result.provider} />
                         </div>
                       </div>
                       <div className="text-right">
@@ -384,10 +380,10 @@ export function DecisionLab({ metrics }: DecisionLabProps) {
               )}
             </div>
 
-            <div className="mt-4 border-l-2 border-mega-blue-text bg-black p-4" aria-live="polite">
+            <div className="mt-4 border-l-2 border-border bg-black p-4" aria-live="polite">
               {leader && leader.score !== null ? (
                 <p className="text-sm leading-6">
-                  <strong>{PROVIDER_SHORT[leader.provider]}</strong> leads this weighting
+                  <strong><ProviderMark provider={leader.provider} compact className="align-middle" /></strong> leads this weighting
                   {lead === null ? "." : ` by ${lead.toFixed(1)} utility points.`}
                   <span className="text-muted-foreground">
                     {activePreset ? ` Active preset: ${activePreset.name}.` : " Manual weighting is active."}
@@ -431,16 +427,12 @@ export function DecisionLab({ metrics }: DecisionLabProps) {
                             <th className="p-3 font-normal">
                               <span className="flex items-center gap-2">
                                 {metricIndex === 0 ? (
-                                  <span
-                                    className="size-2"
-                                    style={{ backgroundColor: PROVIDER_COLOR[provider] }}
-                                    aria-hidden="true"
-                                  />
+                                  <ProviderMark provider={provider} compact />
                                 ) : (
-                                  <span className="size-2" aria-hidden="true" />
+                                  <span className="size-3" aria-hidden="true" />
                                 )}
                                 <span>
-                                  {metricIndex === 0 ? `${PROVIDER_SHORT[provider]} · ` : ""}
+                                  {metricIndex === 0 ? " · " : ""}
                                   {metricMeta[metric].shortLabel}
                                 </span>
                               </span>
@@ -516,14 +508,7 @@ export function DecisionLab({ metrics }: DecisionLabProps) {
                 return (
                   <article key={provider} className="bg-black p-5">
                     <div className="flex items-center justify-between gap-3">
-                      <span className="flex items-center gap-2 text-sm font-medium">
-                        <span
-                          className="size-2"
-                          style={{ backgroundColor: PROVIDER_COLOR[provider] }}
-                          aria-hidden="true"
-                        />
-                        {PROVIDER_SHORT[provider]}
-                      </span>
+                      <ProviderMark provider={provider} />
                       <span className="font-mono text-2xl font-semibold tabular-nums">
                         {aggregate.mean_score.toFixed(1)}
                       </span>
@@ -579,9 +564,9 @@ export function DecisionLab({ metrics }: DecisionLabProps) {
                   {metrics.turn_count_exclusion.reason}
                 </p>
                 <ul className="mt-3 space-y-2 font-mono text-[10px] uppercase tracking-wider">
-                  <li>Claude · {metrics.turn_count_exclusion.units.claude}</li>
-                  <li>Sol · {metrics.turn_count_exclusion.units.codex}</li>
-                  <li>Grok · {metrics.turn_count_exclusion.units.grok}</li>
+                  <li className="flex items-center gap-2"><ProviderMark provider="claude" compact /> · {metrics.turn_count_exclusion.units.claude}</li>
+                  <li className="flex items-center gap-2"><ProviderMark provider="codex" compact /> · {metrics.turn_count_exclusion.units.codex}</li>
+                  <li className="flex items-center gap-2"><ProviderMark provider="grok" compact /> · {metrics.turn_count_exclusion.units.grok}</li>
                 </ul>
               </div>
             </div>

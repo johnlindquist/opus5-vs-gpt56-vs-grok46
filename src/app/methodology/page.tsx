@@ -14,6 +14,7 @@ import {
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { PairwiseMark, ProviderMark } from "@/components/provider-icon";
 import { data } from "@/lib/data";
 
 export const metadata: Metadata = {
@@ -56,7 +57,7 @@ const steps = [
     icon: CheckCircle2,
     n: "06",
     title: "Derive pairwise calls",
-    body: "The structured category totals produce three pairwise decisions from the same review context: Opus–Sol, Opus–Grok, and Grok–Sol. Equal totals are ties.",
+    body: "The structured category totals produce three pairwise decisions from the same review context: Opus vs Sol, Opus vs Grok, and Grok vs Sol. Equal totals are ties.",
   },
 ];
 
@@ -85,11 +86,16 @@ export default function MethodologyPage() {
           <Link href="/" className="mb-10 inline-flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-muted-foreground hover:text-foreground">
             <ArrowLeft className="size-4" /> Results
           </Link>
-          <div className="mega-label mb-4 text-mega-blue-text">Protocol · Evidence · Limits</div>
+          <div className="mega-label mb-4 text-muted-foreground">Protocol · Evidence · Limits</div>
           <h1 className="pixel-heading max-w-4xl text-4xl font-semibold text-balance sm:text-6xl">How the battle actually worked.</h1>
           <p className="mt-7 max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
             This was an artifact benchmark, not a vibes poll. The protocol separates what was frozen, what each harness observed, what a validator proved, and what one independent reviewer judged.
           </p>
+          <div className="mt-8 flex flex-wrap gap-4">
+            <ProviderMark provider="claude" />
+            <ProviderMark provider="grok" />
+            <ProviderMark provider="codex" />
+          </div>
         </div>
       </section>
 
@@ -98,7 +104,7 @@ export default function MethodologyPage() {
           {steps.map(({ icon: Icon, n, title, body }) => (
             <article key={n} className="bg-card p-6 sm:p-8">
               <div className="mb-10 flex items-center justify-between">
-                <Icon className="size-5 text-mega-blue-text" />
+                <Icon className="size-5 text-muted-foreground" />
                 <span className="font-mono text-xs text-muted-foreground">{n} / 06</span>
               </div>
               <h2 className="text-lg font-semibold">{title}</h2>
@@ -123,8 +129,9 @@ export default function MethodologyPage() {
               <p className="text-sm leading-6 text-muted-foreground">
                 Small games, visual instruments, and developer-analysis tasks designed to ship as direct-open local artifacts. All three agents received the same frozen prompts, a four-hour cap, and a clean empty workspace.
               </p>
-              <div className="mt-6 border-l-2 border-mega-blue-text pl-4 font-mono text-xs leading-5 text-muted-foreground">
-                Grok: cursor-agent · cursor-grok-4.6-medium · clean workspace · one cell at a time
+              <div className="mt-6 flex items-start gap-2 border-l-2 border-border pl-4 font-mono text-xs leading-5 text-muted-foreground">
+                <ProviderMark provider="grok" compact />
+                <span>cursor-agent · cursor-grok-4.6-medium · clean workspace · one cell at a time</span>
               </div>
             </article>
             <article className="border border-border bg-black p-6 sm:p-8">
@@ -135,13 +142,13 @@ export default function MethodologyPage() {
               <p className="text-sm leading-6 text-muted-foreground">
                 AI UX applications with pinned lockfiles and browser-local mock AI. Builders may reach provider APIs and the package registry, but replayed production apps run with network access denied. At most two concurrent sessions per provider.
               </p>
-              <div className="mt-6 border-l-2 border-mega-green pl-4 font-mono text-xs leading-5 text-muted-foreground">
+              <div className="mt-6 border-l-2 border-border pl-4 font-mono text-xs leading-5 text-muted-foreground">
                 modern-static-v2 · bun@1.3.11 · install/build/runtime replay · zero runtime network
               </div>
             </article>
           </div>
           <div className="mt-4 flex items-start gap-4 border border-border bg-black p-5">
-            <Clock3 className="mt-0.5 size-5 shrink-0 text-mega-blue-text" />
+            <Clock3 className="mt-0.5 size-5 shrink-0 text-muted-foreground" />
             <p className="text-sm leading-6 text-muted-foreground">
               <strong className="text-foreground">Timing rule:</strong> Host state and concurrency differ across agents. Durations are preserved as provenance but never treated as cross-agent speed evidence or a grading dimension.
             </p>
@@ -224,7 +231,7 @@ export default function MethodologyPage() {
             <AccordionItem value="pairwise" className="border-border">
               <AccordionTrigger className="text-left text-sm">Why three pairwise tallies instead of one podium?</AccordionTrigger>
               <AccordionContent className="text-sm leading-6 text-muted-foreground">
-                Each spec produces one blind review of all three artifacts. That single context yields three pairwise calls—Opus vs Sol, Opus vs Grok, and Grok vs Sol—rather than a merged three-way ranking.
+                Each spec produces one blind review of all three artifacts. That single context yields three pairwise calls—<PairwiseMark left="claude" right="codex" className="align-middle" />, <PairwiseMark left="claude" right="grok" className="align-middle" />, and <PairwiseMark left="grok" right="codex" className="align-middle" />—rather than a merged three-way ranking.
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="judge" className="border-border">
@@ -263,8 +270,8 @@ export default function MethodologyPage() {
 
       <section className="mega-grid border-t border-border">
         <div className="mx-auto max-w-[1200px] px-4 py-16 sm:px-6 lg:px-8">
-          <div className="flex items-start gap-4 border border-mega-blue-text/60 bg-black p-6">
-            <Network className="mt-1 size-5 shrink-0 text-mega-blue-text" />
+          <div className="flex items-start gap-4 border border-border/60 bg-black p-6">
+            <Network className="mt-1 size-5 shrink-0 text-muted-foreground" />
             <div>
               <div className="font-medium">The site is an evidence navigator, not a replacement for the archive.</div>
               <p className="mt-2 text-sm leading-6 text-muted-foreground">
@@ -273,8 +280,8 @@ export default function MethodologyPage() {
             </div>
           </div>
           <div className="mt-8 flex flex-wrap gap-3">
-            <Link href="/#matrix" className="inline-flex h-11 items-center bg-mega-blue px-5 font-mono text-xs uppercase tracking-wider text-white hover:bg-mega-blue-text">Browse all 20 builds</Link>
-            <Link href="/specs/01" className="inline-flex h-11 items-center border border-border bg-black px-5 font-mono text-xs uppercase tracking-wider hover:border-mega-blue-text">Open first deep dive</Link>
+            <Link href="/#matrix" className="inline-flex h-11 items-center bg-foreground px-5 font-mono text-xs uppercase tracking-wider text-background hover:opacity-90">Browse all 20 builds</Link>
+            <Link href="/specs/01" className="inline-flex h-11 items-center border border-border bg-black px-5 font-mono text-xs uppercase tracking-wider hover:border-border">Open first deep dive</Link>
           </div>
         </div>
       </section>

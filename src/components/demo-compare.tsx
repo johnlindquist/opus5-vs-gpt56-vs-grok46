@@ -1,6 +1,7 @@
 import { ExternalLink, Play } from "lucide-react";
 import { ProviderMark } from "@/components/provider-result";
 import {
+  PROVIDER_COLOR,
   PROVIDER_ORDER,
   PROVIDER_SHORT,
   artifactFailed,
@@ -30,7 +31,11 @@ export function DemoCompare({ spec }: { spec: SpecRow }) {
             : null;
           const failed = artifactFailed(spec, provider);
           return (
-            <article key={provider} className="overflow-hidden border border-border bg-card">
+            <article
+              key={provider}
+              className="overflow-hidden border border-border bg-card transition-colors hover:border-border/80"
+              style={{ borderTop: `3px solid ${PROVIDER_COLOR[provider]}` }}
+            >
               <div className="flex h-12 items-center justify-between border-b border-border px-4">
                 <ProviderMark provider={provider} />
                 {launchUrl && (
@@ -55,7 +60,7 @@ export function DemoCompare({ spec }: { spec: SpecRow }) {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={`Open ${spec.title} by ${PROVIDER_SHORT[provider]} in a new tab`}
-                  className="group relative block aspect-[16/10] overflow-hidden bg-[#080808] outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-mega-blue-text"
+                  className="group relative block aspect-[16/10] overflow-hidden bg-[#080808] outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-foreground"
                 >
                   <img
                     src={`/previews/${spec.cells[provider].cell_id}.webp`}
@@ -76,7 +81,7 @@ export function DemoCompare({ spec }: { spec: SpecRow }) {
                         Open artifact
                       </p>
                     </div>
-                    <span className="grid size-9 shrink-0 place-items-center border border-white/40 bg-black/50 text-white transition-colors group-hover:border-mega-blue group-hover:bg-mega-blue group-focus-visible:border-mega-blue group-focus-visible:bg-mega-blue">
+                    <span className="grid size-9 shrink-0 place-items-center border border-white/40 bg-black/50 text-white transition-colors group-hover:border-foreground group-hover:bg-foreground group-hover:text-background">
                       <ExternalLink className="size-4" />
                     </span>
                   </div>

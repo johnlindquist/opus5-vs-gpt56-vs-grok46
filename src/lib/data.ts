@@ -229,9 +229,9 @@ export const COMPARABLE_PROVIDER_ORDER: ComparableProviderKey[] = ["claude", "gr
 export const SPEED_COMPARABLE_ORDER: ProviderKey[] = ["claude", "codex"];
 
 export const PROVIDER_COLOR: Record<ProviderKey, string> = {
-  claude: "#7a7aff",
-  grok: "#4ade80",
-  codex: "#fafafa",
+  claude: "#D97757", // Anthropic Claude Coral / Warm Terracotta
+  grok: "#818CF8",   // xAI Grok Electric Indigo / Cyber Blue
+  codex: "#10A37F",  // OpenAI Emerald / Teal
 };
 
 export const PROVIDER_SHORT: Record<ProviderKey, string> = {

@@ -3,9 +3,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ArrowUpRight, ImageOff, MousePointer2 } from "lucide-react";
+import { ProviderMark } from "@/components/provider-icon";
+import { PROVIDER_COLOR } from "@/lib/data";
 import { RunThisPrompt } from "@/components/run-this-prompt";
 import {
-  PROVIDER_COLOR,
   eraLabel,
   specById,
   type ShowcaseItem,
@@ -55,7 +56,7 @@ function ShowcaseCard({
         ) : (
           <div className="showcase-fallback absolute inset-0 grid place-items-center p-6 text-center">
             <div className="max-w-sm">
-              <ImageOff className="mx-auto size-6 text-mega-blue-text" aria-hidden="true" />
+              <ImageOff className="mx-auto size-6 text-foreground" aria-hidden="true" />
               <p className="mt-4 font-mono text-xs font-semibold uppercase tracking-wider text-foreground">
                 Preview capture pending
               </p>
@@ -87,12 +88,8 @@ function ShowcaseCard({
       <div className={`flex flex-1 flex-col ${featured ? "p-5 sm:p-6" : "p-4 sm:p-5"}`}>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-            <span
-              className="size-2"
-              style={{ backgroundColor: PROVIDER_COLOR[item.provider] }}
-              aria-hidden="true"
-            />
-            {item.provider_label} · {item.label}
+            <ProviderMark provider={item.provider} compact />
+            <span>· {item.label}</span>
           </div>
           <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
             {eraLabel(item.era)} · {item.kind}
@@ -104,9 +101,9 @@ function ShowcaseCard({
         <div className="mt-auto flex items-end justify-between gap-4 pt-6">
           <div>
             <div className="mega-label">Blind triad score</div>
-            <div className="mt-1 font-mono text-2xl font-semibold tabular-nums">{item.score}</div>
+            <div className="mt-1 font-mono text-2xl font-bold tabular-nums" style={{ color: PROVIDER_COLOR[item.provider] }}>{item.score}</div>
           </div>
-          <span className="inline-flex items-center gap-2 font-mono text-[10px] font-semibold uppercase tracking-wider text-mega-blue-text transition-colors group-hover:text-white">
+          <span className="inline-flex items-center gap-2 font-mono text-[10px] font-semibold uppercase tracking-wider text-foreground transition-colors group-hover:text-white">
             Open deep dive <ArrowUpRight className="size-3.5" aria-hidden="true" />
           </span>
         </div>
@@ -131,7 +128,7 @@ export function DemoShowcase({ items }: DemoShowcaseProps) {
       <div className="mx-auto max-w-[1600px] px-4 py-14 sm:px-6 lg:px-8 lg:py-20">
         <div className="grid gap-7 lg:grid-cols-[.72fr_1.28fr] lg:items-end">
           <div>
-            <div className="mega-label mb-3 text-mega-blue-text">Artifact signal · before the charts</div>
+            <div className="mega-label mb-3 text-foreground">Artifact signal · before the charts</div>
             <h2 id="showcase-heading" className="pixel-heading text-3xl font-semibold sm:text-5xl">
               Twenty briefs became real products.
             </h2>
@@ -143,7 +140,7 @@ export function DemoShowcase({ items }: DemoShowcaseProps) {
               artifact and links to the exact receipted spec deep dive.
             </p>
             <div className="mt-4 flex items-center gap-2 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-              <MousePointer2 className="size-3.5 text-mega-blue-text" aria-hidden="true" />
+              <MousePointer2 className="size-3.5 text-foreground" aria-hidden="true" />
               No submitted code loads or runs in this gallery
             </div>
           </div>
@@ -178,7 +175,7 @@ export function DemoShowcase({ items }: DemoShowcaseProps) {
         ) : (
           <div className="showcase-fallback mt-9 grid min-h-72 place-items-center border border-border p-8 text-center">
             <div>
-              <ImageOff className="mx-auto size-6 text-mega-blue-text" aria-hidden="true" />
+              <ImageOff className="mx-auto size-6 text-foreground" aria-hidden="true" />
               <p className="mt-4 font-mono text-xs uppercase tracking-wider text-muted-foreground">
                 Exported showcase metadata is unavailable
               </p>

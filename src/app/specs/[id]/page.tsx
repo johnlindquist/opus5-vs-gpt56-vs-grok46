@@ -14,15 +14,14 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { RubricChart } from "@/components/battle-charts";
 import { DemoCompare } from "@/components/demo-compare";
+import { PairwiseMark, WinnerMark } from "@/components/provider-icon";
 import { ProviderGradeCard, ProviderMark } from "@/components/provider-result";
 import { RunThisPrompt } from "@/components/run-this-prompt";
 import {
   PROVIDER_ORDER,
-  PROVIDER_SHORT,
   data,
   eraLabel,
   formatDuration,
-  type ProviderKey,
 } from "@/lib/data";
 
 export function generateStaticParams() {
@@ -43,11 +42,6 @@ export async function generateMetadata({
   };
 }
 
-function pairWinner(value: string) {
-  if (value === "tie") return { label: "Tie", color: "#a6a6af" };
-  const provider = value as ProviderKey;
-  return { label: PROVIDER_SHORT[provider], color: provider === "claude" ? "#7a7aff" : provider === "grok" ? "#4ade80" : "#fafafa" };
-}
 
 export default async function SpecPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -56,8 +50,6 @@ export default async function SpecPage({ params }: { params: Promise<{ id: strin
   const spec = data.specs[specIndex];
   const previous = data.specs[specIndex - 1];
   const next = data.specs[specIndex + 1];
-  const claudeGrok = pairWinner(spec.pairwise.claude_vs_grok);
-  const grokCodex = pairWinner(spec.pairwise.grok_vs_codex);
 
   return (
     <>
@@ -78,15 +70,17 @@ export default async function SpecPage({ params }: { params: Promise<{ id: strin
             </div>
             <div className="grid min-w-[300px] grid-cols-2 border border-border bg-black">
               <div className="border-r border-border p-4">
-                <div className="mega-label">Opus vs Grok</div>
-                <div className="mt-2 flex items-center gap-2 font-mono text-sm" style={{ color: claudeGrok.color }}>
-                  <Trophy className="size-4" /> {claudeGrok.label}
+                <div className="mega-label"><PairwiseMark left="claude" right="grok" /></div>
+                <div className="mt-2 flex items-center gap-2 font-mono text-sm">
+                  <Trophy className="size-4 text-muted-foreground" />
+                  <WinnerMark value={spec.pairwise.claude_vs_grok} />
                 </div>
               </div>
               <div className="p-4">
-                <div className="mega-label">Grok vs Sol</div>
-                <div className="mt-2 flex items-center gap-2 font-mono text-sm" style={{ color: grokCodex.color }}>
-                  <Trophy className="size-4" /> {grokCodex.label}
+                <div className="mega-label"><PairwiseMark left="grok" right="codex" /></div>
+                <div className="mt-2 flex items-center gap-2 font-mono text-sm">
+                  <Trophy className="size-4 text-muted-foreground" />
+                  <WinnerMark value={spec.pairwise.grok_vs_codex} />
                 </div>
               </div>
             </div>
