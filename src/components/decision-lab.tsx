@@ -3,7 +3,6 @@
 import { useMemo, useState, type CSSProperties } from "react";
 import {
   BadgeDollarSign,
-  ChevronDown,
   Gauge,
   Scale,
   Sparkles,
@@ -343,32 +342,6 @@ export function DecisionLab({ metrics }: DecisionLabProps) {
                 </div>
               </div>
             )}
-            <div className="mt-4 border border-border bg-black p-4">
-              <div className="mega-label">Recorded session totals · all three enter the time ranking</div>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                Each total is the sum of twenty session runtimes recorded in the benchmark receipts.
-              </p>
-              <dl className="mt-4 grid gap-3 sm:grid-cols-3">
-                {PROVIDER_ORDER.map((provider) => {
-                  const aggregate = metrics.providers[provider];
-                  return (
-                    <div key={provider} className="border border-border bg-card p-3">
-                      <dt className="mega-label">
-                        <ProviderMark provider={provider} compact />
-                        {" · in time ranking"}
-                      </dt>
-                      <dd className="mt-2 font-mono text-sm tabular-nums whitespace-nowrap">
-                        {formatRawValue("speed", aggregate.total_duration_seconds)}
-                      </dd>
-                      <dd className="mt-1 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                        {aggregate.duration_receipts}/{aggregate.artifact_count} session receipts
-                      </dd>
-                    </div>
-                  );
-                })}
-              </dl>
-            </div>
-
             <div className="mt-4 border-l-2 border-border bg-black p-4" aria-live="polite">
               {leader && leader.score !== null ? (
                 <p className="text-sm leading-6">
@@ -385,12 +358,14 @@ export function DecisionLab({ metrics }: DecisionLabProps) {
               )}
             </div>
 
-            <details className="group mt-6 border border-border bg-black">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-4 font-mono text-xs uppercase tracking-wider outline-none hover:bg-surface-1 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-mega-blue-text/50">
-                Exact inputs, normalization, and contributions
-                <ChevronDown className="size-4 transition-transform group-open:rotate-180" aria-hidden="true" />
-              </summary>
-              <div className="border-t border-border p-4 sm:p-5">
+            <div className="mt-6 border border-border bg-black">
+              <div className="border-b border-border p-4">
+                <div className="mega-label">Overall Summary</div>
+                <h3 className="mt-1 text-sm font-semibold text-foreground">
+                  Exact inputs, normalization, and contributions
+                </h3>
+              </div>
+              <div className="p-4 sm:p-5">
                 <div className="overflow-x-auto">
                   <table className="w-full min-w-[760px] border-collapse text-left text-xs">
                     <caption className="sr-only">
@@ -474,7 +449,7 @@ export function DecisionLab({ metrics }: DecisionLabProps) {
                   Sources: {metrics.generated_from.quality}; {metrics.generated_from.canonical_cells}; {metrics.generated_from.grok_projection}.
                 </p>
               </div>
-            </details>
+            </div>
           </div>
         </div>
 
