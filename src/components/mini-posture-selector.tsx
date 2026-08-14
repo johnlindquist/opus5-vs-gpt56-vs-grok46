@@ -364,7 +364,7 @@ export function GlobalPostureBanner() {
           <span className="flex items-center gap-1.5 font-mono text-[11px] font-semibold text-foreground uppercase tracking-wider">
             <Sliders className="size-3 text-mega-blue-text" /> Active Posture:
           </span>
-          <span className="font-mono text-xs font-bold text-foreground">
+          <span className="font-mono text-xs font-bold text-foreground tabular-nums inline-block min-w-[125px]">
             {displayName}
           </span>
           <PostureWeightBar className="h-1.5 w-12" />

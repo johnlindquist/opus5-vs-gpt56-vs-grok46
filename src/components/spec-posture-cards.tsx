@@ -31,8 +31,7 @@ export function SpecPostureCards({ spec }: { spec: SpecRow }) {
             Three artifacts, one review context.
           </h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            Scored under active posture:{" "}
-            <strong className="text-foreground">{displayName}</strong> [{displayBadge}]
+            Three artifacts evaluated blind in a single review context and scored under active posture weights.
           </p>
         </div>
 

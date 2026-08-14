@@ -46,8 +46,7 @@ export function HeadToHeadArena() {
               Head-to-head match-ups.
             </h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              Direct head-to-head records across all twenty specifications, calculated under your active{" "}
-              <strong className="text-foreground">{displayName}</strong> posture [{displayBadge}].
+              Direct head-to-head records across all twenty specifications calculated under active posture weights.
             </p>
           </div>
 
@@ -120,7 +119,7 @@ export function HeadToHeadArena() {
             </div>
 
             <p className="mt-4 text-xs leading-5 text-muted-foreground min-h-[40px]">
-              Direct match-up outcomes calculated by weighting quality, speed, and cost under the {displayName} posture.
+              Direct match-up outcomes calculated by weighting quality, speed, and cost under active posture weights.
             </p>
           </Card>
 
@@ -186,7 +185,7 @@ export function HeadToHeadArena() {
             </div>
 
             <p className="mt-4 text-xs leading-5 text-muted-foreground min-h-[40px]">
-              Direct match-up outcomes calculated by weighting quality, speed, and cost under the {displayName} posture.
+              Direct match-up outcomes calculated by weighting quality, speed, and cost under active posture weights.
             </p>
           </Card>
 
@@ -252,7 +251,7 @@ export function HeadToHeadArena() {
             </div>
 
             <p className="mt-4 text-xs leading-5 text-muted-foreground min-h-[40px]">
-              Direct match-up outcomes calculated by weighting quality, speed, and cost under the {displayName} posture.
+              Direct match-up outcomes calculated by weighting quality, speed, and cost under active posture weights.
             </p>
           </Card>
         </div>

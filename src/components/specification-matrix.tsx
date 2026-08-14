@@ -65,8 +65,7 @@ export function SpecificationMatrix({ specs }: { specs: SpecRow[] }) {
             Compare all 20 builds side-by-side.
           </h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            Every specification scored across Quality, Duration, and Cost under your active{" "}
-            <strong className="text-foreground">{displayName}</strong> posture ({displayBadge}). Click any column header or sort option to reorder the benchmark directory.
+            Every specification scored across Quality, Duration, and Cost under active posture weights. Click any column header or sort option to reorder the benchmark directory.
           </p>
         </div>
 
