@@ -187,8 +187,8 @@ export function DecisionLab({ metrics }: DecisionLabProps) {
           </p>
         </div>
 
-        <div className="mt-10 grid gap-px border border-border bg-border xl:grid-cols-[minmax(0,.9fr)_minmax(0,1.1fr)]">
-          <div className="bg-black p-5 sm:p-7 lg:p-8">
+        <div className="mt-10 grid gap-px border border-border bg-border xl:grid-cols-[minmax(0,.9fr)_minmax(0,1.1fr)] min-w-0">
+          <div className="bg-black p-5 sm:p-7 lg:p-8 min-w-0">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
                 <div className="mega-label">01 · Choose a posture</div>
@@ -293,7 +293,7 @@ export function DecisionLab({ metrics }: DecisionLabProps) {
             )}
           </div>
 
-          <div className="bg-card p-5 sm:p-7 lg:p-8">
+          <div className="bg-card p-5 sm:p-7 lg:p-8 min-w-0">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
                 <div className="mega-label">02 · Read the recomputed result</div>
@@ -429,8 +429,8 @@ export function DecisionLab({ metrics }: DecisionLabProps) {
           </div>
         </div>
 
-        <div className="mt-10 grid gap-6 xl:grid-cols-[1.15fr_.85fr]">
-          <div>
+        <div className="mt-10 grid gap-6 xl:grid-cols-[1.15fr_.85fr] min-w-0">
+          <div className="min-w-0">
             <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
               <div>
                 <div className="mega-label">Three-provider quality context</div>
@@ -480,7 +480,7 @@ export function DecisionLab({ metrics }: DecisionLabProps) {
             </div>
           </div>
 
-          <aside className="border border-border bg-black p-5 sm:p-6" aria-labelledby="decision-limits-heading">
+          <aside className="border border-border bg-black p-5 sm:p-6 min-w-0" aria-labelledby="decision-limits-heading">
             <div className="mega-label">Comparability scope</div>
             <h3 id="decision-limits-heading" className="mt-2 text-xl font-semibold">
               Comparability & scope boundaries.

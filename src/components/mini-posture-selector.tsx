@@ -360,20 +360,19 @@ export function GlobalPostureBanner() {
   return (
     <div className="border-b border-border/80 bg-black/90 px-4 py-2.5">
       <div className="mx-auto flex max-w-[1600px] flex-wrap items-center justify-between gap-3 text-xs">
-        <div className="flex items-center gap-3">
-          <span className="flex items-center gap-1.5 font-mono text-[11px] font-semibold text-foreground uppercase tracking-wider">
+        <div className="flex flex-wrap items-center gap-2.5 min-w-0">
+          <span className="flex items-center gap-1.5 font-mono text-[11px] font-semibold text-foreground uppercase tracking-wider shrink-0">
             <Sliders className="size-3 text-mega-blue-text" /> Posture:
           </span>
 
           <PostureWeightBar className="h-1.5 w-12 shrink-0" />
 
-          {/* Quick presets buttons — placed immediately after the static label and weight bar so they NEVER shift */}
-          <div className="flex items-center gap-1">
+          {/* Quick presets buttons */}
+          <div className="flex flex-wrap items-center gap-1">
             {POSTURE_PRESETS.map((p) => {
               const active = activePresetId === p.id;
               return (
                 <button
-                  key={p.id}
                   type="button"
                   onClick={() => selectPreset(p)}
                   className={`border px-2.5 py-0.5 font-mono text-[10px] uppercase transition-colors ${
