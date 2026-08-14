@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-08-14T17:46:39.049Z",
+ "generated_at": "2026-08-14T18:06:06.687Z",
  "providers": {
   "claude": {
    "label": "Claude Opus 5",
@@ -608,7 +608,22 @@
      "cost_source": "provider-receipt",
      "output_tokens": 143548,
      "canonical_score": 96,
-     "canonical_letter": "A"
+     "canonical_letter": "A",
+     "launch": {
+      "argv_receipt": "runs/01-signal-garden/claude-b2/attempt-1/argv.json",
+      "command": "claude",
+      "display": "claude -p \"$(cat specs/01-signal-garden.md)\" --model claude-opus-5 --effort medium --safe-mode --dangerously-skip-permissions --output-format stream-json --verbose --session-id c0eaeb17-b879-4cfa-b81c-3cf524b691df",
+      "substitutions": [
+       {
+        "token": "\"$(cat specs/01-signal-garden.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "specs/01-signal-garden.md"
+       }
+      ],
+      "session_id": "c0eaeb17-b879-4cfa-b81c-3cf524b691df",
+      "spec_path": "specs/01-signal-garden.md",
+      "prompt_sha256": "200454a63a8d28b665ec9add9937002344471e31618df6edd862cc5ecddebcee"
+     }
     },
     "codex": {
      "cell_id": "01-codex-b2",
@@ -619,7 +634,32 @@
      "cost_source": "openai-gpt-5.6-sol-standard-short-2026-07-27",
      "output_tokens": 19649,
      "canonical_score": 83,
-     "canonical_letter": "B"
+     "canonical_letter": "B",
+     "launch": {
+      "argv_receipt": "runs/01-signal-garden/codex-b2/attempt-1/argv.json",
+      "command": "codex",
+      "display": "CODEX_HOME=\"$ROOT/state/codex-home\" codex exec --dangerously-bypass-approvals-and-sandbox -m gpt-5.6-sol -c 'model_reasoning_effort=\"medium\"' -C $WORKSPACE \"$(cat specs/01-signal-garden.md)\"",
+      "substitutions": [
+       {
+        "token": "$WORKSPACE",
+        "kind": "portable_workspace_path",
+        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/runs/01-signal-garden/codex-b2/attempt-1/workspace"
+       },
+       {
+        "token": "\"$(cat specs/01-signal-garden.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "specs/01-signal-garden.md"
+       },
+       {
+        "token": "CODEX_HOME=\"$ROOT/state/codex-home\"",
+        "kind": "portable_archive_path",
+        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/state/codex-home"
+       }
+      ],
+      "session_id": null,
+      "spec_path": "specs/01-signal-garden.md",
+      "prompt_sha256": "200454a63a8d28b665ec9add9937002344471e31618df6edd862cc5ecddebcee"
+     }
     },
     "grok": {
      "cell_id": "01-grok-g",
@@ -631,7 +671,22 @@
      "reported_model": "Cursor Grok 4.6 Medium",
      "cost_usd": "0.818452",
      "cost_source": "cursor-grok-4.6-list-rate-equivalent",
-     "output_tokens": 33313
+     "output_tokens": 33313,
+     "launch": {
+      "argv_receipt": "runs/01-signal-garden/grok/attempt-1/argv.json",
+      "command": "cursor-agent",
+      "display": "cursor-agent --print --output-format stream-json --model cursor-grok-4.6-medium --force --trust --sandbox disabled \"$(cat specs/01-signal-garden.md)\"",
+      "substitutions": [
+       {
+        "token": "\"$(cat specs/01-signal-garden.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "specs/01-signal-garden.md"
+       }
+      ],
+      "session_id": null,
+      "spec_path": "specs/01-signal-garden.md",
+      "prompt_sha256": "200454a63a8d28b665ec9add9937002344471e31618df6edd862cc5ecddebcee"
+     }
     }
    },
    "demos": {
@@ -746,7 +801,22 @@
      "cost_source": "provider-receipt",
      "output_tokens": 139923,
      "canonical_score": 95,
-     "canonical_letter": "A"
+     "canonical_letter": "A",
+     "launch": {
+      "argv_receipt": "runs/02-gravity-atelier/claude-b2/attempt-1/argv.json",
+      "command": "claude",
+      "display": "claude -p \"$(cat specs/02-gravity-atelier.md)\" --model claude-opus-5 --effort medium --safe-mode --dangerously-skip-permissions --output-format stream-json --verbose --session-id c5e281b7-dd59-4d50-9816-e0d639781f85",
+      "substitutions": [
+       {
+        "token": "\"$(cat specs/02-gravity-atelier.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "specs/02-gravity-atelier.md"
+       }
+      ],
+      "session_id": "c5e281b7-dd59-4d50-9816-e0d639781f85",
+      "spec_path": "specs/02-gravity-atelier.md",
+      "prompt_sha256": "1492ebae891b3d2e0dd445337bc1f59657ee2569a48a31f4aca055827ef18827"
+     }
     },
     "codex": {
      "cell_id": "02-codex-b2",
@@ -757,7 +827,32 @@
      "cost_source": "openai-gpt-5.6-sol-standard-short-2026-07-27",
      "output_tokens": 24678,
      "canonical_score": 81,
-     "canonical_letter": "B-"
+     "canonical_letter": "B-",
+     "launch": {
+      "argv_receipt": "runs/02-gravity-atelier/codex-b2/attempt-1/argv.json",
+      "command": "codex",
+      "display": "CODEX_HOME=\"$ROOT/state/codex-home\" codex exec --dangerously-bypass-approvals-and-sandbox -m gpt-5.6-sol -c 'model_reasoning_effort=\"medium\"' -C $WORKSPACE \"$(cat specs/02-gravity-atelier.md)\"",
+      "substitutions": [
+       {
+        "token": "$WORKSPACE",
+        "kind": "portable_workspace_path",
+        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/runs/02-gravity-atelier/codex-b2/attempt-1/workspace"
+       },
+       {
+        "token": "\"$(cat specs/02-gravity-atelier.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "specs/02-gravity-atelier.md"
+       },
+       {
+        "token": "CODEX_HOME=\"$ROOT/state/codex-home\"",
+        "kind": "portable_archive_path",
+        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/state/codex-home"
+       }
+      ],
+      "session_id": null,
+      "spec_path": "specs/02-gravity-atelier.md",
+      "prompt_sha256": "1492ebae891b3d2e0dd445337bc1f59657ee2569a48a31f4aca055827ef18827"
+     }
     },
     "grok": {
      "cell_id": "02-grok-g",
@@ -769,7 +864,22 @@
      "reported_model": "Cursor Grok 4.6 Medium",
      "cost_usd": "1.145972",
      "cost_source": "cursor-grok-4.6-list-rate-equivalent",
-     "output_tokens": 41943
+     "output_tokens": 41943,
+     "launch": {
+      "argv_receipt": "runs/02-gravity-atelier/grok/attempt-1/argv.json",
+      "command": "cursor-agent",
+      "display": "cursor-agent --print --output-format stream-json --model cursor-grok-4.6-medium --force --trust --sandbox disabled \"$(cat specs/02-gravity-atelier.md)\"",
+      "substitutions": [
+       {
+        "token": "\"$(cat specs/02-gravity-atelier.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "specs/02-gravity-atelier.md"
+       }
+      ],
+      "session_id": null,
+      "spec_path": "specs/02-gravity-atelier.md",
+      "prompt_sha256": "1492ebae891b3d2e0dd445337bc1f59657ee2569a48a31f4aca055827ef18827"
+     }
     }
    },
    "demos": {
@@ -885,7 +995,22 @@
      "cost_source": "provider-receipt",
      "output_tokens": 133307,
      "canonical_score": 89,
-     "canonical_letter": "B+"
+     "canonical_letter": "B+",
+     "launch": {
+      "argv_receipt": "runs/03-neon-courier/claude/attempt-1/argv.json",
+      "command": "claude",
+      "display": "claude -p \"$(cat specs/03-neon-courier.md)\" --model claude-opus-5 --effort medium --safe-mode --dangerously-skip-permissions --output-format stream-json --verbose --session-id f2cf7ab7-2161-4019-9b63-f8f052365d69",
+      "substitutions": [
+       {
+        "token": "\"$(cat specs/03-neon-courier.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "specs/03-neon-courier.md"
+       }
+      ],
+      "session_id": "f2cf7ab7-2161-4019-9b63-f8f052365d69",
+      "spec_path": "specs/03-neon-courier.md",
+      "prompt_sha256": "f32007fe94569775b9ff4c7ebe3904bf994f5c1d8312e8dd898f18dabf52ffea"
+     }
     },
     "codex": {
      "cell_id": "03-codex",
@@ -896,7 +1021,32 @@
      "cost_source": "openai-gpt-5.6-sol-standard-short-2026-07-27",
      "output_tokens": 16761,
      "canonical_score": 74,
-     "canonical_letter": "C"
+     "canonical_letter": "C",
+     "launch": {
+      "argv_receipt": "runs/03-neon-courier/codex/attempt-1/argv.json",
+      "command": "codex",
+      "display": "CODEX_HOME=\"$ROOT/state/codex-home\" codex exec --dangerously-bypass-approvals-and-sandbox -m gpt-5.6-sol -c 'model_reasoning_effort=\"medium\"' -C $WORKSPACE \"$(cat specs/03-neon-courier.md)\"",
+      "substitutions": [
+       {
+        "token": "$WORKSPACE",
+        "kind": "portable_workspace_path",
+        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/runs/03-neon-courier/codex/attempt-1/workspace"
+       },
+       {
+        "token": "\"$(cat specs/03-neon-courier.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "specs/03-neon-courier.md"
+       },
+       {
+        "token": "CODEX_HOME=\"$ROOT/state/codex-home\"",
+        "kind": "portable_archive_path",
+        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/state/codex-home"
+       }
+      ],
+      "session_id": null,
+      "spec_path": "specs/03-neon-courier.md",
+      "prompt_sha256": "f32007fe94569775b9ff4c7ebe3904bf994f5c1d8312e8dd898f18dabf52ffea"
+     }
     },
     "grok": {
      "cell_id": "03-grok-g",
@@ -908,7 +1058,22 @@
      "reported_model": "Cursor Grok 4.6 Medium",
      "cost_usd": "0.855652",
      "cost_source": "cursor-grok-4.6-list-rate-equivalent",
-     "output_tokens": 37612
+     "output_tokens": 37612,
+     "launch": {
+      "argv_receipt": "runs/03-neon-courier/grok/attempt-1/argv.json",
+      "command": "cursor-agent",
+      "display": "cursor-agent --print --output-format stream-json --model cursor-grok-4.6-medium --force --trust --sandbox disabled \"$(cat specs/03-neon-courier.md)\"",
+      "substitutions": [
+       {
+        "token": "\"$(cat specs/03-neon-courier.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "specs/03-neon-courier.md"
+       }
+      ],
+      "session_id": null,
+      "spec_path": "specs/03-neon-courier.md",
+      "prompt_sha256": "f32007fe94569775b9ff4c7ebe3904bf994f5c1d8312e8dd898f18dabf52ffea"
+     }
     }
    },
    "demos": {
@@ -1023,7 +1188,22 @@
      "cost_source": "provider-receipt",
      "output_tokens": 93477,
      "canonical_score": 93,
-     "canonical_letter": "A"
+     "canonical_letter": "A",
+     "launch": {
+      "argv_receipt": "runs/04-weather-diorama/claude-b3p/attempt-1/argv.json",
+      "command": "claude",
+      "display": "claude -p \"$(cat specs/04-weather-diorama.md)\" --model claude-opus-5 --effort medium --safe-mode --dangerously-skip-permissions --output-format stream-json --verbose --session-id 9ce55959-b349-407f-8bb8-64d421eb7b25",
+      "substitutions": [
+       {
+        "token": "\"$(cat specs/04-weather-diorama.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "specs/04-weather-diorama.md"
+       }
+      ],
+      "session_id": "9ce55959-b349-407f-8bb8-64d421eb7b25",
+      "spec_path": "specs/04-weather-diorama.md",
+      "prompt_sha256": "99f0e3ffb2d789b5de3a8a2bb38dbd80a0791d240f08000a0c2dbdeb4387c04f"
+     }
     },
     "codex": {
      "cell_id": "04-codex-b3p",
@@ -1034,7 +1214,32 @@
      "cost_source": "openai-gpt-5.6-sol-standard-short-2026-07-27",
      "output_tokens": 6341,
      "canonical_score": 83,
-     "canonical_letter": "B"
+     "canonical_letter": "B",
+     "launch": {
+      "argv_receipt": "runs/04-weather-diorama/codex-b3p/attempt-1/argv.json",
+      "command": "codex",
+      "display": "CODEX_HOME=\"$ROOT/state/codex-home\" codex exec --dangerously-bypass-approvals-and-sandbox -m gpt-5.6-sol -c 'model_reasoning_effort=\"medium\"' -C $WORKSPACE \"$(cat specs/04-weather-diorama.md)\"",
+      "substitutions": [
+       {
+        "token": "$WORKSPACE",
+        "kind": "portable_workspace_path",
+        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/runs/04-weather-diorama/codex-b3p/attempt-1/workspace"
+       },
+       {
+        "token": "\"$(cat specs/04-weather-diorama.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "specs/04-weather-diorama.md"
+       },
+       {
+        "token": "CODEX_HOME=\"$ROOT/state/codex-home\"",
+        "kind": "portable_archive_path",
+        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/state/codex-home"
+       }
+      ],
+      "session_id": null,
+      "spec_path": "specs/04-weather-diorama.md",
+      "prompt_sha256": "99f0e3ffb2d789b5de3a8a2bb38dbd80a0791d240f08000a0c2dbdeb4387c04f"
+     }
     },
     "grok": {
      "cell_id": "04-grok-g",
@@ -1046,7 +1251,22 @@
      "reported_model": "Cursor Grok 4.6 Medium",
      "cost_usd": "0.836146",
      "cost_source": "cursor-grok-4.6-list-rate-equivalent",
-     "output_tokens": 39083
+     "output_tokens": 39083,
+     "launch": {
+      "argv_receipt": "runs/04-weather-diorama/grok/attempt-1/argv.json",
+      "command": "cursor-agent",
+      "display": "cursor-agent --print --output-format stream-json --model cursor-grok-4.6-medium --force --trust --sandbox disabled \"$(cat specs/04-weather-diorama.md)\"",
+      "substitutions": [
+       {
+        "token": "\"$(cat specs/04-weather-diorama.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "specs/04-weather-diorama.md"
+       }
+      ],
+      "session_id": null,
+      "spec_path": "specs/04-weather-diorama.md",
+      "prompt_sha256": "99f0e3ffb2d789b5de3a8a2bb38dbd80a0791d240f08000a0c2dbdeb4387c04f"
+     }
     }
    },
    "demos": {
@@ -1161,7 +1381,22 @@
      "cost_source": "provider-receipt",
      "output_tokens": 111233,
      "canonical_score": 91,
-     "canonical_letter": "A-"
+     "canonical_letter": "A-",
+     "launch": {
+      "argv_receipt": "runs/05-lightweaver/claude-b3p/attempt-1/argv.json",
+      "command": "claude",
+      "display": "claude -p \"$(cat specs/05-lightweaver.md)\" --model claude-opus-5 --effort medium --safe-mode --dangerously-skip-permissions --output-format stream-json --verbose --session-id deef8d9a-89ac-4111-9886-8b2ea0fea7d3",
+      "substitutions": [
+       {
+        "token": "\"$(cat specs/05-lightweaver.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "specs/05-lightweaver.md"
+       }
+      ],
+      "session_id": "deef8d9a-89ac-4111-9886-8b2ea0fea7d3",
+      "spec_path": "specs/05-lightweaver.md",
+      "prompt_sha256": "d9888b54f8035665cb7446ba70ef910df42c6b2625bf900d2f2a048b8af121e9"
+     }
     },
     "codex": {
      "cell_id": "05-codex-b3p",
@@ -1172,7 +1407,32 @@
      "cost_source": "openai-gpt-5.6-sol-standard-short-2026-07-27",
      "output_tokens": 24019,
      "canonical_score": 86,
-     "canonical_letter": "B"
+     "canonical_letter": "B",
+     "launch": {
+      "argv_receipt": "runs/05-lightweaver/codex-b3p/attempt-1/argv.json",
+      "command": "codex",
+      "display": "CODEX_HOME=\"$ROOT/state/codex-home\" codex exec --dangerously-bypass-approvals-and-sandbox -m gpt-5.6-sol -c 'model_reasoning_effort=\"medium\"' -C $WORKSPACE \"$(cat specs/05-lightweaver.md)\"",
+      "substitutions": [
+       {
+        "token": "$WORKSPACE",
+        "kind": "portable_workspace_path",
+        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/runs/05-lightweaver/codex-b3p/attempt-1/workspace"
+       },
+       {
+        "token": "\"$(cat specs/05-lightweaver.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "specs/05-lightweaver.md"
+       },
+       {
+        "token": "CODEX_HOME=\"$ROOT/state/codex-home\"",
+        "kind": "portable_archive_path",
+        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/state/codex-home"
+       }
+      ],
+      "session_id": null,
+      "spec_path": "specs/05-lightweaver.md",
+      "prompt_sha256": "d9888b54f8035665cb7446ba70ef910df42c6b2625bf900d2f2a048b8af121e9"
+     }
     },
     "grok": {
      "cell_id": "05-grok-g",
@@ -1184,7 +1444,22 @@
      "reported_model": "Cursor Grok 4.6 Medium",
      "cost_usd": "2.031708",
      "cost_source": "cursor-grok-4.6-list-rate-equivalent",
-     "output_tokens": 54402
+     "output_tokens": 54402,
+     "launch": {
+      "argv_receipt": "runs/05-lightweaver/grok/attempt-1/argv.json",
+      "command": "cursor-agent",
+      "display": "cursor-agent --print --output-format stream-json --model cursor-grok-4.6-medium --force --trust --sandbox disabled \"$(cat specs/05-lightweaver.md)\"",
+      "substitutions": [
+       {
+        "token": "\"$(cat specs/05-lightweaver.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "specs/05-lightweaver.md"
+       }
+      ],
+      "session_id": null,
+      "spec_path": "specs/05-lightweaver.md",
+      "prompt_sha256": "d9888b54f8035665cb7446ba70ef910df42c6b2625bf900d2f2a048b8af121e9"
+     }
     }
    },
    "demos": {
@@ -1299,7 +1574,22 @@
      "cost_source": "provider-receipt",
      "output_tokens": 186152,
      "canonical_score": 91,
-     "canonical_letter": "A-"
+     "canonical_letter": "A-",
+     "launch": {
+      "argv_receipt": "runs/06-sand-alchemist/claude-b3p/attempt-1/argv.json",
+      "command": "claude",
+      "display": "claude -p \"$(cat specs/06-sand-alchemist.md)\" --model claude-opus-5 --effort medium --safe-mode --dangerously-skip-permissions --output-format stream-json --verbose --session-id 480d3a1b-93b9-4b6f-9928-bf101c5a7609",
+      "substitutions": [
+       {
+        "token": "\"$(cat specs/06-sand-alchemist.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "specs/06-sand-alchemist.md"
+       }
+      ],
+      "session_id": "480d3a1b-93b9-4b6f-9928-bf101c5a7609",
+      "spec_path": "specs/06-sand-alchemist.md",
+      "prompt_sha256": "bc3f340e654b9ba37224b76f6d70cb3780213017bb97b354b5be6058bd7e8e33"
+     }
     },
     "codex": {
      "cell_id": "06-codex-b3p",
@@ -1310,7 +1600,32 @@
      "cost_source": "openai-gpt-5.6-sol-standard-short-2026-07-27",
      "output_tokens": 18082,
      "canonical_score": 73,
-     "canonical_letter": "C"
+     "canonical_letter": "C",
+     "launch": {
+      "argv_receipt": "runs/06-sand-alchemist/codex-b3p/attempt-1/argv.json",
+      "command": "codex",
+      "display": "CODEX_HOME=\"$ROOT/state/codex-home\" codex exec --dangerously-bypass-approvals-and-sandbox -m gpt-5.6-sol -c 'model_reasoning_effort=\"medium\"' -C $WORKSPACE \"$(cat specs/06-sand-alchemist.md)\"",
+      "substitutions": [
+       {
+        "token": "$WORKSPACE",
+        "kind": "portable_workspace_path",
+        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/runs/06-sand-alchemist/codex-b3p/attempt-1/workspace"
+       },
+       {
+        "token": "\"$(cat specs/06-sand-alchemist.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "specs/06-sand-alchemist.md"
+       },
+       {
+        "token": "CODEX_HOME=\"$ROOT/state/codex-home\"",
+        "kind": "portable_archive_path",
+        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/state/codex-home"
+       }
+      ],
+      "session_id": null,
+      "spec_path": "specs/06-sand-alchemist.md",
+      "prompt_sha256": "bc3f340e654b9ba37224b76f6d70cb3780213017bb97b354b5be6058bd7e8e33"
+     }
     },
     "grok": {
      "cell_id": "06-grok-g",
@@ -1322,7 +1637,22 @@
      "reported_model": "Cursor Grok 4.6 Medium",
      "cost_usd": "1.518512",
      "cost_source": "cursor-grok-4.6-list-rate-equivalent",
-     "output_tokens": 43689
+     "output_tokens": 43689,
+     "launch": {
+      "argv_receipt": "runs/06-sand-alchemist/grok/attempt-1/argv.json",
+      "command": "cursor-agent",
+      "display": "cursor-agent --print --output-format stream-json --model cursor-grok-4.6-medium --force --trust --sandbox disabled \"$(cat specs/06-sand-alchemist.md)\"",
+      "substitutions": [
+       {
+        "token": "\"$(cat specs/06-sand-alchemist.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "specs/06-sand-alchemist.md"
+       }
+      ],
+      "session_id": null,
+      "spec_path": "specs/06-sand-alchemist.md",
+      "prompt_sha256": "bc3f340e654b9ba37224b76f6d70cb3780213017bb97b354b5be6058bd7e8e33"
+     }
     }
    },
    "demos": {
@@ -1437,7 +1767,22 @@
      "cost_source": "provider-receipt",
      "output_tokens": 89409,
      "canonical_score": 96,
-     "canonical_letter": "A"
+     "canonical_letter": "A",
+     "launch": {
+      "argv_receipt": "runs/07-kinetic-poster/claude-b3p/attempt-1/argv.json",
+      "command": "claude",
+      "display": "claude -p \"$(cat specs/07-kinetic-poster.md)\" --model claude-opus-5 --effort medium --safe-mode --dangerously-skip-permissions --output-format stream-json --verbose --session-id a98966b8-2cd7-4d4c-b03e-b276bb469163",
+      "substitutions": [
+       {
+        "token": "\"$(cat specs/07-kinetic-poster.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "specs/07-kinetic-poster.md"
+       }
+      ],
+      "session_id": "a98966b8-2cd7-4d4c-b03e-b276bb469163",
+      "spec_path": "specs/07-kinetic-poster.md",
+      "prompt_sha256": "bc51369df5876fdb445ccf84dbf4480b9bb23a8b66d83bd0f44e0be19ed1d9b7"
+     }
     },
     "codex": {
      "cell_id": "07-codex-b3p",
@@ -1448,7 +1793,32 @@
      "cost_source": "openai-gpt-5.6-sol-standard-short-2026-07-27",
      "output_tokens": 20888,
      "canonical_score": 83,
-     "canonical_letter": "B"
+     "canonical_letter": "B",
+     "launch": {
+      "argv_receipt": "runs/07-kinetic-poster/codex-b3p/attempt-1/argv.json",
+      "command": "codex",
+      "display": "CODEX_HOME=\"$ROOT/state/codex-home\" codex exec --dangerously-bypass-approvals-and-sandbox -m gpt-5.6-sol -c 'model_reasoning_effort=\"medium\"' -C $WORKSPACE \"$(cat specs/07-kinetic-poster.md)\"",
+      "substitutions": [
+       {
+        "token": "$WORKSPACE",
+        "kind": "portable_workspace_path",
+        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/runs/07-kinetic-poster/codex-b3p/attempt-1/workspace"
+       },
+       {
+        "token": "\"$(cat specs/07-kinetic-poster.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "specs/07-kinetic-poster.md"
+       },
+       {
+        "token": "CODEX_HOME=\"$ROOT/state/codex-home\"",
+        "kind": "portable_archive_path",
+        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/state/codex-home"
+       }
+      ],
+      "session_id": null,
+      "spec_path": "specs/07-kinetic-poster.md",
+      "prompt_sha256": "bc51369df5876fdb445ccf84dbf4480b9bb23a8b66d83bd0f44e0be19ed1d9b7"
+     }
     },
     "grok": {
      "cell_id": "07-grok-g",
@@ -1460,7 +1830,22 @@
      "reported_model": "Cursor Grok 4.6 Medium",
      "cost_usd": "0.692642",
      "cost_source": "cursor-grok-4.6-list-rate-equivalent",
-     "output_tokens": 21315
+     "output_tokens": 21315,
+     "launch": {
+      "argv_receipt": "runs/07-kinetic-poster/grok/attempt-1/argv.json",
+      "command": "cursor-agent",
+      "display": "cursor-agent --print --output-format stream-json --model cursor-grok-4.6-medium --force --trust --sandbox disabled \"$(cat specs/07-kinetic-poster.md)\"",
+      "substitutions": [
+       {
+        "token": "\"$(cat specs/07-kinetic-poster.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "specs/07-kinetic-poster.md"
+       }
+      ],
+      "session_id": null,
+      "spec_path": "specs/07-kinetic-poster.md",
+      "prompt_sha256": "bc51369df5876fdb445ccf84dbf4480b9bb23a8b66d83bd0f44e0be19ed1d9b7"
+     }
     }
    },
    "demos": {
@@ -1576,7 +1961,22 @@
      "cost_source": "provider-receipt",
      "output_tokens": 53750,
      "canonical_score": 91,
-     "canonical_letter": "A-"
+     "canonical_letter": "A-",
+     "launch": {
+      "argv_receipt": "runs/08-trace-sheriff/claude-b2/attempt-1/argv.json",
+      "command": "claude",
+      "display": "claude -p \"$(cat specs/08-trace-sheriff.md)\" --model claude-opus-5 --effort medium --safe-mode --dangerously-skip-permissions --output-format stream-json --verbose --session-id d7ac446d-c7bc-4b8c-b7b7-9ad9309247b4",
+      "substitutions": [
+       {
+        "token": "\"$(cat specs/08-trace-sheriff.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "specs/08-trace-sheriff.md"
+       }
+      ],
+      "session_id": "d7ac446d-c7bc-4b8c-b7b7-9ad9309247b4",
+      "spec_path": "specs/08-trace-sheriff.md",
+      "prompt_sha256": "587efa3a01aafd611ee1cc8b7b6ad4b3828d7bb1788da038d0197e053613fb1a"
+     }
     },
     "codex": {
      "cell_id": "08-codex-b2",
@@ -1587,7 +1987,32 @@
      "cost_source": "openai-gpt-5.6-sol-standard-short-2026-07-27",
      "output_tokens": 17709,
      "canonical_score": 89,
-     "canonical_letter": "B+"
+     "canonical_letter": "B+",
+     "launch": {
+      "argv_receipt": "runs/08-trace-sheriff/codex-b2/attempt-1/argv.json",
+      "command": "codex",
+      "display": "CODEX_HOME=\"$ROOT/state/codex-home\" codex exec --dangerously-bypass-approvals-and-sandbox -m gpt-5.6-sol -c 'model_reasoning_effort=\"medium\"' -C $WORKSPACE \"$(cat specs/08-trace-sheriff.md)\"",
+      "substitutions": [
+       {
+        "token": "$WORKSPACE",
+        "kind": "portable_workspace_path",
+        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/runs/08-trace-sheriff/codex-b2/attempt-1/workspace"
+       },
+       {
+        "token": "\"$(cat specs/08-trace-sheriff.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "specs/08-trace-sheriff.md"
+       },
+       {
+        "token": "CODEX_HOME=\"$ROOT/state/codex-home\"",
+        "kind": "portable_archive_path",
+        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/state/codex-home"
+       }
+      ],
+      "session_id": null,
+      "spec_path": "specs/08-trace-sheriff.md",
+      "prompt_sha256": "587efa3a01aafd611ee1cc8b7b6ad4b3828d7bb1788da038d0197e053613fb1a"
+     }
     },
     "grok": {
      "cell_id": "08-grok-g",
@@ -1599,7 +2024,22 @@
      "reported_model": "Cursor Grok 4.6 Medium",
      "cost_usd": "0.785902",
      "cost_source": "cursor-grok-4.6-list-rate-equivalent",
-     "output_tokens": 25370
+     "output_tokens": 25370,
+     "launch": {
+      "argv_receipt": "runs/08-trace-sheriff/grok/attempt-1/argv.json",
+      "command": "cursor-agent",
+      "display": "cursor-agent --print --output-format stream-json --model cursor-grok-4.6-medium --force --trust --sandbox disabled \"$(cat specs/08-trace-sheriff.md)\"",
+      "substitutions": [
+       {
+        "token": "\"$(cat specs/08-trace-sheriff.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "specs/08-trace-sheriff.md"
+       }
+      ],
+      "session_id": null,
+      "spec_path": "specs/08-trace-sheriff.md",
+      "prompt_sha256": "587efa3a01aafd611ee1cc8b7b6ad4b3828d7bb1788da038d0197e053613fb1a"
+     }
     }
    },
    "demos": {
@@ -1715,7 +2155,22 @@
      "cost_source": "provider-receipt",
      "output_tokens": 87591,
      "canonical_score": 89,
-     "canonical_letter": "B+"
+     "canonical_letter": "B+",
+     "launch": {
+      "argv_receipt": "runs/09-latency-forensics/claude/attempt-1/argv.json",
+      "command": "claude",
+      "display": "claude -p \"$(cat specs/09-latency-forensics.md)\" --model claude-opus-5 --effort medium --safe-mode --dangerously-skip-permissions --output-format stream-json --verbose --session-id d5b8860d-108f-467b-8068-aacf02e63e73",
+      "substitutions": [
+       {
+        "token": "\"$(cat specs/09-latency-forensics.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "specs/09-latency-forensics.md"
+       }
+      ],
+      "session_id": "d5b8860d-108f-467b-8068-aacf02e63e73",
+      "spec_path": "specs/09-latency-forensics.md",
+      "prompt_sha256": "7f8718fe51a90bcb15e1543f2d7481fc2091fad21647859eaff7840afab283e7"
+     }
     },
     "codex": {
      "cell_id": "09-codex",
@@ -1726,7 +2181,32 @@
      "cost_source": "openai-gpt-5.6-sol-standard-short-2026-07-27",
      "output_tokens": 18641,
      "canonical_score": 90,
-     "canonical_letter": "A-"
+     "canonical_letter": "A-",
+     "launch": {
+      "argv_receipt": "runs/09-latency-forensics/codex/attempt-1/argv.json",
+      "command": "codex",
+      "display": "CODEX_HOME=\"$ROOT/state/codex-home\" codex exec --dangerously-bypass-approvals-and-sandbox -m gpt-5.6-sol -c 'model_reasoning_effort=\"medium\"' -C $WORKSPACE \"$(cat specs/09-latency-forensics.md)\"",
+      "substitutions": [
+       {
+        "token": "$WORKSPACE",
+        "kind": "portable_workspace_path",
+        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/runs/09-latency-forensics/codex/attempt-1/workspace"
+       },
+       {
+        "token": "\"$(cat specs/09-latency-forensics.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "specs/09-latency-forensics.md"
+       },
+       {
+        "token": "CODEX_HOME=\"$ROOT/state/codex-home\"",
+        "kind": "portable_archive_path",
+        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/state/codex-home"
+       }
+      ],
+      "session_id": null,
+      "spec_path": "specs/09-latency-forensics.md",
+      "prompt_sha256": "7f8718fe51a90bcb15e1543f2d7481fc2091fad21647859eaff7840afab283e7"
+     }
     },
     "grok": {
      "cell_id": "09-grok-g",
@@ -1738,7 +2218,22 @@
      "reported_model": "Cursor Grok 4.6 Medium",
      "cost_usd": "0.662372",
      "cost_source": "cursor-grok-4.6-list-rate-equivalent",
-     "output_tokens": 21343
+     "output_tokens": 21343,
+     "launch": {
+      "argv_receipt": "runs/09-latency-forensics/grok/attempt-1/argv.json",
+      "command": "cursor-agent",
+      "display": "cursor-agent --print --output-format stream-json --model cursor-grok-4.6-medium --force --trust --sandbox disabled \"$(cat specs/09-latency-forensics.md)\"",
+      "substitutions": [
+       {
+        "token": "\"$(cat specs/09-latency-forensics.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "specs/09-latency-forensics.md"
+       }
+      ],
+      "session_id": null,
+      "spec_path": "specs/09-latency-forensics.md",
+      "prompt_sha256": "7f8718fe51a90bcb15e1543f2d7481fc2091fad21647859eaff7840afab283e7"
+     }
     }
    },
    "demos": {
@@ -1853,7 +2348,22 @@
      "cost_source": "provider-receipt",
      "output_tokens": 101229,
      "canonical_score": 88,
-     "canonical_letter": "B+"
+     "canonical_letter": "B+",
+     "launch": {
+      "argv_receipt": "runs/10-haunted-queue/claude/attempt-1/argv.json",
+      "command": "claude",
+      "display": "claude -p \"$(cat specs/10-haunted-queue.md)\" --model claude-opus-5 --effort medium --safe-mode --dangerously-skip-permissions --output-format stream-json --verbose --session-id 45622929-ab7b-40e5-bdd2-2e54c43f55f9",
+      "substitutions": [
+       {
+        "token": "\"$(cat specs/10-haunted-queue.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "specs/10-haunted-queue.md"
+       }
+      ],
+      "session_id": "45622929-ab7b-40e5-bdd2-2e54c43f55f9",
+      "spec_path": "specs/10-haunted-queue.md",
+      "prompt_sha256": "eb7d50eb894d9807bd8a9fdfd6ba8e0e0347a98dcd02cb8167401e479b383a6c"
+     }
     },
     "codex": {
      "cell_id": "10-codex",
@@ -1864,7 +2374,32 @@
      "cost_source": "openai-gpt-5.6-sol-standard-short-2026-07-27",
      "output_tokens": 18431,
      "canonical_score": 85,
-     "canonical_letter": "B"
+     "canonical_letter": "B",
+     "launch": {
+      "argv_receipt": "runs/10-haunted-queue/codex/attempt-1/argv.json",
+      "command": "codex",
+      "display": "CODEX_HOME=\"$ROOT/state/codex-home\" codex exec --dangerously-bypass-approvals-and-sandbox -m gpt-5.6-sol -c 'model_reasoning_effort=\"medium\"' -C $WORKSPACE \"$(cat specs/10-haunted-queue.md)\"",
+      "substitutions": [
+       {
+        "token": "$WORKSPACE",
+        "kind": "portable_workspace_path",
+        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/runs/10-haunted-queue/codex/attempt-1/workspace"
+       },
+       {
+        "token": "\"$(cat specs/10-haunted-queue.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "specs/10-haunted-queue.md"
+       },
+       {
+        "token": "CODEX_HOME=\"$ROOT/state/codex-home\"",
+        "kind": "portable_archive_path",
+        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/state/codex-home"
+       }
+      ],
+      "session_id": null,
+      "spec_path": "specs/10-haunted-queue.md",
+      "prompt_sha256": "eb7d50eb894d9807bd8a9fdfd6ba8e0e0347a98dcd02cb8167401e479b383a6c"
+     }
     },
     "grok": {
      "cell_id": "10-grok-g",
@@ -1876,7 +2411,22 @@
      "reported_model": "Cursor Grok 4.6 Medium",
      "cost_usd": "0.557582",
      "cost_source": "cursor-grok-4.6-list-rate-equivalent",
-     "output_tokens": 26219
+     "output_tokens": 26219,
+     "launch": {
+      "argv_receipt": "runs/10-haunted-queue/grok/attempt-1/argv.json",
+      "command": "cursor-agent",
+      "display": "cursor-agent --print --output-format stream-json --model cursor-grok-4.6-medium --force --trust --sandbox disabled \"$(cat specs/10-haunted-queue.md)\"",
+      "substitutions": [
+       {
+        "token": "\"$(cat specs/10-haunted-queue.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "specs/10-haunted-queue.md"
+       }
+      ],
+      "session_id": null,
+      "spec_path": "specs/10-haunted-queue.md",
+      "prompt_sha256": "eb7d50eb894d9807bd8a9fdfd6ba8e0e0347a98dcd02cb8167401e479b383a6c"
+     }
     }
    },
    "demos": {
@@ -1997,7 +2547,22 @@
      "cost_source": "provider-receipt",
      "output_tokens": 192162,
      "canonical_score": 94,
-     "canonical_letter": "A"
+     "canonical_letter": "A",
+     "launch": {
+      "argv_receipt": "runs/11-aperture/claude-dmod/attempt-1/argv.json",
+      "command": "claude",
+      "display": "claude -p \"$(cat verification/specs/11-aperture.md)\" --model claude-opus-5 --effort medium --safe-mode --dangerously-skip-permissions --output-format stream-json --verbose --session-id be4871e3-86bf-4760-983d-a56d707c05da",
+      "substitutions": [
+       {
+        "token": "\"$(cat verification/specs/11-aperture.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "verification/specs/11-aperture.md"
+       }
+      ],
+      "session_id": "be4871e3-86bf-4760-983d-a56d707c05da",
+      "spec_path": "verification/specs/11-aperture.md",
+      "prompt_sha256": "112ad934da4bc8943b7c722ae69ae42fe18b7f8dcd7a24da56a1166acb240977"
+     }
     },
     "codex": {
      "cell_id": "11-codex-dmod",
@@ -2008,7 +2573,32 @@
      "cost_source": "openai-gpt-5.6-sol-standard-short-2026-07-27",
      "output_tokens": 37891,
      "canonical_score": 78,
-     "canonical_letter": "C+"
+     "canonical_letter": "C+",
+     "launch": {
+      "argv_receipt": "runs/11-aperture/codex-dmod/attempt-1/argv.json",
+      "command": "codex",
+      "display": "CODEX_HOME=\"$ROOT/state/codex-home\" codex exec --dangerously-bypass-approvals-and-sandbox -m gpt-5.6-sol -c 'model_reasoning_effort=\"medium\"' -C $WORKSPACE \"$(cat verification/specs/11-aperture.md)\"",
+      "substitutions": [
+       {
+        "token": "$WORKSPACE",
+        "kind": "portable_workspace_path",
+        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/runs/11-aperture/codex-dmod/attempt-1/workspace"
+       },
+       {
+        "token": "\"$(cat verification/specs/11-aperture.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "verification/specs/11-aperture.md"
+       },
+       {
+        "token": "CODEX_HOME=\"$ROOT/state/codex-home\"",
+        "kind": "portable_archive_path",
+        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/state/codex-home"
+       }
+      ],
+      "session_id": null,
+      "spec_path": "verification/specs/11-aperture.md",
+      "prompt_sha256": "112ad934da4bc8943b7c722ae69ae42fe18b7f8dcd7a24da56a1166acb240977"
+     }
     },
     "grok": {
      "cell_id": "11-grok-g",
@@ -2020,7 +2610,22 @@
      "reported_model": "Cursor Grok 4.6 Medium",
      "cost_usd": "1.918664",
      "cost_source": "cursor-grok-4.6-list-rate-equivalent",
-     "output_tokens": 57004
+     "output_tokens": 57004,
+     "launch": {
+      "argv_receipt": "runs/11-aperture/grok/attempt-1/argv.json",
+      "command": "cursor-agent",
+      "display": "cursor-agent --print --output-format stream-json --model cursor-grok-4.6-medium --force --trust --sandbox disabled \"$(cat verification/specs/11-aperture.md)\"",
+      "substitutions": [
+       {
+        "token": "\"$(cat verification/specs/11-aperture.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "verification/specs/11-aperture.md"
+       }
+      ],
+      "session_id": null,
+      "spec_path": "verification/specs/11-aperture.md",
+      "prompt_sha256": "112ad934da4bc8943b7c722ae69ae42fe18b7f8dcd7a24da56a1166acb240977"
+     }
     }
    },
    "demos": {
@@ -2142,7 +2747,22 @@
      "cost_source": "provider-receipt",
      "output_tokens": 296026,
      "canonical_score": 95,
-     "canonical_letter": "A"
+     "canonical_letter": "A",
+     "launch": {
+      "argv_receipt": "runs/12-prism-foundry/claude-dmod/attempt-1/argv.json",
+      "command": "claude",
+      "display": "claude -p \"$(cat verification/specs/12-prism-foundry.md)\" --model claude-opus-5 --effort medium --safe-mode --dangerously-skip-permissions --output-format stream-json --verbose --session-id 6658afc0-d52f-4760-bb15-b1d558a256e3",
+      "substitutions": [
+       {
+        "token": "\"$(cat verification/specs/12-prism-foundry.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "verification/specs/12-prism-foundry.md"
+       }
+      ],
+      "session_id": "6658afc0-d52f-4760-bb15-b1d558a256e3",
+      "spec_path": "verification/specs/12-prism-foundry.md",
+      "prompt_sha256": "a68c737dbb5e7b1c2e3cefcde8a02aa9adca4a37c862dd2d693b169e55f792de"
+     }
     },
     "codex": {
      "cell_id": "12-codex-dmod",
@@ -2153,7 +2773,32 @@
      "cost_source": "openai-gpt-5.6-sol-standard-short-2026-07-27",
      "output_tokens": 43302,
      "canonical_score": 71,
-     "canonical_letter": "C-"
+     "canonical_letter": "C-",
+     "launch": {
+      "argv_receipt": "runs/12-prism-foundry/codex-dmod/attempt-1/argv.json",
+      "command": "codex",
+      "display": "CODEX_HOME=\"$ROOT/state/codex-home\" codex exec --dangerously-bypass-approvals-and-sandbox -m gpt-5.6-sol -c 'model_reasoning_effort=\"medium\"' -C $WORKSPACE \"$(cat verification/specs/12-prism-foundry.md)\"",
+      "substitutions": [
+       {
+        "token": "$WORKSPACE",
+        "kind": "portable_workspace_path",
+        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/runs/12-prism-foundry/codex-dmod/attempt-1/workspace"
+       },
+       {
+        "token": "\"$(cat verification/specs/12-prism-foundry.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "verification/specs/12-prism-foundry.md"
+       },
+       {
+        "token": "CODEX_HOME=\"$ROOT/state/codex-home\"",
+        "kind": "portable_archive_path",
+        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/state/codex-home"
+       }
+      ],
+      "session_id": null,
+      "spec_path": "verification/specs/12-prism-foundry.md",
+      "prompt_sha256": "a68c737dbb5e7b1c2e3cefcde8a02aa9adca4a37c862dd2d693b169e55f792de"
+     }
     },
     "grok": {
      "cell_id": "12-grok-g",
@@ -2165,7 +2810,22 @@
      "reported_model": "Cursor Grok 4.6 Medium",
      "cost_usd": "2.697026",
      "cost_source": "cursor-grok-4.6-list-rate-equivalent",
-     "output_tokens": 72537
+     "output_tokens": 72537,
+     "launch": {
+      "argv_receipt": "runs/12-prism-foundry/grok/attempt-1/argv.json",
+      "command": "cursor-agent",
+      "display": "cursor-agent --print --output-format stream-json --model cursor-grok-4.6-medium --force --trust --sandbox disabled \"$(cat verification/specs/12-prism-foundry.md)\"",
+      "substitutions": [
+       {
+        "token": "\"$(cat verification/specs/12-prism-foundry.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "verification/specs/12-prism-foundry.md"
+       }
+      ],
+      "session_id": null,
+      "spec_path": "verification/specs/12-prism-foundry.md",
+      "prompt_sha256": "a68c737dbb5e7b1c2e3cefcde8a02aa9adca4a37c862dd2d693b169e55f792de"
+     }
     }
    },
    "demos": {
@@ -2287,7 +2947,22 @@
      "cost_source": "provider-receipt",
      "output_tokens": 249860,
      "canonical_score": 88,
-     "canonical_letter": "B+"
+     "canonical_letter": "B+",
+     "launch": {
+      "argv_receipt": "runs/13-morphic-desk/claude-dmod/attempt-1/argv.json",
+      "command": "claude",
+      "display": "claude -p \"$(cat verification/specs/13-morphic-desk.md)\" --model claude-opus-5 --effort medium --safe-mode --dangerously-skip-permissions --output-format stream-json --verbose --session-id 71134519-071d-41cc-8bf5-4d97a42003f5",
+      "substitutions": [
+       {
+        "token": "\"$(cat verification/specs/13-morphic-desk.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "verification/specs/13-morphic-desk.md"
+       }
+      ],
+      "session_id": "71134519-071d-41cc-8bf5-4d97a42003f5",
+      "spec_path": "verification/specs/13-morphic-desk.md",
+      "prompt_sha256": "c88a132e4a59958f809e648747e1db4d23411b4240e5a95a4657e65683b20f74"
+     }
     },
     "codex": {
      "cell_id": "13-codex-dmod",
@@ -2298,7 +2973,32 @@
      "cost_source": "openai-gpt-5.6-sol-standard-short-2026-07-27",
      "output_tokens": 33552,
      "canonical_score": 67,
-     "canonical_letter": "D+"
+     "canonical_letter": "D+",
+     "launch": {
+      "argv_receipt": "runs/13-morphic-desk/codex-dmod/attempt-1/argv.json",
+      "command": "codex",
+      "display": "CODEX_HOME=\"$ROOT/state/codex-home\" codex exec --dangerously-bypass-approvals-and-sandbox -m gpt-5.6-sol -c 'model_reasoning_effort=\"medium\"' -C $WORKSPACE \"$(cat verification/specs/13-morphic-desk.md)\"",
+      "substitutions": [
+       {
+        "token": "$WORKSPACE",
+        "kind": "portable_workspace_path",
+        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/runs/13-morphic-desk/codex-dmod/attempt-1/workspace"
+       },
+       {
+        "token": "\"$(cat verification/specs/13-morphic-desk.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "verification/specs/13-morphic-desk.md"
+       },
+       {
+        "token": "CODEX_HOME=\"$ROOT/state/codex-home\"",
+        "kind": "portable_archive_path",
+        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/state/codex-home"
+       }
+      ],
+      "session_id": null,
+      "spec_path": "verification/specs/13-morphic-desk.md",
+      "prompt_sha256": "c88a132e4a59958f809e648747e1db4d23411b4240e5a95a4657e65683b20f74"
+     }
     },
     "grok": {
      "cell_id": "13-grok-g",
@@ -2310,7 +3010,22 @@
      "reported_model": "Cursor Grok 4.6 Medium",
      "cost_usd": "2.617178",
      "cost_source": "cursor-grok-4.6-list-rate-equivalent",
-     "output_tokens": 73364
+     "output_tokens": 73364,
+     "launch": {
+      "argv_receipt": "runs/13-morphic-desk/grok/attempt-1/argv.json",
+      "command": "cursor-agent",
+      "display": "cursor-agent --print --output-format stream-json --model cursor-grok-4.6-medium --force --trust --sandbox disabled \"$(cat verification/specs/13-morphic-desk.md)\"",
+      "substitutions": [
+       {
+        "token": "\"$(cat verification/specs/13-morphic-desk.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "verification/specs/13-morphic-desk.md"
+       }
+      ],
+      "session_id": null,
+      "spec_path": "verification/specs/13-morphic-desk.md",
+      "prompt_sha256": "c88a132e4a59958f809e648747e1db4d23411b4240e5a95a4657e65683b20f74"
+     }
     }
    },
    "demos": {
@@ -2432,7 +3147,22 @@
      "cost_source": "provider-receipt",
      "output_tokens": 180716,
      "canonical_score": 93,
-     "canonical_letter": "A"
+     "canonical_letter": "A",
+     "launch": {
+      "argv_receipt": "runs/14-glyphwave/claude-dmod/attempt-1/argv.json",
+      "command": "claude",
+      "display": "claude -p \"$(cat verification/specs/14-glyphwave.md)\" --model claude-opus-5 --effort medium --safe-mode --dangerously-skip-permissions --output-format stream-json --verbose --session-id 1d6f13bd-cdf7-4675-9d83-dd77397a981e",
+      "substitutions": [
+       {
+        "token": "\"$(cat verification/specs/14-glyphwave.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "verification/specs/14-glyphwave.md"
+       }
+      ],
+      "session_id": "1d6f13bd-cdf7-4675-9d83-dd77397a981e",
+      "spec_path": "verification/specs/14-glyphwave.md",
+      "prompt_sha256": "ebd1138ca14bbff571f9bf2ca3601977c957ba60b6035d829158437abf470610"
+     }
     },
     "codex": {
      "cell_id": "14-codex-dmod",
@@ -2443,7 +3173,32 @@
      "cost_source": "openai-gpt-5.6-sol-standard-short-2026-07-27",
      "output_tokens": 28174,
      "canonical_score": 83,
-     "canonical_letter": "B"
+     "canonical_letter": "B",
+     "launch": {
+      "argv_receipt": "runs/14-glyphwave/codex-dmod/attempt-1/argv.json",
+      "command": "codex",
+      "display": "CODEX_HOME=\"$ROOT/state/codex-home\" codex exec --dangerously-bypass-approvals-and-sandbox -m gpt-5.6-sol -c 'model_reasoning_effort=\"medium\"' -C $WORKSPACE \"$(cat verification/specs/14-glyphwave.md)\"",
+      "substitutions": [
+       {
+        "token": "$WORKSPACE",
+        "kind": "portable_workspace_path",
+        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/runs/14-glyphwave/codex-dmod/attempt-1/workspace"
+       },
+       {
+        "token": "\"$(cat verification/specs/14-glyphwave.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "verification/specs/14-glyphwave.md"
+       },
+       {
+        "token": "CODEX_HOME=\"$ROOT/state/codex-home\"",
+        "kind": "portable_archive_path",
+        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/state/codex-home"
+       }
+      ],
+      "session_id": null,
+      "spec_path": "verification/specs/14-glyphwave.md",
+      "prompt_sha256": "ebd1138ca14bbff571f9bf2ca3601977c957ba60b6035d829158437abf470610"
+     }
     },
     "grok": {
      "cell_id": "14-grok-g",
@@ -2455,7 +3210,22 @@
      "reported_model": "Cursor Grok 4.6 Medium",
      "cost_usd": "2.241332",
      "cost_source": "cursor-grok-4.6-list-rate-equivalent",
-     "output_tokens": 56813
+     "output_tokens": 56813,
+     "launch": {
+      "argv_receipt": "runs/14-glyphwave/grok/attempt-1/argv.json",
+      "command": "cursor-agent",
+      "display": "cursor-agent --print --output-format stream-json --model cursor-grok-4.6-medium --force --trust --sandbox disabled \"$(cat verification/specs/14-glyphwave.md)\"",
+      "substitutions": [
+       {
+        "token": "\"$(cat verification/specs/14-glyphwave.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "verification/specs/14-glyphwave.md"
+       }
+      ],
+      "session_id": null,
+      "spec_path": "verification/specs/14-glyphwave.md",
+      "prompt_sha256": "ebd1138ca14bbff571f9bf2ca3601977c957ba60b6035d829158437abf470610"
+     }
     }
    },
    "demos": {
@@ -2577,7 +3347,22 @@
      "cost_source": "provider-receipt",
      "output_tokens": 198168,
      "canonical_score": 94,
-     "canonical_letter": "A"
+     "canonical_letter": "A",
+     "launch": {
+      "argv_receipt": "runs/15-orbit-archive/claude-dmod/attempt-1/argv.json",
+      "command": "claude",
+      "display": "claude -p \"$(cat verification/specs/15-orbit-archive.md)\" --model claude-opus-5 --effort medium --safe-mode --dangerously-skip-permissions --output-format stream-json --verbose --session-id 8b3ffd13-8922-47e8-9623-15054f0c2b7d",
+      "substitutions": [
+       {
+        "token": "\"$(cat verification/specs/15-orbit-archive.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "verification/specs/15-orbit-archive.md"
+       }
+      ],
+      "session_id": "8b3ffd13-8922-47e8-9623-15054f0c2b7d",
+      "spec_path": "verification/specs/15-orbit-archive.md",
+      "prompt_sha256": "191a4e86dddc7fdff8a9d2a57971ee4080ad4d3018dddcc569726c0d7673c1d5"
+     }
     },
     "codex": {
      "cell_id": "15-codex-dmod",
@@ -2588,7 +3373,32 @@
      "cost_source": "openai-gpt-5.6-sol-standard-short-2026-07-27",
      "output_tokens": 39766,
      "canonical_score": 76,
-     "canonical_letter": "C"
+     "canonical_letter": "C",
+     "launch": {
+      "argv_receipt": "runs/15-orbit-archive/codex-dmod/attempt-1/argv.json",
+      "command": "codex",
+      "display": "CODEX_HOME=\"$ROOT/state/codex-home\" codex exec --dangerously-bypass-approvals-and-sandbox -m gpt-5.6-sol -c 'model_reasoning_effort=\"medium\"' -C $WORKSPACE \"$(cat verification/specs/15-orbit-archive.md)\"",
+      "substitutions": [
+       {
+        "token": "$WORKSPACE",
+        "kind": "portable_workspace_path",
+        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/runs/15-orbit-archive/codex-dmod/attempt-1/workspace"
+       },
+       {
+        "token": "\"$(cat verification/specs/15-orbit-archive.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "verification/specs/15-orbit-archive.md"
+       },
+       {
+        "token": "CODEX_HOME=\"$ROOT/state/codex-home\"",
+        "kind": "portable_archive_path",
+        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/state/codex-home"
+       }
+      ],
+      "session_id": null,
+      "spec_path": "verification/specs/15-orbit-archive.md",
+      "prompt_sha256": "191a4e86dddc7fdff8a9d2a57971ee4080ad4d3018dddcc569726c0d7673c1d5"
+     }
     },
     "grok": {
      "cell_id": "15-grok-g",
@@ -2600,7 +3410,22 @@
      "reported_model": "Cursor Grok 4.6 Medium",
      "cost_usd": "2.317506",
      "cost_source": "cursor-grok-4.6-list-rate-equivalent",
-     "output_tokens": 59169
+     "output_tokens": 59169,
+     "launch": {
+      "argv_receipt": "runs/15-orbit-archive/grok/attempt-1/argv.json",
+      "command": "cursor-agent",
+      "display": "cursor-agent --print --output-format stream-json --model cursor-grok-4.6-medium --force --trust --sandbox disabled \"$(cat verification/specs/15-orbit-archive.md)\"",
+      "substitutions": [
+       {
+        "token": "\"$(cat verification/specs/15-orbit-archive.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "verification/specs/15-orbit-archive.md"
+       }
+      ],
+      "session_id": null,
+      "spec_path": "verification/specs/15-orbit-archive.md",
+      "prompt_sha256": "191a4e86dddc7fdff8a9d2a57971ee4080ad4d3018dddcc569726c0d7673c1d5"
+     }
     }
    },
    "demos": {
@@ -2722,7 +3547,22 @@
      "cost_source": "provider-receipt",
      "output_tokens": 185066,
      "canonical_score": 91,
-     "canonical_letter": "A-"
+     "canonical_letter": "A-",
+     "launch": {
+      "argv_receipt": "runs/16-relay/claude-dmod/attempt-1/argv.json",
+      "command": "claude",
+      "display": "claude -p \"$(cat verification/specs/16-relay.md)\" --model claude-opus-5 --effort medium --safe-mode --dangerously-skip-permissions --output-format stream-json --verbose --session-id a6ef5108-8020-41b6-9bd8-4ef848c5587a",
+      "substitutions": [
+       {
+        "token": "\"$(cat verification/specs/16-relay.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "verification/specs/16-relay.md"
+       }
+      ],
+      "session_id": "a6ef5108-8020-41b6-9bd8-4ef848c5587a",
+      "spec_path": "verification/specs/16-relay.md",
+      "prompt_sha256": "bf55dcb8fbfb96d746c4d36714362922db3c778f4e1a425d9dd3a8a1b5eea413"
+     }
     },
     "codex": {
      "cell_id": "16-codex-dmod",
@@ -2733,7 +3573,32 @@
      "cost_source": "openai-gpt-5.6-sol-standard-short-2026-07-27",
      "output_tokens": 45094,
      "canonical_score": 75,
-     "canonical_letter": "C"
+     "canonical_letter": "C",
+     "launch": {
+      "argv_receipt": "runs/16-relay/codex-dmod/attempt-1/argv.json",
+      "command": "codex",
+      "display": "CODEX_HOME=\"$ROOT/state/codex-home\" codex exec --dangerously-bypass-approvals-and-sandbox -m gpt-5.6-sol -c 'model_reasoning_effort=\"medium\"' -C $WORKSPACE \"$(cat verification/specs/16-relay.md)\"",
+      "substitutions": [
+       {
+        "token": "$WORKSPACE",
+        "kind": "portable_workspace_path",
+        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/runs/16-relay/codex-dmod/attempt-1/workspace"
+       },
+       {
+        "token": "\"$(cat verification/specs/16-relay.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "verification/specs/16-relay.md"
+       },
+       {
+        "token": "CODEX_HOME=\"$ROOT/state/codex-home\"",
+        "kind": "portable_archive_path",
+        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/state/codex-home"
+       }
+      ],
+      "session_id": null,
+      "spec_path": "verification/specs/16-relay.md",
+      "prompt_sha256": "bf55dcb8fbfb96d746c4d36714362922db3c778f4e1a425d9dd3a8a1b5eea413"
+     }
     },
     "grok": {
      "cell_id": "16-grok-g",
@@ -2745,7 +3610,22 @@
      "reported_model": "Cursor Grok 4.6 Medium",
      "cost_usd": "2.493858",
      "cost_source": "cursor-grok-4.6-list-rate-equivalent",
-     "output_tokens": 67623
+     "output_tokens": 67623,
+     "launch": {
+      "argv_receipt": "runs/16-relay/grok/attempt-1/argv.json",
+      "command": "cursor-agent",
+      "display": "cursor-agent --print --output-format stream-json --model cursor-grok-4.6-medium --force --trust --sandbox disabled \"$(cat verification/specs/16-relay.md)\"",
+      "substitutions": [
+       {
+        "token": "\"$(cat verification/specs/16-relay.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "verification/specs/16-relay.md"
+       }
+      ],
+      "session_id": null,
+      "spec_path": "verification/specs/16-relay.md",
+      "prompt_sha256": "bf55dcb8fbfb96d746c4d36714362922db3c778f4e1a425d9dd3a8a1b5eea413"
+     }
     }
    },
    "demos": {
@@ -2867,7 +3747,22 @@
      "cost_source": "provider-receipt",
      "output_tokens": 203450,
      "canonical_score": 93,
-     "canonical_letter": "A"
+     "canonical_letter": "A",
+     "launch": {
+      "argv_receipt": "runs/17-concord/claude-dmod/attempt-1/argv.json",
+      "command": "claude",
+      "display": "claude -p \"$(cat verification/specs/17-concord.md)\" --model claude-opus-5 --effort medium --safe-mode --dangerously-skip-permissions --output-format stream-json --verbose --session-id 2341acc5-ffda-4df5-8331-69ad50759851",
+      "substitutions": [
+       {
+        "token": "\"$(cat verification/specs/17-concord.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "verification/specs/17-concord.md"
+       }
+      ],
+      "session_id": "2341acc5-ffda-4df5-8331-69ad50759851",
+      "spec_path": "verification/specs/17-concord.md",
+      "prompt_sha256": "743dfdc64c65d2c4d5e6d0528bcdb96602116e36c49fe626970662ea2e145f91"
+     }
     },
     "codex": {
      "cell_id": "17-codex-dmod",
@@ -2878,7 +3773,32 @@
      "cost_source": "openai-gpt-5.6-sol-standard-short-2026-07-27",
      "output_tokens": 39985,
      "canonical_score": 74,
-     "canonical_letter": "C"
+     "canonical_letter": "C",
+     "launch": {
+      "argv_receipt": "runs/17-concord/codex-dmod/attempt-1/argv.json",
+      "command": "codex",
+      "display": "CODEX_HOME=\"$ROOT/state/codex-home\" codex exec --dangerously-bypass-approvals-and-sandbox -m gpt-5.6-sol -c 'model_reasoning_effort=\"medium\"' -C $WORKSPACE \"$(cat verification/specs/17-concord.md)\"",
+      "substitutions": [
+       {
+        "token": "$WORKSPACE",
+        "kind": "portable_workspace_path",
+        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/runs/17-concord/codex-dmod/attempt-1/workspace"
+       },
+       {
+        "token": "\"$(cat verification/specs/17-concord.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "verification/specs/17-concord.md"
+       },
+       {
+        "token": "CODEX_HOME=\"$ROOT/state/codex-home\"",
+        "kind": "portable_archive_path",
+        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/state/codex-home"
+       }
+      ],
+      "session_id": null,
+      "spec_path": "verification/specs/17-concord.md",
+      "prompt_sha256": "743dfdc64c65d2c4d5e6d0528bcdb96602116e36c49fe626970662ea2e145f91"
+     }
     },
     "grok": {
      "cell_id": "17-grok-g",
@@ -2890,7 +3810,22 @@
      "reported_model": "Cursor Grok 4.6 Medium",
      "cost_usd": "2.622202",
      "cost_source": "cursor-grok-4.6-list-rate-equivalent",
-     "output_tokens": 70090
+     "output_tokens": 70090,
+     "launch": {
+      "argv_receipt": "runs/17-concord/grok/attempt-1/argv.json",
+      "command": "cursor-agent",
+      "display": "cursor-agent --print --output-format stream-json --model cursor-grok-4.6-medium --force --trust --sandbox disabled \"$(cat verification/specs/17-concord.md)\"",
+      "substitutions": [
+       {
+        "token": "\"$(cat verification/specs/17-concord.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "verification/specs/17-concord.md"
+       }
+      ],
+      "session_id": null,
+      "spec_path": "verification/specs/17-concord.md",
+      "prompt_sha256": "743dfdc64c65d2c4d5e6d0528bcdb96602116e36c49fe626970662ea2e145f91"
+     }
     }
    },
    "demos": {
@@ -3013,7 +3948,22 @@
      "cost_source": "provider-receipt",
      "output_tokens": 200407,
      "canonical_score": 97,
-     "canonical_letter": "A+"
+     "canonical_letter": "A+",
+     "launch": {
+      "argv_receipt": "runs/18-open-door/claude-dmod/attempt-1/argv.json",
+      "command": "claude",
+      "display": "claude -p \"$(cat verification/specs/18-open-door.md)\" --model claude-opus-5 --effort medium --safe-mode --dangerously-skip-permissions --output-format stream-json --verbose --session-id 4e49d8d5-85d2-4dcd-82ec-911638ae63d4",
+      "substitutions": [
+       {
+        "token": "\"$(cat verification/specs/18-open-door.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "verification/specs/18-open-door.md"
+       }
+      ],
+      "session_id": "4e49d8d5-85d2-4dcd-82ec-911638ae63d4",
+      "spec_path": "verification/specs/18-open-door.md",
+      "prompt_sha256": "2b89ed5f3f8a65e5c7c7da35cf83c3cfe1462f363bf7915a53a51d7520e0a238"
+     }
     },
     "codex": {
      "cell_id": "18-codex-dmod",
@@ -3024,7 +3974,32 @@
      "cost_source": "openai-gpt-5.6-sol-standard-short-2026-07-27",
      "output_tokens": 35471,
      "canonical_score": 70,
-     "canonical_letter": "C-"
+     "canonical_letter": "C-",
+     "launch": {
+      "argv_receipt": "runs/18-open-door/codex-dmod/attempt-1/argv.json",
+      "command": "codex",
+      "display": "CODEX_HOME=\"$ROOT/state/codex-home\" codex exec --dangerously-bypass-approvals-and-sandbox -m gpt-5.6-sol -c 'model_reasoning_effort=\"medium\"' -C $WORKSPACE \"$(cat verification/specs/18-open-door.md)\"",
+      "substitutions": [
+       {
+        "token": "$WORKSPACE",
+        "kind": "portable_workspace_path",
+        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/runs/18-open-door/codex-dmod/attempt-1/workspace"
+       },
+       {
+        "token": "\"$(cat verification/specs/18-open-door.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "verification/specs/18-open-door.md"
+       },
+       {
+        "token": "CODEX_HOME=\"$ROOT/state/codex-home\"",
+        "kind": "portable_archive_path",
+        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/state/codex-home"
+       }
+      ],
+      "session_id": null,
+      "spec_path": "verification/specs/18-open-door.md",
+      "prompt_sha256": "2b89ed5f3f8a65e5c7c7da35cf83c3cfe1462f363bf7915a53a51d7520e0a238"
+     }
     },
     "grok": {
      "cell_id": "18-grok-g",
@@ -3036,7 +4011,22 @@
      "reported_model": "Cursor Grok 4.6 Medium",
      "cost_usd": "1.816404",
      "cost_source": "cursor-grok-4.6-list-rate-equivalent",
-     "output_tokens": 52802
+     "output_tokens": 52802,
+     "launch": {
+      "argv_receipt": "runs/18-open-door/grok/attempt-1/argv.json",
+      "command": "cursor-agent",
+      "display": "cursor-agent --print --output-format stream-json --model cursor-grok-4.6-medium --force --trust --sandbox disabled \"$(cat verification/specs/18-open-door.md)\"",
+      "substitutions": [
+       {
+        "token": "\"$(cat verification/specs/18-open-door.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "verification/specs/18-open-door.md"
+       }
+      ],
+      "session_id": null,
+      "spec_path": "verification/specs/18-open-door.md",
+      "prompt_sha256": "2b89ed5f3f8a65e5c7c7da35cf83c3cfe1462f363bf7915a53a51d7520e0a238"
+     }
     }
    },
    "demos": {
@@ -3157,7 +4147,22 @@
      "cost_source": "provider-receipt",
      "output_tokens": 205665,
      "canonical_score": 93,
-     "canonical_letter": "A"
+     "canonical_letter": "A",
+     "launch": {
+      "argv_receipt": "runs/19-evident/claude-dmod/attempt-1/argv.json",
+      "command": "claude",
+      "display": "claude -p \"$(cat verification/specs/19-evident.md)\" --model claude-opus-5 --effort medium --safe-mode --dangerously-skip-permissions --output-format stream-json --verbose --session-id e5fd71f9-b820-49df-9b75-31f9de137086",
+      "substitutions": [
+       {
+        "token": "\"$(cat verification/specs/19-evident.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "verification/specs/19-evident.md"
+       }
+      ],
+      "session_id": "e5fd71f9-b820-49df-9b75-31f9de137086",
+      "spec_path": "verification/specs/19-evident.md",
+      "prompt_sha256": "3930e1e53838263141c2670252b947975ba050d75776fd12efd2e282bda9dc5f"
+     }
     },
     "codex": {
      "cell_id": "19-codex-dmod",
@@ -3168,7 +4173,32 @@
      "cost_source": "openai-gpt-5.6-sol-standard-short-2026-07-27",
      "output_tokens": 41264,
      "canonical_score": 67,
-     "canonical_letter": "D+"
+     "canonical_letter": "D+",
+     "launch": {
+      "argv_receipt": "runs/19-evident/codex-dmod/attempt-1/argv.json",
+      "command": "codex",
+      "display": "CODEX_HOME=\"$ROOT/state/codex-home\" codex exec --dangerously-bypass-approvals-and-sandbox -m gpt-5.6-sol -c 'model_reasoning_effort=\"medium\"' -C $WORKSPACE \"$(cat verification/specs/19-evident.md)\"",
+      "substitutions": [
+       {
+        "token": "$WORKSPACE",
+        "kind": "portable_workspace_path",
+        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/runs/19-evident/codex-dmod/attempt-1/workspace"
+       },
+       {
+        "token": "\"$(cat verification/specs/19-evident.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "verification/specs/19-evident.md"
+       },
+       {
+        "token": "CODEX_HOME=\"$ROOT/state/codex-home\"",
+        "kind": "portable_archive_path",
+        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/state/codex-home"
+       }
+      ],
+      "session_id": null,
+      "spec_path": "verification/specs/19-evident.md",
+      "prompt_sha256": "3930e1e53838263141c2670252b947975ba050d75776fd12efd2e282bda9dc5f"
+     }
     },
     "grok": {
      "cell_id": "19-grok-g",
@@ -3180,7 +4210,22 @@
      "reported_model": "Cursor Grok 4.6 Medium",
      "cost_usd": "2.504770",
      "cost_source": "cursor-grok-4.6-list-rate-equivalent",
-     "output_tokens": 71454
+     "output_tokens": 71454,
+     "launch": {
+      "argv_receipt": "runs/19-evident/grok/attempt-1/argv.json",
+      "command": "cursor-agent",
+      "display": "cursor-agent --print --output-format stream-json --model cursor-grok-4.6-medium --force --trust --sandbox disabled \"$(cat verification/specs/19-evident.md)\"",
+      "substitutions": [
+       {
+        "token": "\"$(cat verification/specs/19-evident.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "verification/specs/19-evident.md"
+       }
+      ],
+      "session_id": null,
+      "spec_path": "verification/specs/19-evident.md",
+      "prompt_sha256": "3930e1e53838263141c2670252b947975ba050d75776fd12efd2e282bda9dc5f"
+     }
     }
    },
    "demos": {
@@ -3302,7 +4347,22 @@
      "cost_source": "provider-receipt",
      "output_tokens": 269256,
      "canonical_score": 92,
-     "canonical_letter": "A-"
+     "canonical_letter": "A-",
+     "launch": {
+      "argv_receipt": "runs/20-stagecraft/claude-dmod/attempt-1/argv.json",
+      "command": "claude",
+      "display": "claude -p \"$(cat verification/specs/20-stagecraft.md)\" --model claude-opus-5 --effort medium --safe-mode --dangerously-skip-permissions --output-format stream-json --verbose --session-id f77cafeb-dffd-4d0d-99fa-eb40a6b08ac4",
+      "substitutions": [
+       {
+        "token": "\"$(cat verification/specs/20-stagecraft.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "verification/specs/20-stagecraft.md"
+       }
+      ],
+      "session_id": "f77cafeb-dffd-4d0d-99fa-eb40a6b08ac4",
+      "spec_path": "verification/specs/20-stagecraft.md",
+      "prompt_sha256": "7969418fa174c5a69696b6e40696f30457267e00129c2a3bbb911cc14678bf20"
+     }
     },
     "codex": {
      "cell_id": "20-codex-dmod",
@@ -3313,7 +4373,32 @@
      "cost_source": "openai-gpt-5.6-sol-standard-short-2026-07-27",
      "output_tokens": 35143,
      "canonical_score": 65,
-     "canonical_letter": "D"
+     "canonical_letter": "D",
+     "launch": {
+      "argv_receipt": "runs/20-stagecraft/codex-dmod/attempt-1/argv.json",
+      "command": "codex",
+      "display": "CODEX_HOME=\"$ROOT/state/codex-home\" codex exec --dangerously-bypass-approvals-and-sandbox -m gpt-5.6-sol -c 'model_reasoning_effort=\"medium\"' -C $WORKSPACE \"$(cat verification/specs/20-stagecraft.md)\"",
+      "substitutions": [
+       {
+        "token": "$WORKSPACE",
+        "kind": "portable_workspace_path",
+        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/runs/20-stagecraft/codex-dmod/attempt-1/workspace"
+       },
+       {
+        "token": "\"$(cat verification/specs/20-stagecraft.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "verification/specs/20-stagecraft.md"
+       },
+       {
+        "token": "CODEX_HOME=\"$ROOT/state/codex-home\"",
+        "kind": "portable_archive_path",
+        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/state/codex-home"
+       }
+      ],
+      "session_id": null,
+      "spec_path": "verification/specs/20-stagecraft.md",
+      "prompt_sha256": "7969418fa174c5a69696b6e40696f30457267e00129c2a3bbb911cc14678bf20"
+     }
     },
     "grok": {
      "cell_id": "20-grok-g",
@@ -3325,7 +4410,22 @@
      "reported_model": "Cursor Grok 4.6 Medium",
      "cost_usd": "2.163020",
      "cost_source": "cursor-grok-4.6-list-rate-equivalent",
-     "output_tokens": 20902
+     "output_tokens": 20902,
+     "launch": {
+      "argv_receipt": "runs/20-stagecraft/grok/attempt-1/argv.json",
+      "command": "cursor-agent",
+      "display": "cursor-agent --print --output-format stream-json --model cursor-grok-4.6-medium --force --trust --sandbox disabled \"$(cat verification/specs/20-stagecraft.md)\"",
+      "substitutions": [
+       {
+        "token": "\"$(cat verification/specs/20-stagecraft.md)\"",
+        "kind": "frozen_spec_bytes",
+        "source": "verification/specs/20-stagecraft.md"
+       }
+      ],
+      "session_id": null,
+      "spec_path": "verification/specs/20-stagecraft.md",
+      "prompt_sha256": "7969418fa174c5a69696b6e40696f30457267e00129c2a3bbb911cc14678bf20"
+     }
     }
    },
    "demos": {

@@ -9,6 +9,7 @@
  *   - site/slideshow/demos + verification/here-now/demo-manifest.json (staged Opus/Sol demos)
  *   - site/grok-demos + verification/grok/demo-manifest.json          (staged grok demos)
  *   - specs/*.md and verification/specs/*.md         (frozen prompts)
+ *   - runs/<spec>/<arm>/attempt-1/argv.json          (recorded launch argv)
  *
  * Emits src/data/battle.json, copies staged demos into public/demos/, and
  * writes a mechanical static-preview capture manifest into public/showcase/.
@@ -149,6 +150,31 @@ interface LegacySpecRow {
 interface ModernFamilyDoc {
   specs: Array<{ id: string; slug?: string; title?: string; track: string; file?: string }>;
 }
+interface LaunchSubstitution {
+  token: string;
+  kind: "frozen_spec_bytes" | "portable_workspace_path" | "portable_archive_path";
+  source: string;
+}
+interface LaunchWrapper {
+  argv_receipt: string;
+  command: string;
+  display: string;
+  substitutions: LaunchSubstitution[];
+  session_id: string | null;
+  spec_path: string;
+  prompt_sha256: string;
+}
+interface ArgvDoc {
+  command: string;
+  args: string[];
+  cwd: string;
+  env_overrides?: Record<string, string | null>;
+  prompt_arg_index: number;
+  prompt_sha256: string;
+  spec_path: string;
+  spec_sha256: string;
+  session_id?: string | null;
+}
 interface ExportedCell {
   cell_id: string;
   condition: string;
@@ -162,6 +188,7 @@ interface ExportedCell {
   output_tokens?: number | null;
   canonical_score?: number | null;
   canonical_letter?: string | null;
+  launch?: LaunchWrapper;
 }
 interface ExportedDemo {
   path: string;
@@ -229,6 +256,83 @@ function readJson<T>(relative: string): T {
 
 function sha256File(file: string): string {
   return createHash("sha256").update(fs.readFileSync(file)).digest("hex");
+}
+
+function shellArg(value: string): string {
+  if (/^[A-Za-z0-9_./:=,+@-]+$/.test(value)) return value;
+  return `'${value.replace(/'/g, `'\''`)}'`;
+}
+
+function loadLaunchWrapper(
+  specId: string,
+  slug: string,
+  provider: ProviderKey,
+  cellId: string,
+  expectedSpecSha: string,
+): LaunchWrapper {
+  const arm = provider === "grok" ? "grok" : cellId.split("-").slice(1).join("-");
+  const relative = `runs/${specId}-${slug}/${arm}/attempt-1/argv.json`;
+  const absolute = path.join(BATTLE, relative);
+  if (!fs.existsSync(absolute)) {
+    throw new Error(`missing argv receipt ${relative}`);
+  }
+  const argv = JSON.parse(fs.readFileSync(absolute, "utf8")) as ArgvDoc;
+  if (argv.prompt_sha256 !== expectedSpecSha || argv.spec_sha256 !== expectedSpecSha) {
+    throw new Error(`argv prompt hash mismatch in ${relative}`);
+  }
+  const substitutions: LaunchSubstitution[] = [];
+  const parts: string[] = [argv.command];
+  argv.args.forEach((arg, index) => {
+    if (index === argv.prompt_arg_index) {
+      const token = `"$(cat ${argv.spec_path})"`;
+      parts.push(token);
+      substitutions.push({
+        token,
+        kind: "frozen_spec_bytes",
+        source: argv.spec_path,
+      });
+      return;
+    }
+    if (arg === argv.cwd) {
+      parts.push("$WORKSPACE");
+      substitutions.push({
+        token: "$WORKSPACE",
+        kind: "portable_workspace_path",
+        source: argv.cwd,
+      });
+      return;
+    }
+    if (arg.startsWith(`${BATTLE}/`)) {
+      const token = `$ROOT/${arg.slice(BATTLE.length + 1)}`;
+      parts.push(token);
+      substitutions.push({
+        token,
+        kind: "portable_archive_path",
+        source: arg,
+      });
+      return;
+    }
+    parts.push(shellArg(arg));
+  });
+  const envPrefix: string[] = [];
+  const codexHome = argv.env_overrides?.CODEX_HOME;
+  if (codexHome) {
+    envPrefix.push('CODEX_HOME="$ROOT/state/codex-home"');
+    substitutions.push({
+      token: 'CODEX_HOME="$ROOT/state/codex-home"',
+      kind: "portable_archive_path",
+      source: codexHome,
+    });
+  }
+  return {
+    argv_receipt: relative,
+    command: argv.command,
+    display: [...envPrefix, ...parts].join(" "),
+    substitutions,
+    session_id: argv.session_id ?? null,
+    spec_path: argv.spec_path,
+    prompt_sha256: argv.prompt_sha256,
+  };
 }
 
 function round(value: number, places: number): number {
@@ -424,6 +528,17 @@ for (const meta of specMeta) {
   }
 
   const specPath = path.join(BATTLE, meta.file);
+  const specSha = sha256File(specPath);
+  for (const provider of PROVIDER_KEYS) {
+    cells[provider].launch = loadLaunchWrapper(
+      meta.id,
+      meta.slug,
+      provider,
+      cells[provider].cell_id,
+      specSha,
+    );
+  }
+
   specs.push({
     id: meta.id,
     slug: meta.slug,

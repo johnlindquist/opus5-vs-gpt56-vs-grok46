@@ -15,6 +15,22 @@ export interface TriadGrade {
   rationale: string;
 }
 
+export interface LaunchSubstitution {
+  token: string;
+  kind: "frozen_spec_bytes" | "portable_workspace_path" | "portable_archive_path";
+  source: string;
+}
+
+export interface LaunchWrapper {
+  argv_receipt: string;
+  command: string;
+  display: string;
+  substitutions: LaunchSubstitution[];
+  session_id: string | null;
+  spec_path: string;
+  prompt_sha256: string;
+}
+
 export interface CellReceipt {
   cell_id: string;
   condition: string;
@@ -28,6 +44,7 @@ export interface CellReceipt {
   output_tokens?: number | null;
   canonical_score?: number | null;
   canonical_letter?: string | null;
+  launch?: LaunchWrapper;
 }
 
 export interface DemoRef {

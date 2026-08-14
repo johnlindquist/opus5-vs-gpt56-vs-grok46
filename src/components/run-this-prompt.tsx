@@ -2,27 +2,9 @@
 
 import { useState } from "react";
 import { Check, Copy, Hash, Terminal } from "lucide-react";
-import { PROVIDER_SHORT, type SpecRow } from "@/lib/data";
+import { PROVIDER_ORDER, PROVIDER_SHORT, type SpecRow } from "@/lib/data";
 
 type Variant = "icon" | "strip" | "panel";
-
-const LAUNCH_RECIPES = [
-  {
-    provider: "Opus 5",
-    command:
-      'claude -p "$(cat spec.md)" --model claude-opus-5 --effort medium --safe-mode --dangerously-skip-permissions --output-format stream-json --verbose',
-  },
-  {
-    provider: "Sol",
-    command:
-      'codex exec --dangerously-bypass-approvals-and-sandbox -m gpt-5.6-sol -c \'model_reasoning_effort="medium"\' -C . "$(cat spec.md)"',
-  },
-  {
-    provider: "Grok 4.6",
-    command:
-      'cursor-agent --print --output-format stream-json --model cursor-grok-4.6-medium --force --trust --sandbox disabled "$(cat spec.md)"',
-  },
-] as const;
 
 async function copyExactPrompt(text: string): Promise<void> {
   try {
@@ -38,6 +20,12 @@ async function copyExactPrompt(text: string): Promise<void> {
     document.execCommand("copy");
     area.remove();
   }
+}
+
+function substitutionLabel(kind: string): string {
+  if (kind === "frozen_spec_bytes") return "Frozen spec bytes substituted for the recorded prompt argument";
+  if (kind === "portable_workspace_path") return "Portable label for the recorded empty workspace path";
+  return "Portable label for a recorded archive path";
 }
 
 export function RunThisPrompt({
@@ -106,8 +94,9 @@ export function RunThisPrompt({
           </h2>
           <p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground">
             {PROVIDER_SHORT.claude}, {PROVIDER_SHORT.grok}, and {PROVIDER_SHORT.codex} each
-            received these same specification bytes as their prompt argument. The clipboard
-            is that spec only. Harness flags differ by agent and are not copied.
+            received these same specification bytes as their prompt argument. The copy
+            button puts that spec on the clipboard. The launch lines below are rebuilt
+            from each cell&apos;s recorded argv.json, with labeled substitutions only.
           </p>
         </div>
         <button
@@ -135,14 +124,30 @@ export function RunThisPrompt({
         </pre>
       </div>
       <div className="mt-4 border border-border bg-[#050505] p-4">
-        <div className="mega-label mb-3">Recorded launch wrappers — not on the clipboard</div>
-        <ul className="space-y-3 font-mono text-[11px] leading-5 text-muted-foreground">
-          {LAUNCH_RECIPES.map((recipe) => (
-            <li key={recipe.provider}>
-              <div className="text-foreground">{recipe.provider}</div>
-              <code className="mt-1 block whitespace-pre-wrap break-all">{recipe.command}</code>
-            </li>
-          ))}
+        <div className="mega-label mb-3">Recorded launch argv — not on the clipboard</div>
+        <ul className="space-y-5">
+          {PROVIDER_ORDER.map((provider) => {
+            const launch = spec.cells[provider].launch;
+            if (!launch) return null;
+            return (
+              <li key={provider} className="font-mono text-[11px] leading-5 text-muted-foreground">
+                <div className="text-foreground">
+                  {PROVIDER_SHORT[provider]} · {spec.cells[provider].cell_id} · {spec.cells[provider].condition}
+                </div>
+                <code className="mt-1 block whitespace-pre-wrap break-all">{launch.display}</code>
+                <div className="mt-2 text-[10px] uppercase tracking-wider">
+                  Receipt {launch.argv_receipt}
+                </div>
+                <ul className="mt-2 space-y-1">
+                  {launch.substitutions.map((item) => (
+                    <li key={`${item.kind}-${item.token}`}>
+                      {item.token}: {substitutionLabel(item.kind)} ({item.source})
+                    </li>
+                  ))}
+                </ul>
+              </li>
+            );
+          })}
         </ul>
       </div>
     </section>
