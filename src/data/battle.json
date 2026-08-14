@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-08-14T17:38:20.550Z",
+ "generated_at": "2026-08-14T17:42:59.418Z",
  "providers": {
   "claude": {
    "label": "Claude Opus 5",
@@ -258,8 +258,8 @@
      },
      "speed": {
       "value": 15432.818,
-      "utility": null,
-      "unit": "later-run wall seconds (provenance only)"
+      "utility": 0.908078,
+      "unit": "receipted attempt wall seconds"
      },
      "cost": {
       "value": 33.2969,
@@ -295,9 +295,9 @@
     "display_precision": "Raw source values stay available; utilities are exported to six decimals and composite scores display to one decimal."
    },
    "comparability": {
-    "scope": "Quality and cost now include all three arms. Cost uses Anthropic provider receipts for Opus and published-rate math for Sol and Grok. Speed still compares only the canonical Opus and Sol matrix.",
+    "scope": "Quality, speed, and cost now include all three arms. Cost uses Anthropic provider receipts for Opus and published-rate math for Sol and Grok. Speed uses summed per-run wall seconds from each arm's attempt receipts.",
     "grok_cost_exclusion": "Sol was already a published-rate estimate, not an invoice. Grok list-rate equivalents ($2 / $0.50 / $6 per million) are the same class of math and now enter cost utility. The 50% launch-discount total is disclosed but unused in the composite, matching Sol's standard-rate basis.",
-    "grok_speed_exclusion": "Condition G ran later under different host state and concurrency, so Grok durations remain provenance only and are excluded from controlled speed weighting.",
+    "grok_speed_exclusion": "Condition G still ran later (2026-08-13T20:58:32Z–23:56:31Z) under different host state and concurrency. That is disclosed, not used as a reason to drop the 20/20 attempt wall-clock receipts. Speed utility uses the same summed per-run duration_seconds measure as Opus and Sol (15,432.818s). Campaign elapsed 10,678.278s is overlap provenance only.",
     "missing_values": "A missing source value remains unavailable. It is never converted to zero, one, or best-in-class utility."
    }
   },
