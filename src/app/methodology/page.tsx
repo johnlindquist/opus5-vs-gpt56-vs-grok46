@@ -150,7 +150,7 @@ export default function MethodologyPage() {
           <div className="mt-4 flex items-start gap-4 border border-border bg-black p-5">
             <Clock3 className="mt-0.5 size-5 shrink-0 text-muted-foreground" />
             <p className="text-sm leading-6 text-muted-foreground">
-              <strong className="text-foreground">Timing rule:</strong> Host state and concurrency differ across agents. Durations are preserved as provenance but never treated as cross-agent speed evidence or a grading dimension.
+              <strong className="text-foreground">Timing rule:</strong> Decision Lab time utility uses each agent&apos;s summed recorded wall seconds from twenty session receipts. All three arms ran on the same machine. Grok ran after the August 13 reboot, specs 01–10 one cell at a time and 11–20 two at a time. Campaign elapsed is overlap, not the ranking input. Each spec was run once through each agent&apos;s main tool, so provider load and time of day remain in the clocks.
             </p>
           </div>
         </div>
@@ -249,13 +249,13 @@ export default function MethodologyPage() {
             <AccordionItem value="tokens" className="border-border">
               <AccordionTrigger className="text-left text-sm">Can token counts or durations compare efficiency?</AccordionTrigger>
               <AccordionContent className="text-sm leading-6 text-muted-foreground">
-                Not across these agents. Providers report tokens with different tokenizers, and host state and concurrency differ. Both are provenance signals only—not interchangeable units of work or clean speed evidence.
+                Token counts cannot. Providers use different tokenizers, so tokens stay provenance only. Durations enter the Decision Lab as summed recorded wall seconds for all three agents. Grok ran on the same machine after the August 13 reboot; specs 01–10 were sequential and 11–20 ran two at a time. Each spec was a single run through that agent&apos;s main tool, so busy-hour load can move the clocks.
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="grok-cost" className="border-border">
               <AccordionTrigger className="text-left text-sm">Does Grok have a cost figure?</AccordionTrigger>
               <AccordionContent className="text-sm leading-6 text-muted-foreground">
-                Yes. Sol costs are published-rate estimates, not invoices. Grok uses the same class of math: twenty Cursor Grok 4.6 Medium receipts sum to {data.grok_resource_summary?.pricing.list_rate_equivalent_usd ?? "33.296900"} USD at list rates, or {data.grok_resource_summary?.pricing.launch_discount_equivalent_usd ?? "16.648450"} USD at the 50% launch discount. The decision lab uses the list-rate total so the basis matches Sol. Auth was Cursor login / first-party pool, so neither figure is a cash invoice. Grok wall times stay out of the time composite.
+                Yes. Sol costs are published-rate estimates, not invoices. Grok uses the same class of math: twenty Cursor Grok 4.6 Medium receipts sum to {data.grok_resource_summary?.pricing.list_rate_equivalent_usd ?? "33.296900"} USD at list rates, or {data.grok_resource_summary?.pricing.launch_discount_equivalent_usd ?? "16.648450"} USD at the 50% launch discount. The decision lab uses the list-rate total so the basis matches Sol. Auth was Cursor login / first-party pool, so neither figure is a cash invoice. Those same twenty receipts also carry per-session wall clocks; their sum enters the time composite.
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="network" className="border-border">

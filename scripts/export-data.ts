@@ -25,7 +25,7 @@ const SITE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const PROVIDER_KEYS = ["claude", "grok", "codex"] as const;
 const COMPARABLE_PROVIDER_KEYS = ["claude", "codex"] as const;
 const DECISION_PROVIDER_KEYS = ["claude", "grok", "codex"] as const;
-const SPEED_COMPARABLE_KEYS = ["claude", "codex"] as const;
+const SPEED_COMPARABLE_KEYS = ["claude", "grok", "codex"] as const;
 const COST_COMPARABLE_KEYS = ["claude", "grok", "codex"] as const;
 type ProviderKey = (typeof PROVIDER_KEYS)[number];
 type ComparableProviderKey = (typeof COMPARABLE_PROVIDER_KEYS)[number];
@@ -664,7 +664,7 @@ const decisionRows = Object.fromEntries(
               : null,
           unit: speedComparable
             ? "recorded wall seconds"
-            : "recorded wall seconds (not used for speed weighting)",
+            : "recorded wall seconds",
         },
         cost: {
           value: cost,
@@ -704,11 +704,13 @@ const metrics = {
     },
     comparability: {
       scope:
-        "Quality and cost include all three agents. Cost uses Anthropic provider receipts for Opus and published-rate math for Sol and Grok. Speed compares only Opus and Sol.",
+        "Quality, time, and cost include all three agents. Cost uses Anthropic provider receipts for Opus and published-rate math for Sol and Grok. Time uses each agent's summed recorded wall seconds from twenty session receipts.",
       grok_cost_exclusion:
         "Sol costs are published-rate estimates, not invoices. Grok list-rate equivalents ($2 / $0.50 / $6 per million) use the same class of math and enter cost utility. The 50% launch-discount total is disclosed but unused in the composite, matching Sol's standard-rate basis.",
       grok_speed_exclusion:
-        "Grok durations are receipt clocks under different host state and concurrency, so they stay out of the time weight.",
+        "Grok ran on the same machine after the August 13 reboot, through cursor-agent. Specs 01–10 were sequential; 11–20 ran two at a time. Decision Lab time utility uses the 15,432.818s summed session runtime, the same class of total as Opus and Sol. Campaign elapsed 10,678.278s is overlap disclosure only and is not the ranking input.",
+      speed_variability:
+        "Each agent ran each spec once through its main programming tool. Wall times move with provider load and time of day. Treat the ranking as a single-run observation, not a repeated-trial speed estimate.",
       missing_values:
         "A missing source value remains unavailable. It is never converted to zero, one, or best-in-class utility.",
     },
@@ -856,7 +858,7 @@ const data = {
       )
       .replace(
         "Wall-clock durations are receipt provenance only and are never used as a controlled cross-arm speed comparison.",
-        "Wall-clock durations are receipt provenance only and are never used as a controlled cross-agent speed comparison.",
+        "Wall-clock durations are per-session receipt clocks. Decision Lab time utility uses each agent's summed recorded runtime.",
       ),
   ),
   grok_resource_summary: grokResults.resource_summary ?? null,

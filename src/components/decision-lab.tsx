@@ -14,6 +14,7 @@ import {
   PROVIDER_COLOR,
   PROVIDER_ORDER,
   PROVIDER_SHORT,
+  data,
   type BattleMetrics,
   type ComparableProviderKey,
   type DecisionMetricKey,
@@ -45,7 +46,7 @@ const metricMeta: Record<
   speed: {
     label: "Comparable build time",
     shortLabel: "Time",
-    description: "Total recorded wall time for Opus and Sol; lower is better.",
+    description: "Total recorded wall time across twenty sessions; lower is better. Single-run clocks, so load and time of day remain in the number.",
     icon: TimerReset,
   },
   cost: {
@@ -355,17 +356,30 @@ export function DecisionLab({ metrics }: DecisionLabProps) {
                       </div>
                     </div>
                     <div className="mt-6 grid grid-cols-3 gap-px bg-border">
-                      {metricOrder.map((metric) => (
-                        <div key={metric} className="bg-card p-3">
-                          <div className="mega-label">{metricMeta[metric].shortLabel}</div>
-                          <div className="mt-1 font-mono text-sm tabular-nums">
-                            {result.contributions[metric] === null
-                              ? "n/a"
-                              : result.contributions[metric]!.toFixed(1)}
+                      {metricOrder.map((metric) => {
+                        const contribution = result.contributions[metric];
+                        return (
+                          <div key={metric} className="bg-card p-3">
+                            <div className="mega-label">{metricMeta[metric].shortLabel}</div>
+                            <div className="mt-1 font-mono text-sm tabular-nums">
+                              {contribution === null ? "n/a" : contribution.toFixed(1)}
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
+                    {result.provider === "grok" &&
+                    data.grok_resource_summary?.timing ? (
+                      <div className="mt-px bg-card p-3">
+                        <div className="mega-label">Campaign elapsed · overlap, not the ranking input</div>
+                        <p className="mt-2 font-mono text-sm tabular-nums whitespace-nowrap">
+                          {formatRawValue(
+                            "speed",
+                            data.grok_resource_summary.timing.elapsed_campaign_seconds,
+                          )}
+                        </p>
+                      </div>
+                    ) : null}
                   </article>
                 ))
               ) : (
@@ -495,7 +509,7 @@ export function DecisionLab({ metrics }: DecisionLabProps) {
               <div>
                 <div className="mega-label">Three-provider quality context</div>
                 <h3 className="pixel-heading mt-2 text-2xl font-semibold sm:text-3xl">
-                  Quality and cost include all three agents.
+                  Quality, time, and cost include all three agents.
                 </h3>
               </div>
               <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
@@ -553,6 +567,10 @@ export function DecisionLab({ metrics }: DecisionLabProps) {
               <p>
                 <strong className="text-foreground">Grok speed:</strong>{" "}
                 {metrics.decision_lab.comparability.grok_speed_exclusion}
+              </p>
+              <p>
+                <strong className="text-foreground">Time variability:</strong>{" "}
+                {metrics.decision_lab.comparability.speed_variability}
               </p>
               <p>
                 <strong className="text-foreground">Missing data:</strong>{" "}
