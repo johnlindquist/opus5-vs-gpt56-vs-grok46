@@ -1,6 +1,6 @@
 {
   "schema_version": "showcase-capture-v1",
-  "generated_at": "2026-08-14T19:06:24.606Z",
+  "generated_at": "2026-08-14T19:20:13.305Z",
   "rule": "Open each staged_demo_path on the configured demo origin, make no interaction, capture the exact viewport, and write the named WebP. The landing page reads only preview_path.",
   "items": [
     {

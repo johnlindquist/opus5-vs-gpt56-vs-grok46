@@ -708,7 +708,7 @@ const metrics = {
       grok_cost_exclusion:
         "Sol costs are published-rate estimates, not invoices. Grok list-rate equivalents ($2 / $0.50 / $6 per million) use the same class of math and enter cost utility. The 50% launch-discount total is disclosed but unused in the composite, matching Sol's standard-rate basis.",
       grok_speed_exclusion:
-        "Grok ran on the same machine after the August 13 reboot, through cursor-agent. Specs 01–10 were sequential; 11–20 ran two at a time. Decision Lab time utility uses the 15,432.818s summed session runtime, the same class of total as Opus and Sol. Campaign elapsed 10,678.278s is overlap disclosure only and is not the ranking input.",
+        "Grok ran on the same machine after the August 13 reboot, through cursor-agent. Specs 01–10 were sequential; 11–20 ran two at a time. Decision Lab time utility uses the 15,432.818s summed session runtime. Campaign elapsed 10,678.278s is overlap disclosure only and is not the ranking input.",
       speed_variability:
         "Each agent ran each spec once through its main programming tool. Wall times move with provider load and time of day. Treat the ranking as a single-run observation, not a repeated-trial speed estimate.",
       missing_values:

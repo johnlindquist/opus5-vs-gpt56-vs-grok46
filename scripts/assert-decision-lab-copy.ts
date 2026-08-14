@@ -1,5 +1,5 @@
 /**
- * Fail if stale Grok time-exclusion copy is still on the Decision Lab.
+ * Fail if Grok is excluded from Decision Lab time utility.
  * Checks source, the built homepage, and an optional live URL.
  */
 import fs from "node:fs";
@@ -16,17 +16,13 @@ const FORBIDDEN = [
   "Time · provenance · not in score",
   "stay out of the time weight",
   "stay out of the decision-lab time weight",
+  "stay out of the Decision Lab time weight",
+  "Observational later-run clocks · not in the composite",
   "Wall-clock durations are receipt provenance only and are never used as a controlled",
-] as const;
-
-const REQUIRED = [
-  "Quality, time, and cost include all three agents",
-  "Time variability",
 ] as const;
 
 const SOURCE_PATHS = [
   "src/components/decision-lab.tsx",
-  "src/app/page.tsx",
   "src/app/methodology/page.tsx",
   "src/app/specs/[id]/page.tsx",
   "src/lib/data.ts",
@@ -40,15 +36,7 @@ function fail(message: string): never {
 function assertAbsent(label: string, text: string) {
   for (const needle of FORBIDDEN) {
     if (text.includes(needle)) {
-      fail(`${label} still contains stale Decision Lab copy: ${needle}`);
-    }
-  }
-}
-
-function assertPresent(label: string, text: string) {
-  for (const needle of REQUIRED) {
-    if (!text.includes(needle)) {
-      fail(`${label} is missing required Decision Lab copy: ${needle}`);
+      fail(`${label} still excludes Grok from Decision Lab time: ${needle}`);
     }
   }
 }
@@ -91,24 +79,41 @@ function collectBuiltHomepage(): string {
 const url = process.argv[2];
 
 for (const rel of SOURCE_PATHS) {
-  const text = read(rel);
-  assertAbsent(rel, text);
+  assertAbsent(rel, read(rel));
 }
-assertPresent("src/components/decision-lab.tsx", read("src/components/decision-lab.tsx"));
-if (!read("src/data/battle.json").includes("Each agent ran each spec once through its main programming tool.")) {
+
+const lab = read("src/components/decision-lab.tsx");
+const battle = read("src/data/battle.json");
+if (!lab.includes("Quality, time, and cost include all three agents")) {
+  fail("src/components/decision-lab.tsx is missing Quality, time, and cost include all three agents");
+}
+if (!lab.includes("zeros the time weight")) {
+  fail("src/components/decision-lab.tsx is missing zeros the time weight");
+}
+if (!battle.includes("Quality, time, and cost include all three agents")) {
+  fail("src/data/battle.json is missing Quality, time, and cost include all three agents");
+}
+if (!battle.includes("Each agent ran each spec once through its main programming tool.")) {
   fail("src/data/battle.json is missing the single-run variability disclosure");
+}
+if (battle.includes('"utility": null') && battle.includes('"unit": "recorded summed runtime (provenance only)"')) {
+  fail("src/data/battle.json still has a provenance-only Grok speed utility");
 }
 
 const built = collectBuiltHomepage();
 assertAbsent("built homepage", built);
-assertPresent("built homepage", built);
+if (!built.includes("Quality, time, and cost include all three agents")) {
+  fail("built homepage is missing Quality, time, and cost include all three agents");
+}
 
 if (url) {
   const response = await fetch(url, { redirect: "follow" });
   if (!response.ok) fail(`${url} returned HTTP ${response.status}`);
   const live = await response.text();
   assertAbsent(url, live);
-  assertPresent(url, live);
+  if (!live.includes("Quality, time, and cost include all three agents")) {
+    fail(`${url} is missing Quality, time, and cost include all three agents`);
+  }
 }
 
 console.log(

@@ -394,6 +394,37 @@ export function DecisionLab({ metrics }: DecisionLabProps) {
               )}
             </div>
 
+            <div className="mt-4 border border-border bg-black p-4">
+              <div className="mega-label">Recorded session totals · all three enter the time ranking</div>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                Each total is the sum of twenty session receipts. Grok ran on the same machine after the August 13 reboot. Campaign elapsed is overlap only.
+              </p>
+              <dl className="mt-4 grid gap-3 sm:grid-cols-3">
+                {PROVIDER_ORDER.map((provider) => {
+                  const aggregate = metrics.providers[provider];
+                  return (
+                    <div key={provider} className="border border-border bg-card p-3">
+                      <dt className="mega-label">
+                        <ProviderMark provider={provider} compact />
+                        {" · in time ranking"}
+                      </dt>
+                      <dd className="mt-2 font-mono text-sm tabular-nums whitespace-nowrap">
+                        {formatRawValue("speed", aggregate.total_duration_seconds)}
+                      </dd>
+                      <dd className="mt-1 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                        {aggregate.duration_receipts}/{aggregate.artifact_count} session receipts
+                      </dd>
+                    </div>
+                  );
+                })}
+              </dl>
+              {data.grok_resource_summary?.timing ? (
+                <p className="mt-3 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                  Grok campaign elapsed {formatRawValue("speed", data.grok_resource_summary.timing.elapsed_campaign_seconds)} · overlap, not a ranking input
+                </p>
+              ) : null}
+            </div>
+
             <div className="mt-4 border-l-2 border-border bg-black p-4" aria-live="polite">
               {leader && leader.score !== null ? (
                 <p className="text-sm leading-6">
