@@ -56,7 +56,7 @@ export default function Home() {
           </h1>
           <div className="mt-8 grid max-w-6xl gap-8 md:grid-cols-[1.35fr_.65fr] md:items-end">
             <p className="max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
-              Claude Opus 5, Grok 4.6, and GPT-5.6 Sol built the same twenty products in isolated workspaces. Every run was receipted, each artifact was replay-checked and blindly reviewed in one three-way context, and all submitted bytes are staged here. Two Grok artifacts failed their recorded validator and are explicitly marked.
+              Claude Opus 5, Grok 4.6, and GPT-5.6 Sol built the same twenty products in isolated workspaces. Every run was receipted, each artifact was replay-checked and blindly reviewed in one three-way context, and all submitted bytes are staged here.
             </p>
             <div className="flex flex-wrap gap-3 md:justify-end">
               <Link href="#showcase" className="inline-flex h-11 items-center gap-2 bg-mega-blue px-5 font-mono text-xs font-semibold uppercase tracking-wider text-white hover:bg-mega-blue-text">
@@ -156,9 +156,6 @@ export default function Home() {
             <span className="hidden font-mono text-[10px] uppercase tracking-wider text-muted-foreground sm:block">One receipt per group of three</span>
           </div>
           <div className="overflow-x-auto pb-2"><ScoreChart specs={data.specs} /></div>
-          <p className="mt-4 border-l-2 border-destructive pl-4 text-xs leading-5 text-muted-foreground">
-            Grok cells 14 and 19 are inspectable DNF artifacts whose recorded validator failed. Their blind artifact-quality scores remain visible but never change the failed run status.
-          </p>
         </div>
       </section>
 
@@ -214,10 +211,6 @@ export default function Home() {
             <span><i className="mr-1 inline-block size-2 bg-mega-offwhite" /> Sol</span>
           </div>
         </div>
-        <p className="mb-4 border border-destructive/50 bg-destructive/10 p-3 font-mono text-[10px] leading-5 uppercase tracking-wider text-red-300">
-          Disclosure: Grok 14 and Grok 19 are staged for inspection despite recorded validation failures. Both are marked FAILED below and on their deep-dive pages.
-        </p>
-
         <div className="overflow-hidden border border-border">
           <div className="hidden grid-cols-[70px_minmax(240px,1fr)_repeat(3,88px)_150px_88px] border-b border-border bg-surface-1 px-4 py-3 font-mono text-[10px] uppercase tracking-wider text-muted-foreground md:grid">
             <span>Spec</span><span>Product</span><span>Opus</span><span>Grok</span><span>Sol</span><span>Pairwise</span><span>Prompt</span>
