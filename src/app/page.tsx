@@ -5,7 +5,7 @@ import {
   Layers3,
   LockKeyhole,
   Play,
-  Scale,
+  Sliders,
   Sparkles,
   Trophy,
 } from "lucide-react";
@@ -49,7 +49,7 @@ export default function Home() {
 
   return (
     <>
-      {/* HERO SECTION */}
+      {/* 1. HERO SECTION */}
       <section className="mega-grid border-b border-border">
         <div className="mx-auto max-w-[1600px] px-4 py-16 sm:px-6 sm:py-24 lg:px-8 lg:py-32">
           {/* Tri-Brand Identity Header */}
@@ -87,32 +87,32 @@ export default function Home() {
             </p>
             <div className="flex flex-wrap gap-3 md:justify-end">
               <Link
-                href="#showcase"
+                href="#decision-lab"
                 className="inline-flex h-11 items-center gap-2 border border-foreground bg-foreground px-5 font-mono text-xs font-semibold uppercase tracking-wider text-background transition-opacity hover:opacity-90"
               >
-                Explore artifacts <ArrowRight className="size-4" />
+                Set your priorities <ArrowRight className="size-4" />
               </Link>
               <Link
                 href="#analytics"
                 className="inline-flex h-11 items-center gap-2 border border-border bg-card px-5 font-mono text-xs uppercase tracking-wider text-foreground hover:border-foreground"
               >
-                Interactive Charts
+                Score Analytics
               </Link>
               <Link
-                href="/methodology"
+                href="#showcase"
                 className="inline-flex h-11 items-center gap-2 border border-border bg-black px-5 font-mono text-xs uppercase tracking-wider text-muted-foreground hover:border-border/80 hover:text-foreground"
               >
-                How it worked
+                Artifact Gallery
               </Link>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ARTIFACT SHOWCASE */}
-      <DemoShowcase items={showcaseItems} />
+      {/* 2. DECISION LAB (CUSTOM PRIORITIES & RANKING) — Positioned directly above results */}
+      <DecisionLab metrics={battleMetrics} />
 
-      {/* PAIRWISE ARENA */}
+      {/* 3. PAIRWISE BATTLE ARENA */}
       <section className="border-b border-border bg-[#050505]">
         <div className="mx-auto max-w-[1600px] px-4 py-14 sm:px-6 lg:px-8">
           <div className="mb-8 flex flex-wrap items-end justify-between gap-5">
@@ -241,10 +241,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* DECISION LAB (CUSTOM RANKINGS) */}
-      <DecisionLab metrics={battleMetrics} />
-
-      {/* INTERACTIVE BENCHMARK SUITE & TRIAD GRADEBOOK */}
+      {/* 4. INTERACTIVE BENCHMARK SUITE & TRIAD GRADEBOOK */}
       <section id="analytics" className="scroll-mt-20 mx-auto max-w-[1600px] px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
         <div className="mb-10 grid gap-6 lg:grid-cols-[.7fr_1.3fr] lg:items-end">
           <div>
@@ -287,7 +284,10 @@ export default function Home() {
         </div>
       </section>
 
-      {/* DONUT & METHODOLOGY BREAKDOWN */}
+      {/* 5. ARTIFACT SIGNAL & GALLERY */}
+      <DemoShowcase items={showcaseItems} />
+
+      {/* 6. DONUT & METHODOLOGY BREAKDOWN */}
       <section className="border-y border-border bg-[#050505]">
         <div className="mx-auto grid max-w-[1600px] gap-8 px-4 py-16 sm:px-6 lg:grid-cols-[1fr_1.4fr] lg:px-8 lg:py-24">
           <div>
@@ -331,7 +331,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* COMPLETE MATRIX SECTION */}
+      {/* 7. COMPLETE MATRIX SECTION */}
       <section id="matrix" className="scroll-mt-20 mx-auto max-w-[1600px] px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
         <div className="mb-8 flex flex-wrap items-end justify-between gap-5">
           <div>
@@ -409,7 +409,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* FOOTER CALLOUT */}
+      {/* 8. FOOTER CALLOUT */}
       <section className="mega-grid border-t border-border">
         <div className="mx-auto max-w-[1600px] px-4 py-20 sm:px-6 lg:px-8">
           <div className="grid gap-10 lg:grid-cols-[1fr_1fr] lg:items-center">
