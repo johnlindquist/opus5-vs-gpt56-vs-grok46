@@ -23,12 +23,18 @@ async function copyExactPrompt(text: string): Promise<void> {
   }
 }
 
+function cleanPath(source: string): string {
+  return source
+    .replace(/\/Users\/[^\/]+\/dev\/opus5-vs-gpt56-battle/g, "~")
+    .replace(/\/Users\/[^\/]+/g, "~")
+    .replace(/~[^\/]*\/dev\/opus5-vs-gpt56-battle/g, "~");
+}
+
 function substitutionLabel(kind: string): string {
   if (kind === "frozen_spec_bytes") return "Frozen spec bytes substituted for the recorded prompt argument";
   if (kind === "portable_workspace_path") return "Portable label for the recorded empty workspace path";
   return "Portable label for a recorded archive path";
 }
-
 export function RunThisPrompt({
   spec,
   variant = "strip",
@@ -145,7 +151,7 @@ export function RunThisPrompt({
                 <ul className="mt-2 space-y-1">
                   {launch.substitutions.map((item) => (
                     <li key={`${item.kind}-${item.token}`}>
-                      {item.token}: {substitutionLabel(item.kind)} ({item.source})
+                      {item.token}: {substitutionLabel(item.kind)} ({cleanPath(item.source)})
                     </li>
                   ))}
                 </ul>

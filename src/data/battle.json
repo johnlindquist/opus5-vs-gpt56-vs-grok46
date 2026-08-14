@@ -644,7 +644,7 @@
        {
         "token": "$WORKSPACE",
         "kind": "portable_workspace_path",
-        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/runs/01-signal-garden/codex-b2/attempt-1/workspace"
+        "source": "~/runs/01-signal-garden/codex-b2/attempt-1/workspace"
        },
        {
         "token": "\"$(cat specs/01-signal-garden.md)\"",
@@ -654,7 +654,7 @@
        {
         "token": "CODEX_HOME=\"$ROOT/state/codex-home\"",
         "kind": "portable_archive_path",
-        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/state/codex-home"
+        "source": "~/state/codex-home"
        }
       ],
       "session_id": null,
@@ -837,7 +837,7 @@
        {
         "token": "$WORKSPACE",
         "kind": "portable_workspace_path",
-        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/runs/02-gravity-atelier/codex-b2/attempt-1/workspace"
+        "source": "~/runs/02-gravity-atelier/codex-b2/attempt-1/workspace"
        },
        {
         "token": "\"$(cat specs/02-gravity-atelier.md)\"",
@@ -847,7 +847,7 @@
        {
         "token": "CODEX_HOME=\"$ROOT/state/codex-home\"",
         "kind": "portable_archive_path",
-        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/state/codex-home"
+        "source": "~/state/codex-home"
        }
       ],
       "session_id": null,
@@ -1031,7 +1031,7 @@
        {
         "token": "$WORKSPACE",
         "kind": "portable_workspace_path",
-        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/runs/03-neon-courier/codex/attempt-1/workspace"
+        "source": "~/runs/03-neon-courier/codex/attempt-1/workspace"
        },
        {
         "token": "\"$(cat specs/03-neon-courier.md)\"",
@@ -1041,7 +1041,7 @@
        {
         "token": "CODEX_HOME=\"$ROOT/state/codex-home\"",
         "kind": "portable_archive_path",
-        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/state/codex-home"
+        "source": "~/state/codex-home"
        }
       ],
       "session_id": null,
@@ -1224,7 +1224,7 @@
        {
         "token": "$WORKSPACE",
         "kind": "portable_workspace_path",
-        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/runs/04-weather-diorama/codex-b3p/attempt-1/workspace"
+        "source": "~/runs/04-weather-diorama/codex-b3p/attempt-1/workspace"
        },
        {
         "token": "\"$(cat specs/04-weather-diorama.md)\"",
@@ -1234,7 +1234,7 @@
        {
         "token": "CODEX_HOME=\"$ROOT/state/codex-home\"",
         "kind": "portable_archive_path",
-        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/state/codex-home"
+        "source": "~/state/codex-home"
        }
       ],
       "session_id": null,
@@ -1417,7 +1417,7 @@
        {
         "token": "$WORKSPACE",
         "kind": "portable_workspace_path",
-        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/runs/05-lightweaver/codex-b3p/attempt-1/workspace"
+        "source": "~/runs/05-lightweaver/codex-b3p/attempt-1/workspace"
        },
        {
         "token": "\"$(cat specs/05-lightweaver.md)\"",
@@ -1427,7 +1427,7 @@
        {
         "token": "CODEX_HOME=\"$ROOT/state/codex-home\"",
         "kind": "portable_archive_path",
-        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/state/codex-home"
+        "source": "~/state/codex-home"
        }
       ],
       "session_id": null,
@@ -1610,7 +1610,7 @@
        {
         "token": "$WORKSPACE",
         "kind": "portable_workspace_path",
-        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/runs/06-sand-alchemist/codex-b3p/attempt-1/workspace"
+        "source": "~/runs/06-sand-alchemist/codex-b3p/attempt-1/workspace"
        },
        {
         "token": "\"$(cat specs/06-sand-alchemist.md)\"",
@@ -1620,7 +1620,7 @@
        {
         "token": "CODEX_HOME=\"$ROOT/state/codex-home\"",
         "kind": "portable_archive_path",
-        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/state/codex-home"
+        "source": "~/state/codex-home"
        }
       ],
       "session_id": null,
@@ -1803,7 +1803,7 @@
        {
         "token": "$WORKSPACE",
         "kind": "portable_workspace_path",
-        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/runs/07-kinetic-poster/codex-b3p/attempt-1/workspace"
+        "source": "~/runs/07-kinetic-poster/codex-b3p/attempt-1/workspace"
        },
        {
         "token": "\"$(cat specs/07-kinetic-poster.md)\"",
@@ -1813,7 +1813,7 @@
        {
         "token": "CODEX_HOME=\"$ROOT/state/codex-home\"",
         "kind": "portable_archive_path",
-        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/state/codex-home"
+        "source": "~/state/codex-home"
        }
       ],
       "session_id": null,
@@ -1997,7 +1997,7 @@
        {
         "token": "$WORKSPACE",
         "kind": "portable_workspace_path",
-        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/runs/08-trace-sheriff/codex-b2/attempt-1/workspace"
+        "source": "~/runs/08-trace-sheriff/codex-b2/attempt-1/workspace"
        },
        {
         "token": "\"$(cat specs/08-trace-sheriff.md)\"",
@@ -2007,7 +2007,7 @@
        {
         "token": "CODEX_HOME=\"$ROOT/state/codex-home\"",
         "kind": "portable_archive_path",
-        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/state/codex-home"
+        "source": "~/state/codex-home"
        }
       ],
       "session_id": null,
@@ -2191,7 +2191,7 @@
        {
         "token": "$WORKSPACE",
         "kind": "portable_workspace_path",
-        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/runs/09-latency-forensics/codex/attempt-1/workspace"
+        "source": "~/runs/09-latency-forensics/codex/attempt-1/workspace"
        },
        {
         "token": "\"$(cat specs/09-latency-forensics.md)\"",
@@ -2201,7 +2201,7 @@
        {
         "token": "CODEX_HOME=\"$ROOT/state/codex-home\"",
         "kind": "portable_archive_path",
-        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/state/codex-home"
+        "source": "~/state/codex-home"
        }
       ],
       "session_id": null,
@@ -2384,7 +2384,7 @@
        {
         "token": "$WORKSPACE",
         "kind": "portable_workspace_path",
-        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/runs/10-haunted-queue/codex/attempt-1/workspace"
+        "source": "~/runs/10-haunted-queue/codex/attempt-1/workspace"
        },
        {
         "token": "\"$(cat specs/10-haunted-queue.md)\"",
@@ -2394,7 +2394,7 @@
        {
         "token": "CODEX_HOME=\"$ROOT/state/codex-home\"",
         "kind": "portable_archive_path",
-        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/state/codex-home"
+        "source": "~/state/codex-home"
        }
       ],
       "session_id": null,
@@ -2583,7 +2583,7 @@
        {
         "token": "$WORKSPACE",
         "kind": "portable_workspace_path",
-        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/runs/11-aperture/codex-dmod/attempt-1/workspace"
+        "source": "~/runs/11-aperture/codex-dmod/attempt-1/workspace"
        },
        {
         "token": "\"$(cat verification/specs/11-aperture.md)\"",
@@ -2593,7 +2593,7 @@
        {
         "token": "CODEX_HOME=\"$ROOT/state/codex-home\"",
         "kind": "portable_archive_path",
-        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/state/codex-home"
+        "source": "~/state/codex-home"
        }
       ],
       "session_id": null,
@@ -2783,7 +2783,7 @@
        {
         "token": "$WORKSPACE",
         "kind": "portable_workspace_path",
-        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/runs/12-prism-foundry/codex-dmod/attempt-1/workspace"
+        "source": "~/runs/12-prism-foundry/codex-dmod/attempt-1/workspace"
        },
        {
         "token": "\"$(cat verification/specs/12-prism-foundry.md)\"",
@@ -2793,7 +2793,7 @@
        {
         "token": "CODEX_HOME=\"$ROOT/state/codex-home\"",
         "kind": "portable_archive_path",
-        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/state/codex-home"
+        "source": "~/state/codex-home"
        }
       ],
       "session_id": null,
@@ -2983,7 +2983,7 @@
        {
         "token": "$WORKSPACE",
         "kind": "portable_workspace_path",
-        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/runs/13-morphic-desk/codex-dmod/attempt-1/workspace"
+        "source": "~/runs/13-morphic-desk/codex-dmod/attempt-1/workspace"
        },
        {
         "token": "\"$(cat verification/specs/13-morphic-desk.md)\"",
@@ -2993,7 +2993,7 @@
        {
         "token": "CODEX_HOME=\"$ROOT/state/codex-home\"",
         "kind": "portable_archive_path",
-        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/state/codex-home"
+        "source": "~/state/codex-home"
        }
       ],
       "session_id": null,
@@ -3183,7 +3183,7 @@
        {
         "token": "$WORKSPACE",
         "kind": "portable_workspace_path",
-        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/runs/14-glyphwave/codex-dmod/attempt-1/workspace"
+        "source": "~/runs/14-glyphwave/codex-dmod/attempt-1/workspace"
        },
        {
         "token": "\"$(cat verification/specs/14-glyphwave.md)\"",
@@ -3193,7 +3193,7 @@
        {
         "token": "CODEX_HOME=\"$ROOT/state/codex-home\"",
         "kind": "portable_archive_path",
-        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/state/codex-home"
+        "source": "~/state/codex-home"
        }
       ],
       "session_id": null,
@@ -3383,7 +3383,7 @@
        {
         "token": "$WORKSPACE",
         "kind": "portable_workspace_path",
-        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/runs/15-orbit-archive/codex-dmod/attempt-1/workspace"
+        "source": "~/runs/15-orbit-archive/codex-dmod/attempt-1/workspace"
        },
        {
         "token": "\"$(cat verification/specs/15-orbit-archive.md)\"",
@@ -3393,7 +3393,7 @@
        {
         "token": "CODEX_HOME=\"$ROOT/state/codex-home\"",
         "kind": "portable_archive_path",
-        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/state/codex-home"
+        "source": "~/state/codex-home"
        }
       ],
       "session_id": null,
@@ -3583,7 +3583,7 @@
        {
         "token": "$WORKSPACE",
         "kind": "portable_workspace_path",
-        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/runs/16-relay/codex-dmod/attempt-1/workspace"
+        "source": "~/runs/16-relay/codex-dmod/attempt-1/workspace"
        },
        {
         "token": "\"$(cat verification/specs/16-relay.md)\"",
@@ -3593,7 +3593,7 @@
        {
         "token": "CODEX_HOME=\"$ROOT/state/codex-home\"",
         "kind": "portable_archive_path",
-        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/state/codex-home"
+        "source": "~/state/codex-home"
        }
       ],
       "session_id": null,
@@ -3783,7 +3783,7 @@
        {
         "token": "$WORKSPACE",
         "kind": "portable_workspace_path",
-        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/runs/17-concord/codex-dmod/attempt-1/workspace"
+        "source": "~/runs/17-concord/codex-dmod/attempt-1/workspace"
        },
        {
         "token": "\"$(cat verification/specs/17-concord.md)\"",
@@ -3793,7 +3793,7 @@
        {
         "token": "CODEX_HOME=\"$ROOT/state/codex-home\"",
         "kind": "portable_archive_path",
-        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/state/codex-home"
+        "source": "~/state/codex-home"
        }
       ],
       "session_id": null,
@@ -3984,7 +3984,7 @@
        {
         "token": "$WORKSPACE",
         "kind": "portable_workspace_path",
-        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/runs/18-open-door/codex-dmod/attempt-1/workspace"
+        "source": "~/runs/18-open-door/codex-dmod/attempt-1/workspace"
        },
        {
         "token": "\"$(cat verification/specs/18-open-door.md)\"",
@@ -3994,7 +3994,7 @@
        {
         "token": "CODEX_HOME=\"$ROOT/state/codex-home\"",
         "kind": "portable_archive_path",
-        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/state/codex-home"
+        "source": "~/state/codex-home"
        }
       ],
       "session_id": null,
@@ -4183,7 +4183,7 @@
        {
         "token": "$WORKSPACE",
         "kind": "portable_workspace_path",
-        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/runs/19-evident/codex-dmod/attempt-1/workspace"
+        "source": "~/runs/19-evident/codex-dmod/attempt-1/workspace"
        },
        {
         "token": "\"$(cat verification/specs/19-evident.md)\"",
@@ -4193,7 +4193,7 @@
        {
         "token": "CODEX_HOME=\"$ROOT/state/codex-home\"",
         "kind": "portable_archive_path",
-        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/state/codex-home"
+        "source": "~/state/codex-home"
        }
       ],
       "session_id": null,
@@ -4383,7 +4383,7 @@
        {
         "token": "$WORKSPACE",
         "kind": "portable_workspace_path",
-        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/runs/20-stagecraft/codex-dmod/attempt-1/workspace"
+        "source": "~/runs/20-stagecraft/codex-dmod/attempt-1/workspace"
        },
        {
         "token": "\"$(cat verification/specs/20-stagecraft.md)\"",
@@ -4393,7 +4393,7 @@
        {
         "token": "CODEX_HOME=\"$ROOT/state/codex-home\"",
         "kind": "portable_archive_path",
-        "source": "/Users/johnlindquist/dev/opus5-vs-gpt56-battle/state/codex-home"
+        "source": "~/state/codex-home"
        }
       ],
       "session_id": null,

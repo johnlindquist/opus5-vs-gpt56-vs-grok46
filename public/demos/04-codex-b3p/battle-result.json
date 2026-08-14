@@ -23,13 +23,13 @@
     },
     {
       "name": "Direct-file 1600 by 900 visual render",
-      "command": "'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' --headless=new --disable-gpu --no-sandbox --allow-file-access-from-files --user-data-dir='./.chrome-test' --window-size=1600,900 --virtual-time-budget=1500 --screenshot='./weather-check.png' 'file:///Users/johnlindquist/dev/opus5-vs-gpt56-battle/runs/04-weather-diorama/codex-b3p/attempt-1/workspace/index.html'",
+      "command": "'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' --headless=new --disable-gpu --no-sandbox --allow-file-access-from-files --user-data-dir='./.chrome-test' --window-size=1600,900 --virtual-time-budget=1500 --screenshot='./weather-check.png' 'file://~/runs/04-weather-diorama/codex-b3p/attempt-1/workspace/index.html'",
       "status": "passed",
       "details": "Chrome opened index.html directly from disk and captured a complete first frame with the animated rainy city, roads, traffic, people, trees, clouds, and full console visible."
     },
     {
       "name": "Narrow responsive direct-file render",
-      "command": "'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' --headless=new --disable-gpu --disable-background-networking --disable-sync --no-first-run --no-sandbox --allow-file-access-from-files --user-data-dir='./.chrome-responsive-check' --window-size=600,900 --screenshot='./responsive-check.png' 'file:///Users/johnlindquist/dev/opus5-vs-gpt56-battle/runs/04-weather-diorama/codex-b3p/attempt-1/workspace/index.html'",
+      "command": "'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' --headless=new --disable-gpu --disable-background-networking --disable-sync --no-first-run --no-sandbox --allow-file-access-from-files --user-data-dir='./.chrome-responsive-check' --window-size=600,900 --screenshot='./responsive-check.png' 'file://~/runs/04-weather-diorama/codex-b3p/attempt-1/workspace/index.html'",
       "status": "passed",
       "details": "The direct-open scene rendered at 600 by 900 with the diorama readable and the console reorganized into a compact responsive layout."
     }
