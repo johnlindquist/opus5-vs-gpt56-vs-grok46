@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-08-14T17:32:33.998Z",
+ "generated_at": "2026-08-14T17:38:20.550Z",
  "providers": {
   "claude": {
    "label": "Claude Opus 5",
@@ -227,6 +227,7 @@
   "decision_lab": {
    "comparable_providers": [
     "claude",
+    "grok",
     "codex"
    ],
    "rows": {
@@ -244,8 +245,26 @@
      },
      "cost": {
       "value": 272.732808,
-      "utility": 0.158728,
-      "unit": "receipted USD"
+      "utility": 0.122086,
+      "unit": "provider-receipt USD"
+     }
+    },
+    "grok": {
+     "provider": "grok",
+     "quality": {
+      "value": 80.05,
+      "utility": 0.8005,
+      "unit": "blind-grade points out of 100"
+     },
+     "speed": {
+      "value": 15432.818,
+      "utility": null,
+      "unit": "later-run wall seconds (provenance only)"
+     },
+     "cost": {
+      "value": 33.2969,
+      "utility": 1,
+      "unit": "list-rate equivalent USD"
      }
     },
     "codex": {
@@ -262,22 +281,22 @@
      },
      "cost": {
       "value": 43.290287,
-      "utility": 1,
-      "unit": "receipted USD"
+      "utility": 0.769154,
+      "unit": "published-rate estimate USD"
      }
     }
    },
    "formula": {
     "quality_utility": "fresh blind-triad mean score / 100",
     "speed_utility": "fastest comparable total wall time / provider total wall time",
-    "cost_utility": "cheapest comparable receipted cost / provider receipted cost",
+    "cost_utility": "cheapest published-rate or receipted cost / provider cost",
     "total": "sum(normalized weight × metric utility) × 100",
     "monotonicity": "Higher quality never lowers quality utility; lower comparable time or cost never lowers its utility.",
     "display_precision": "Raw source values stay available; utilities are exported to six decimals and composite scores display to one decimal."
    },
    "comparability": {
-    "scope": "The weighted composite compares only the canonical Claude and Sol artifacts, whose twenty duration and provider-cost receipts share the frozen canonical matrix.",
-    "grok_cost_exclusion": "Grok now has Cursor Grok 4.6 token-rate equivalents ($2 / $0.50 / $6 per million; 50% launch discount the week of August 12, 2026). Those figures are not invoices or comparable cash charges, so Grok is never assigned a cost utility or weighted composite score.",
+    "scope": "Quality and cost now include all three arms. Cost uses Anthropic provider receipts for Opus and published-rate math for Sol and Grok. Speed still compares only the canonical Opus and Sol matrix.",
+    "grok_cost_exclusion": "Sol was already a published-rate estimate, not an invoice. Grok list-rate equivalents ($2 / $0.50 / $6 per million) are the same class of math and now enter cost utility. The 50% launch-discount total is disclosed but unused in the composite, matching Sol's standard-rate basis.",
     "grok_speed_exclusion": "Condition G ran later under different host state and concurrency, so Grok durations remain provenance only and are excluded from controlled speed weighting.",
     "missing_values": "A missing source value remains unavailable. It is never converted to zero, one, or best-in-class utility."
    }

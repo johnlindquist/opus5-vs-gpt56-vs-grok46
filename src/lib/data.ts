@@ -1,7 +1,7 @@
 import battle from "@/data/battle.json";
 
 export type ProviderKey = "claude" | "grok" | "codex";
-export type ComparableProviderKey = "claude" | "codex";
+export type ComparableProviderKey = ProviderKey;
 export type DecisionMetricKey = "quality" | "speed" | "cost";
 
 export interface TriadGrade {
@@ -208,7 +208,8 @@ export interface BattleData {
 export const data = battle as unknown as BattleData;
 
 export const PROVIDER_ORDER: ProviderKey[] = ["claude", "grok", "codex"];
-export const COMPARABLE_PROVIDER_ORDER: ComparableProviderKey[] = ["claude", "codex"];
+export const COMPARABLE_PROVIDER_ORDER: ComparableProviderKey[] = ["claude", "grok", "codex"];
+export const SPEED_COMPARABLE_ORDER: ProviderKey[] = ["claude", "codex"];
 
 export const PROVIDER_COLOR: Record<ProviderKey, string> = {
   claude: "#7a7aff",
@@ -287,13 +288,13 @@ function deriveBattleMetrics(specs: SpecRow[]): BattleMetrics {
   const providers = Object.fromEntries(
     PROVIDER_ORDER.map((provider) => [provider, aggregateProvider(provider, specs)]),
   ) as Record<ProviderKey, ProviderAggregate>;
-  const comparableDurations = COMPARABLE_PROVIDER_ORDER.map(
+  const comparableDurations = SPEED_COMPARABLE_ORDER.map(
     (provider) => providers[provider].total_duration_seconds,
   ).filter((value): value is number => value !== null);
   const comparableCosts = COMPARABLE_PROVIDER_ORDER.map(
     (provider) => providers[provider].total_cost_usd,
   ).filter((value): value is number => value !== null);
-  const fastest = comparableDurations.length === COMPARABLE_PROVIDER_ORDER.length
+  const fastest = comparableDurations.length === SPEED_COMPARABLE_ORDER.length
     ? Math.min(...comparableDurations)
     : null;
   const cheapest = comparableCosts.length === COMPARABLE_PROVIDER_ORDER.length
@@ -320,10 +321,13 @@ function deriveBattleMetrics(specs: SpecRow[]): BattleMetrics {
                 ? aggregate.total_duration_seconds
                 : null,
             utility:
+              SPEED_COMPARABLE_ORDER.includes(provider) &&
               aggregate.duration_receipts === specs.length
                 ? utility(fastest, aggregate.total_duration_seconds)
                 : null,
-            unit: "recorded canonical wall seconds",
+            unit: SPEED_COMPARABLE_ORDER.includes(provider)
+              ? "recorded canonical wall seconds"
+              : "later-run wall seconds (provenance only)",
           },
           cost: {
             value:
@@ -334,7 +338,12 @@ function deriveBattleMetrics(specs: SpecRow[]): BattleMetrics {
               aggregate.cost_receipts === specs.length
                 ? utility(cheapest, aggregate.total_cost_usd)
                 : null,
-            unit: "receipted USD",
+            unit:
+              provider === "claude"
+                ? "provider-receipt USD"
+                : provider === "codex"
+                  ? "published-rate estimate USD"
+                  : "list-rate equivalent USD",
           },
         } satisfies DecisionProviderRow,
       ];
@@ -355,7 +364,7 @@ function deriveBattleMetrics(specs: SpecRow[]): BattleMetrics {
       formula: {
         quality_utility: "fresh blind-triad mean score / 100",
         speed_utility: "fastest comparable total wall time / provider total wall time",
-        cost_utility: "cheapest comparable receipted cost / provider receipted cost",
+        cost_utility: "cheapest published-rate or receipted cost / provider cost",
         total: "sum(normalized weight × metric utility) × 100",
         monotonicity:
           "Higher quality never lowers quality utility; lower comparable time or cost never lowers its utility.",
@@ -364,9 +373,9 @@ function deriveBattleMetrics(specs: SpecRow[]): BattleMetrics {
       },
       comparability: {
         scope:
-          "The weighted composite compares only the canonical Claude and Sol artifacts, whose twenty duration and provider-cost receipts share the frozen canonical matrix.",
+          "Quality and cost now include all three arms. Cost uses Anthropic provider receipts for Opus and published-rate math for Sol and Grok. Speed still compares only the canonical Opus and Sol matrix.",
         grok_cost_exclusion:
-          "Grok now has Cursor Grok 4.6 token-rate equivalents ($2 / $0.50 / $6 per million; 50% launch discount the week of August 12, 2026). Those figures are not invoices or comparable cash charges, so Grok is never assigned a cost utility or weighted composite score.",
+          "Sol was already a published-rate estimate, not an invoice. Grok list-rate equivalents ($2 / $0.50 / $6 per million) are the same class of math and now enter cost utility. The 50% launch-discount total is disclosed but unused in the composite, matching Sol's standard-rate basis.",
         grok_speed_exclusion:
           "Condition G ran later under different host state and concurrency, so Grok durations remain provenance only and are excluded from controlled speed weighting.",
         missing_values:

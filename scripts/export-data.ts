@@ -23,8 +23,12 @@ const SITE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 const PROVIDER_KEYS = ["claude", "grok", "codex"] as const;
 const COMPARABLE_PROVIDER_KEYS = ["claude", "codex"] as const;
+const DECISION_PROVIDER_KEYS = ["claude", "grok", "codex"] as const;
+const SPEED_COMPARABLE_KEYS = ["claude", "codex"] as const;
+const COST_COMPARABLE_KEYS = ["claude", "grok", "codex"] as const;
 type ProviderKey = (typeof PROVIDER_KEYS)[number];
 type ComparableProviderKey = (typeof COMPARABLE_PROVIDER_KEYS)[number];
+type DecisionProviderKey = (typeof DECISION_PROVIDER_KEYS)[number];
 
 interface GradeCell {
   score?: number;
@@ -490,37 +494,44 @@ const aggregates = Object.fromEntries(
   PROVIDER_KEYS.map((provider) => [provider, aggregateProvider(provider)]),
 ) as Record<ProviderKey, ProviderAggregate>;
 
-for (const provider of COMPARABLE_PROVIDER_KEYS) {
+for (const provider of SPEED_COMPARABLE_KEYS) {
   const aggregate = aggregates[provider];
   if (
     aggregate.quality_receipts !== specs.length ||
     aggregate.duration_receipts !== specs.length ||
-    aggregate.cost_receipts !== specs.length ||
-    aggregate.total_duration_seconds === null ||
-    aggregate.total_cost_usd === null
+    aggregate.total_duration_seconds === null
   ) {
     throw new Error(
-      `decision-lab comparability requires ${specs.length}/${specs.length} quality, duration, and cost receipts for ${provider}`,
+      `decision-lab speed comparability requires ${specs.length}/${specs.length} quality and duration receipts for ${provider}`,
+    );
+  }
+}
+for (const provider of COST_COMPARABLE_KEYS) {
+  const aggregate = aggregates[provider];
+  if (aggregate.quality_receipts !== specs.length || aggregate.cost_receipts !== specs.length || aggregate.total_cost_usd === null) {
+    throw new Error(
+      `decision-lab cost comparability requires ${specs.length}/${specs.length} quality and cost receipts for ${provider}`,
     );
   }
 }
 
 const fastestComparableSeconds = Math.min(
-  ...COMPARABLE_PROVIDER_KEYS.map(
+  ...SPEED_COMPARABLE_KEYS.map(
     (provider) => aggregates[provider].total_duration_seconds as number,
   ),
 );
 const cheapestComparableCost = Math.min(
-  ...COMPARABLE_PROVIDER_KEYS.map(
+  ...COST_COMPARABLE_KEYS.map(
     (provider) => aggregates[provider].total_cost_usd as number,
   ),
 );
 
 const decisionRows = Object.fromEntries(
-  COMPARABLE_PROVIDER_KEYS.map((provider) => {
+  DECISION_PROVIDER_KEYS.map((provider) => {
     const aggregate = aggregates[provider];
-    const duration = aggregate.total_duration_seconds as number;
+    const duration = aggregate.total_duration_seconds;
     const cost = aggregate.total_cost_usd as number;
+    const speedComparable = (SPEED_COMPARABLE_KEYS as readonly string[]).includes(provider);
     return [
       provider,
       {
@@ -532,18 +543,28 @@ const decisionRows = Object.fromEntries(
         },
         speed: {
           value: duration,
-          utility: round(fastestComparableSeconds / duration, 6),
-          unit: "recorded canonical wall seconds",
+          utility:
+            speedComparable && duration
+              ? round(fastestComparableSeconds / duration, 6)
+              : null,
+          unit: speedComparable
+            ? "recorded canonical wall seconds"
+            : "later-run wall seconds (provenance only)",
         },
         cost: {
           value: cost,
           utility: round(cheapestComparableCost / cost, 6),
-          unit: "receipted USD",
+          unit:
+            provider === "claude"
+              ? "provider-receipt USD"
+              : provider === "codex"
+                ? "published-rate estimate USD"
+                : "list-rate equivalent USD",
         },
       },
     ];
   }),
-) as Record<ComparableProviderKey, unknown>;
+) as Record<DecisionProviderKey, unknown>;
 
 const metrics = {
   schema_version: "battle-metrics-v1",
@@ -554,12 +575,12 @@ const metrics = {
   },
   providers: aggregates,
   decision_lab: {
-    comparable_providers: COMPARABLE_PROVIDER_KEYS,
+    comparable_providers: DECISION_PROVIDER_KEYS,
     rows: decisionRows,
     formula: {
       quality_utility: "fresh blind-triad mean score / 100",
       speed_utility: "fastest comparable total wall time / provider total wall time",
-      cost_utility: "cheapest comparable receipted cost / provider receipted cost",
+      cost_utility: "cheapest published-rate or receipted cost / provider cost",
       total: "sum(normalized weight × metric utility) × 100",
       monotonicity:
         "Higher quality never lowers quality utility; lower comparable time or cost never lowers its utility.",
@@ -568,9 +589,9 @@ const metrics = {
     },
     comparability: {
       scope:
-        "The weighted composite compares only the canonical Claude and Sol artifacts, whose twenty duration and provider-cost receipts share the frozen canonical matrix.",
+        "Quality and cost now include all three arms. Cost uses Anthropic provider receipts for Opus and published-rate math for Sol and Grok. Speed still compares only the canonical Opus and Sol matrix.",
       grok_cost_exclusion:
-        "Grok now has Cursor Grok 4.6 token-rate equivalents ($2 / $0.50 / $6 per million; 50% launch discount the week of August 12, 2026). Those figures are not invoices or comparable cash charges, so Grok is never assigned a cost utility or weighted composite score.",
+        "Sol was already a published-rate estimate, not an invoice. Grok list-rate equivalents ($2 / $0.50 / $6 per million) are the same class of math and now enter cost utility. The 50% launch-discount total is disclosed but unused in the composite, matching Sol's standard-rate basis.",
       grok_speed_exclusion:
         "Condition G ran later under different host state and concurrency, so Grok durations remain provenance only and are excluded from controlled speed weighting.",
       missing_values:

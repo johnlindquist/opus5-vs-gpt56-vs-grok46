@@ -48,9 +48,9 @@ const metricMeta: Record<
     icon: TimerReset,
   },
   cost: {
-    label: "Receipted provider cost",
+    label: "Published-rate / receipted cost",
     shortLabel: "Cost",
-    description: "Total provider-receipt USD; lower is better.",
+    description: "Opus uses Anthropic receipts; Sol and Grok use published token-rate math. Lower is better.",
     icon: BadgeDollarSign,
   },
 };
@@ -75,6 +75,11 @@ const presets: Array<{ name: string; description: string; weights: WeightMap }> 
     name: "Budget",
     description: "Make receipted spend the dominant consideration.",
     weights: { quality: 20, speed: 10, cost: 70 },
+  },
+  {
+    name: "Quality + cost",
+    description: "Rank all three arms on quality and published-rate cost; omit later-run time.",
+    weights: { quality: 60, speed: 0, cost: 40 },
   },
 ];
 
@@ -101,6 +106,12 @@ function coverageLabel(
   }
   if (metric === "speed") {
     return `${aggregate.duration_receipts}/${aggregate.artifact_count} canonical durations`;
+  }
+  if (provider === "grok") {
+    return `${aggregate.cost_receipts}/${aggregate.artifact_count} list-rate equivalents`;
+  }
+  if (provider === "codex") {
+    return `${aggregate.cost_receipts}/${aggregate.artifact_count} published-rate estimates`;
   }
   return `${aggregate.cost_receipts}/${aggregate.artifact_count} provider receipts`;
 }
@@ -188,10 +199,9 @@ export function DecisionLab({ metrics }: DecisionLabProps) {
             </h2>
           </div>
           <p className="max-w-3xl text-sm leading-6 text-muted-foreground xl:justify-self-end">
-            Weight quality, canonical build time, and receipted cost. The composite
-            is deliberately limited to Opus and Sol because those are the only two
-            arms with comparable twenty-cell time and provider-cost coverage. Grok
-            remains in the three-provider quality evidence below.
+            Weight quality, canonical build time, and published-rate cost. Quality
+            and cost now include Grok. Time still compares only Opus and Sol because
+            Condition G ran later. A Quality + cost preset ranks all three arms.
           </p>
         </div>
 
@@ -314,7 +324,7 @@ export function DecisionLab({ metrics }: DecisionLabProps) {
               <Scale className="size-5 text-mega-blue-text" aria-hidden="true" />
             </div>
 
-            <div className="mt-7 grid gap-3 sm:grid-cols-2" aria-live="polite" aria-atomic="true">
+            <div className="mt-7 grid gap-3 lg:grid-cols-3" aria-live="polite" aria-atomic="true">
               {ranking.length > 0 ? (
                 ranking.map((result, index) => (
                   <article
@@ -493,7 +503,7 @@ export function DecisionLab({ metrics }: DecisionLabProps) {
               <div>
                 <div className="mega-label">Three-provider quality context</div>
                 <h3 className="pixel-heading mt-2 text-2xl font-semibold sm:text-3xl">
-                  Grok stays in the evidence—without invented economics.
+                  All three arms now carry quality and cost.
                 </h3>
               </div>
               <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">

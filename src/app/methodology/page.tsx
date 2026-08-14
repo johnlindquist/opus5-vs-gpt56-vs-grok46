@@ -248,7 +248,7 @@ export default function MethodologyPage() {
             <AccordionItem value="grok-cost" className="border-border">
               <AccordionTrigger className="text-left text-sm">Does Grok have a cost figure now?</AccordionTrigger>
               <AccordionContent className="text-sm leading-6 text-muted-foreground">
-                Yes, as a token-rate equivalent only. Twenty Cursor Grok 4.6 Medium receipts sum to {data.grok_resource_summary?.pricing.list_rate_equivalent_usd ?? "33.296900"} USD at list rates, or {data.grok_resource_summary?.pricing.launch_discount_equivalent_usd ?? "16.648450"} USD at the 50% launch discount. Auth was Cursor login / first-party pool. Those numbers are not invoices and never enter the decision-lab cost utility.
+                Yes. Sol costs were already published-rate estimates, not invoices. Grok uses the same class of math: twenty Cursor Grok 4.6 Medium receipts sum to {data.grok_resource_summary?.pricing.list_rate_equivalent_usd ?? "33.296900"} USD at list rates, or {data.grok_resource_summary?.pricing.launch_discount_equivalent_usd ?? "16.648450"} USD at the 50% launch discount. The decision lab uses the list-rate total so the basis matches Sol. Auth was Cursor login / first-party pool, so neither figure is a cash invoice. Later-run time still stays out of the composite.
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="network" className="border-border">
