@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "capture:previews": "bun scripts/capture-previews.ts",
     "start": "next start"
   },
   "dependencies": {
