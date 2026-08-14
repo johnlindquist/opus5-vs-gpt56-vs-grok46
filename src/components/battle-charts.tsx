@@ -775,11 +775,11 @@ export function ScoreChart({ specs }: { specs: SpecRow[] }) {
       {/* VIEW: Rubric Matrix with Multi-Metric Stats (Duration & Cost) */}
       {mode === "heatmap" && (
         <div className="space-y-3">
-          <div className="hidden grid-cols-[60px_minmax(180px,1.2fr)_repeat(3,minmax(140px,1fr))_110px] border-b border-border bg-card p-3 font-mono text-[10px] uppercase tracking-wider text-muted-foreground md:grid md:items-center">
+          <div className="hidden grid-cols-[55px_minmax(200px,1.2fr)_repeat(3,minmax(160px,1fr))_110px] border-b border-border bg-card p-3 font-mono text-[10px] uppercase tracking-wider text-muted-foreground md:grid md:items-center">
             <button type="button" onClick={() => setSort(sort === "id" ? "margin" : "id")} className="hover:text-foreground text-left">
               Spec
             </button>
-            <span>Title / Track</span>
+            <span>Title / Staged Build</span>
             <button type="button" onClick={() => setSort(sort === "claude" ? "id" : "claude")} className="text-center hover:text-foreground">
               <ProviderMark provider="claude" compact />
             </button>
@@ -793,26 +793,48 @@ export function ScoreChart({ specs }: { specs: SpecRow[] }) {
               Winner
             </button>
           </div>
-          <div className="max-h-[560px] space-y-1.5 overflow-y-auto pr-1">
+          <div className="max-h-[580px] space-y-1.5 overflow-y-auto pr-1">
             {processedSpecs.map((spec) => {
               const b = specMap.get(spec.id);
               return (
                 <div
                   key={spec.id}
                   onClick={() => setSelectedSpecId(spec.id)}
-                  className={`grid cursor-pointer gap-2 border p-3 transition-colors ${
+                  className={`group grid cursor-pointer gap-2 border p-3 transition-colors ${
                     selectedSpecId === spec.id
-                      ? "border-foreground bg-surface-1"
+                      ? "border-foreground bg-surface-1 shadow-[0_0_20px_rgba(255,255,255,0.04)]"
                       : "border-border/60 bg-black/40 hover:border-border hover:bg-black"
-                  } grid-cols-1 md:grid-cols-[60px_minmax(180px,1.2fr)_repeat(3,minmax(140px,1fr))_110px] md:items-center`}
+                  } grid-cols-1 md:grid-cols-[55px_minmax(200px,1.2fr)_repeat(3,minmax(160px,1fr))_110px] md:items-center`}
                 >
                   <span className="font-mono text-sm font-bold text-foreground">Spec {spec.id}</span>
-                  <div className="min-w-0 pr-3">
-                    <span className="block truncate text-xs font-medium text-foreground">{spec.title}</span>
-                    <span className="font-mono text-[9px] text-muted-foreground uppercase">
-                      {eraLabel(spec.era)} · {spec.track ?? spec.kind}
-                    </span>
+
+                  {/* Spec Title & Product Preview Thumbnail */}
+                  <div className="flex items-center gap-3 min-w-0 pr-3">
+                    <div className="hidden sm:block relative h-9 w-14 shrink-0 overflow-hidden border border-border/80 bg-black">
+                      <img
+                        src={`/showcase/${spec.id}-claude.webp`}
+                        alt={`Preview of Spec ${spec.id}`}
+                        loading="lazy"
+                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        onError={(e) => {
+                          const fallback = `/previews/${spec.cells.claude?.cell_id}.webp`;
+                          if (e.currentTarget.src !== fallback) {
+                            e.currentTarget.src = fallback;
+                          }
+                        }}
+                      />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <span className="block truncate text-xs font-medium text-foreground group-hover:underline">
+                        {spec.title}
+                      </span>
+                      <span className="font-mono text-[9px] text-muted-foreground uppercase">
+                        {eraLabel(spec.era)} · {spec.track ?? spec.kind}
+                      </span>
+                    </div>
                   </div>
+
+                  {/* 3 Model Build Columns with Individual Screenshots */}
                   {PROVIDER_ORDER.map((provider) => {
                     const grade = spec.triad.providers[provider];
                     const cell = spec.cells[provider];
@@ -825,30 +847,48 @@ export function ScoreChart({ specs }: { specs: SpecRow[] }) {
                     return (
                       <div
                         key={provider}
-                        className="flex items-center justify-between gap-2 border border-border/60 bg-black/60 p-2 md:flex-col md:items-start"
+                        className="flex items-center gap-2.5 border border-border/60 bg-black/60 p-2 transition-colors hover:border-border/90"
                         style={{ borderLeft: `2px solid ${color}` }}
                       >
-                        <div className="flex w-full items-center justify-between">
-                          <span className="mega-label md:hidden">
-                            <ProviderMark provider={provider} compact />
-                          </span>
-                          <span
-                            className="font-mono text-xs font-bold"
-                            style={{ color: failed ? "#f43f5e" : color }}
-                          >
-                            {typeof score === "number" ? score.toFixed(1) : score}
-                            <span className="ml-1 text-[9px] font-normal text-muted-foreground">
-                              ({failed ? "DNF" : `Gr ${grade.letter}`})
+                        {/* Build Screenshot Thumbnail */}
+                        {cell?.cell_id && (
+                          <div className="relative h-8 w-11 shrink-0 overflow-hidden border border-border/80 bg-black">
+                            <img
+                              src={`/previews/${cell.cell_id}.webp`}
+                              alt={`${PROVIDER_SHORT[provider]} build for Spec ${spec.id}`}
+                              loading="lazy"
+                              className="h-full w-full object-cover"
+                              onError={(e) => {
+                                (e.currentTarget as HTMLElement).style.display = "none";
+                              }}
+                            />
+                          </div>
+                        )}
+
+                        <div className="min-w-0 flex-1">
+                          <div className="flex w-full items-center justify-between">
+                            <span className="mega-label md:hidden">
+                              <ProviderMark provider={provider} compact />
                             </span>
-                          </span>
-                        </div>
-                        <div className="flex w-full items-center justify-between border-t border-border/40 pt-1 font-mono text-[9px] text-muted-foreground">
-                          <span>{duration > 0 ? formatDuration(duration) : "—"}</span>
-                          <span>{cost > 0 ? `$${cost.toFixed(2)}` : "—"}</span>
+                            <span
+                              className="font-mono text-xs font-bold tabular-nums"
+                              style={{ color: failed ? "#f43f5e" : color }}
+                            >
+                              {typeof score === "number" ? score.toFixed(1) : score}
+                              <span className="ml-1 text-[9px] font-normal text-muted-foreground">
+                                ({failed ? "DNF" : `Gr ${grade.letter}`})
+                              </span>
+                            </span>
+                          </div>
+                          <div className="flex w-full items-center justify-between border-t border-border/40 pt-1 font-mono text-[9px] text-muted-foreground">
+                            <span>{duration > 0 ? formatDuration(duration) : "—"}</span>
+                            <span>{cost > 0 ? `$${cost.toFixed(2)}` : "—"}</span>
+                          </div>
                         </div>
                       </div>
                     );
                   })}
+
                   <div className="font-mono text-[10px] text-right md:text-left">
                     {b && b.winner !== "tie" ? (
                       <span className="font-bold uppercase" style={{ color: PROVIDER_COLOR[b.winner] }}>
@@ -896,11 +936,10 @@ export function ScoreChart({ specs }: { specs: SpecRow[] }) {
               const score = isRawMode ? grade.score : (selectedBreakdown?.scores[provider] ?? grade.score);
               const duration = selectedBreakdown?.durations[provider] ?? (cell?.duration_seconds ?? 0);
               const cost = selectedBreakdown?.costs[provider] ?? Number(cell?.cost_usd ?? 0);
-
               return (
                 <div
                   key={provider}
-                  className="border border-border/80 bg-black/60 p-3"
+                  className="border border-border/80 bg-black/60 p-3.5"
                   style={{ borderTop: `2px solid ${color}` }}
                 >
                   <div className="flex items-center justify-between">
@@ -909,9 +948,22 @@ export function ScoreChart({ specs }: { specs: SpecRow[] }) {
                       {typeof score === "number" ? score.toFixed(1) : score}
                     </span>
                   </div>
-                  <div className="mt-2 flex items-center justify-between font-mono text-[10px] text-muted-foreground">
+                  {cell?.cell_id && (
+                    <div className="mt-2.5 relative h-24 w-full overflow-hidden border border-border/70 bg-black">
+                      <img
+                        src={`/previews/${cell.cell_id}.webp`}
+                        alt={`${PROVIDER_SHORT[provider]} capture for Spec ${selectedSpec.id}`}
+                        loading="lazy"
+                        className="h-full w-full object-cover"
+                        onError={(e) => {
+                          (e.currentTarget as HTMLElement).style.display = "none";
+                        }}
+                      />
+                    </div>
+                  )}
+                  <div className="mt-2.5 flex items-center justify-between font-mono text-[10px] text-muted-foreground">
                     <span>Grade {grade.letter}</span>
-                    <span>{duration > 0 ? `${duration.toFixed(0)}s` : "—"} · ${cost.toFixed(2)}</span>
+                    <span>{duration > 0 ? formatDuration(duration) : "—"} · ${cost.toFixed(2)}</span>
                   </div>
                   <div className="mt-2 h-1 w-full bg-border">
                     <div className="h-full" style={{ width: `${Math.min(100, Math.max(0, Number(score)))}%`, backgroundColor: color }} />
