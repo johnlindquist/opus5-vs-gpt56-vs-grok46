@@ -100,26 +100,6 @@ function formatRawValue(metric: DecisionMetricKey, value: number | null): string
   return `$${value.toFixed(6)}`;
 }
 
-function coverageLabel(
-  metrics: BattleMetrics,
-  provider: ComparableProviderKey,
-  metric: DecisionMetricKey,
-): string {
-  const aggregate = metrics.providers[provider];
-  if (metric === "quality") {
-    return `${aggregate.quality_receipts}/${aggregate.artifact_count} triad grades`;
-  }
-  if (metric === "speed") {
-    return `${aggregate.duration_receipts}/${aggregate.artifact_count} recorded durations`;
-  }
-  if (provider === "grok") {
-    return `${aggregate.cost_receipts}/${aggregate.artifact_count} list-rate equivalents`;
-  }
-  if (provider === "codex") {
-    return `${aggregate.cost_receipts}/${aggregate.artifact_count} published-rate estimates`;
-  }
-  return `${aggregate.cost_receipts}/${aggregate.artifact_count} provider receipts`;
-}
 
 function sameWeights(left: WeightMap, right: WeightMap): boolean {
   return metricOrder.every((metric) => left[metric] === right[metric]);
@@ -374,12 +354,11 @@ export function DecisionLab({ metrics }: DecisionLabProps) {
                     </caption>
                     <thead className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
                       <tr className="border-b border-border">
-                        <th className="p-3 font-normal">Provider / metric</th>
-                        <th className="p-3 font-normal">Source value</th>
-                        <th className="p-3 font-normal">Coverage</th>
-                        <th className="p-3 font-normal">Utility</th>
-                        <th className="p-3 font-normal">Normalized weight</th>
-                        <th className="p-3 text-right font-normal">Contribution</th>
+                        <th className="p-3 font-normal whitespace-nowrap">Provider / metric</th>
+                        <th className="p-3 font-normal whitespace-nowrap">Source value</th>
+                        <th className="p-3 font-normal whitespace-nowrap">Utility</th>
+                        <th className="p-3 font-normal whitespace-nowrap">Normalized weight</th>
+                        <th className="p-3 text-right font-normal whitespace-nowrap">Contribution</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -388,7 +367,7 @@ export function DecisionLab({ metrics }: DecisionLabProps) {
                         const result = ranking.find((item) => item.provider === provider);
                         return metricOrder.map((metric, metricIndex) => (
                           <tr key={`${provider}-${metric}`} className="border-b border-border last:border-0">
-                            <th className="p-3 font-normal">
+                            <th className="p-3 font-normal whitespace-nowrap">
                               <span className="flex items-center gap-2">
                                 {metricIndex === 0 ? (
                                   <ProviderMark provider={provider} compact />
@@ -401,21 +380,18 @@ export function DecisionLab({ metrics }: DecisionLabProps) {
                                 </span>
                               </span>
                             </th>
-                            <td className="p-3 font-mono tabular-nums">
+                            <td className="p-3 font-mono tabular-nums whitespace-nowrap">
                               {formatRawValue(metric, row[metric].value)}
                             </td>
-                            <td className="p-3 text-muted-foreground">
-                              {coverageLabel(metrics, provider, metric)}
-                            </td>
-                            <td className="p-3 font-mono tabular-nums">
+                            <td className="p-3 font-mono tabular-nums whitespace-nowrap">
                               {row[metric].utility === null
                                 ? "unavailable"
                                 : row[metric].utility!.toFixed(6)}
                             </td>
-                            <td className="p-3 font-mono tabular-nums">
+                            <td className="p-3 font-mono tabular-nums whitespace-nowrap">
                               {(normalizedWeights[metric] * 100).toFixed(1)}%
                             </td>
-                            <td className="p-3 text-right font-mono tabular-nums">
+                            <td className="p-3 text-right font-mono tabular-nums whitespace-nowrap">
                               {result?.contributions[metric] === null || result === undefined
                                 ? "unavailable"
                                 : result.contributions[metric]!.toFixed(3)}
