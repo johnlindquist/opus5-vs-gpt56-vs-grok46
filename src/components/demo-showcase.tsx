@@ -130,12 +130,12 @@ export function DemoShowcase({ items }: DemoShowcaseProps) {
           <div>
             <div className="mega-label mb-3 text-foreground">Artifact Gallery</div>
             <h2 id="showcase-heading" className="pixel-heading text-3xl font-semibold sm:text-5xl">
-              Staged artifact gallery.
+              Interactive demo gallery.
             </h2>
           </div>
           <div className="lg:justify-self-end">
             <p className="max-w-3xl text-sm leading-6 text-muted-foreground">
-              Representative captures across local instruments, developer tools, and AI workflows. Each card links directly to its receipted deep dive.
+              Representative captures and interactive previews across local instruments, developer tools, and AI workflows. Each card links directly to its receipted deep dive.
             </p>
             <div className="mt-4 flex items-center gap-2 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
               <MousePointer2 className="size-3.5 text-foreground" aria-hidden="true" />

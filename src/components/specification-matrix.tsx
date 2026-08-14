@@ -62,11 +62,11 @@ export function SpecificationMatrix({ specs }: { specs: SpecRow[] }) {
         <div>
           <div className="mega-label mb-2">Specification matrix</div>
           <h2 className="pixel-heading text-3xl font-semibold sm:text-4xl">
-            All 20 benchmark specifications.
+            Compare all 20 builds side-by-side.
           </h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            Scored under active posture:{" "}
-            <strong className="text-foreground">{displayName}</strong> ({displayBadge})
+            Every specification scored across Quality, Duration, and Cost under your active{" "}
+            <strong className="text-foreground">{displayName}</strong> posture ({displayBadge}). Click any column header or sort option to reorder the benchmark directory.
           </p>
         </div>
 

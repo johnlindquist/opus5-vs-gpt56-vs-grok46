@@ -53,15 +53,15 @@ export default function Home() {
             </Badge>
           </div>
 
-          <h1 className="pixel-heading max-w-6xl text-4xl font-semibold text-balance sm:text-6xl lg:text-[5.4rem]">
-            Three frontier agents.
+          <h1 className="pixel-heading max-w-6xl text-4xl font-semibold text-balance sm:text-6xl lg:text-[5.2rem]">
+            The frontier build benchmark:
             <br />
-            <span className="text-foreground">Same build briefs.</span>
+            <span className="text-foreground">Opus 5 vs Grok 4.6 vs GPT-5.6 Sol</span>
           </h1>
 
           <div className="mt-8 grid max-w-6xl gap-8 md:grid-cols-[1.35fr_.65fr] md:items-end">
             <p className="max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
-              Claude Opus 5, Grok 4.6, and GPT-5.6 Sol built the same twenty products in isolated workspaces. Every run was receipted, each artifact was replay-checked and blindly reviewed in one three-way context, and all submitted bytes are staged here.
+              Twenty real-world applications built from scratch in clean, isolated environments. Every run was receipted, replay-tested, and blindly evaluated to measure true autonomous software engineering across Anthropic, xAI, and OpenAI.
             </p>
             <div className="flex flex-wrap gap-3 md:justify-end">
               <Link
@@ -101,9 +101,9 @@ export default function Home() {
         <div className="mb-10 flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
           <div>
             <div className="mega-label mb-2">Triad gradebook & analytics</div>
-            <h2 className="pixel-heading text-3xl font-semibold sm:text-4xl">Explore every score & margin.</h2>
+            <h2 className="pixel-heading text-3xl font-semibold sm:text-4xl">The complete scoring breakdown.</h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-              Scores adapt dynamically to your active posture weights. Switch between grouped bars, pairwise spread, and the rubric matrix.
+              Explore dynamic multi-metric evaluations across all 20 specs. Switch between the multi-metric rubric matrix, grouped score bars, and head-to-head point spreads.
             </p>
           </div>
           <MiniPostureSelector variant="bar" showLeader={true} showModeToggle={true} />
@@ -134,10 +134,10 @@ export default function Home() {
             <div>
               <div className="mega-label mb-3">Provenance & Artifacts</div>
               <h2 className="pixel-heading max-w-2xl text-3xl font-semibold sm:text-5xl">
-                Inspect every staged artifact.
+                100% receipted. Completely reproducible.
               </h2>
               <p className="mt-5 max-w-xl text-sm leading-6 text-muted-foreground">
-                Each spec detail page includes all three staged artifacts, full rubric breakdowns, evaluator rationales, telemetry receipts, and the frozen prompt.
+                Inspect every staged production artifact, complete rubric grade, evaluator rationale, execution transcript, and SHA-256 pinned specification prompt.
               </p>
             </div>
             <div className="grid gap-px border border-border bg-border sm:grid-cols-3">

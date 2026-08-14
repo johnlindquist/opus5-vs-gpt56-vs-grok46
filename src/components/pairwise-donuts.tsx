@@ -36,10 +36,10 @@ export function PairwiseDonutsSection() {
         <div>
           <div className="mega-label mb-2">Evaluation protocol</div>
           <h2 className="pixel-heading text-3xl font-semibold sm:text-4xl">
-            Pairwise win shares under posture.
+            How the judging works.
           </h2>
           <p className="mt-5 max-w-xl text-sm leading-6 text-muted-foreground">
-            Donut charts display the head-to-head win distribution across all twenty specifications under the active{" "}
+            Each specification was blindly evaluated in a single shared review context under anonymous Alpha, Beta, and Gamma aliases. Donut charts show the resulting head-to-head win distribution across all twenty briefs under your active{" "}
             <strong className="text-foreground">{displayName}</strong> posture ({displayBadge}).
           </p>
 

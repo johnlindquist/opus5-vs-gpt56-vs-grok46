@@ -198,11 +198,11 @@ export function DecisionLab({ metrics }: DecisionLabProps) {
               id="decision-lab-heading"
               className="pixel-heading max-w-3xl text-3xl font-semibold sm:text-5xl"
             >
-              Your priorities. A different answer.
+              What’s most important to you?
             </h2>
           </div>
           <p className="max-w-3xl text-sm leading-6 text-muted-foreground xl:justify-self-end">
-            Weight quality, recorded build time, and published-rate cost. Quality,
+            Weight quality, recorded build time, and published-rate cost to match your engineering priorities. Quality,
             time, and cost include all three agents. The Quality + cost preset
             zeros the time weight.
           </p>

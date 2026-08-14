@@ -73,12 +73,11 @@ export function PairwiseArena() {
           <div>
             <div className="mega-label mb-2">Pairwise battle arena</div>
             <h2 className="pixel-heading text-3xl font-semibold sm:text-4xl">
-              Three pairwise head-to-head views.
+              Head-to-head match-ups.
             </h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              Evaluated under active posture:{" "}
-              <strong className="text-foreground">{displayName}</strong>{" "}
-              <span className="font-mono text-xs text-muted-foreground">[{displayBadge}]</span>
+              Direct pairwise records across all twenty specifications, calculated under your active{" "}
+              <strong className="text-foreground">{displayName}</strong> posture [{displayBadge}].
             </p>
           </div>
 
