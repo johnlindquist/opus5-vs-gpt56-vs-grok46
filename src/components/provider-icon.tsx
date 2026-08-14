@@ -123,7 +123,7 @@ export function ProviderMark({
   );
 }
 
-export function PairwiseMark({
+export function HeadToHeadMark({
   left,
   right,
   className,
@@ -142,6 +142,8 @@ export function PairwiseMark({
     </span>
   );
 }
+
+export const PairwiseMark = HeadToHeadMark;
 
 export function WinnerMark({ value, className }: { value: string; className?: string }) {
   if (value === "tie") {

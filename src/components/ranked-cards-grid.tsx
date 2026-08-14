@@ -91,7 +91,7 @@ export function RankedCardsGrid({
   return (
     <div
       ref={containerRef}
-      className="mt-7 grid gap-3 lg:grid-cols-3 relative"
+      className="mt-7 grid gap-3 lg:grid-cols-3 relative min-h-[175px]"
       aria-live="polite"
       aria-atomic="true"
     >
@@ -103,7 +103,7 @@ export function RankedCardsGrid({
           <article
             key={result.provider}
             ref={setCardRef(result.provider)}
-            className={`relative flex flex-col justify-between overflow-hidden border bg-black p-5 transition-colors ${
+            className={`relative flex flex-col justify-between overflow-hidden border bg-black p-5 h-[175px] min-h-[175px] transition-colors ${
               isLeader
                 ? "border-foreground/80 shadow-[0_0_25px_rgba(255,255,255,0.06)]"
                 : "border-border hover:border-border/80"

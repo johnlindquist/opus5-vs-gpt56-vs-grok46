@@ -125,7 +125,7 @@ export function SpecificationMatrix({ specs }: { specs: SpecRow[] }) {
             <ProviderMark provider="codex" compact />
             <ArrowUpDown className="size-2.5" />
           </button>
-          <span>{isRawMode ? "Pairwise Calls" : "Posture Winner"}</span>
+          <span>{isRawMode ? "Head-to-head Calls" : "Posture Winner"}</span>
           <span className="text-right">Action</span>
         </div>
 

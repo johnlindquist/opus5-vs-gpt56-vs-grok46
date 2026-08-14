@@ -4,31 +4,24 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { usePosture } from "@/context/posture-context";
 import { TallyDonut } from "@/components/battle-charts";
-import { PairwiseMark } from "@/components/provider-icon";
+import { PairwiseMark as HeadToHeadMark } from "@/components/provider-icon";
 import { MiniPostureSelector } from "@/components/mini-posture-selector";
-import { data } from "@/lib/data";
 
-export function PairwiseDonutsSection() {
-  const { postureResult, displayName, displayBadge, viewMode } = usePosture();
+export function HeadToHeadDonutsSection() {
+  const { postureResult, displayName, displayBadge } = usePosture();
   const tallies = postureResult.pairwiseTallies;
-  const isRawMode = viewMode === "raw";
 
-  // Raw tallies
-  const rawClaudeGrok = data.tallies.claude_vs_grok;
-  const rawGrokCodex = data.tallies.grok_vs_codex;
-  const rawOpusSol = data.tallies.canonical;
+  const claudeGrok = {
+    claude: tallies.claude_vs_grok.claude,
+    grok: tallies.claude_vs_grok.grok,
+    ties: tallies.claude_vs_grok.ties,
+  };
 
-  const claudeGrok = isRawMode
-    ? { claude: rawClaudeGrok.claude ?? 0, grok: rawClaudeGrok.grok ?? 0, ties: rawClaudeGrok.ties }
-    : { claude: tallies.claude_vs_grok.claude, grok: tallies.claude_vs_grok.grok, ties: tallies.claude_vs_grok.ties };
-
-  const grokCodex = isRawMode
-    ? { grok: rawGrokCodex.grok ?? 0, codex: rawGrokCodex.codex ?? 0, ties: 0 }
-    : { grok: tallies.grok_vs_codex.grok, codex: tallies.grok_vs_codex.codex, ties: tallies.grok_vs_codex.ties };
-
-  const opusSol = isRawMode
-    ? { claude: rawOpusSol.claude ?? 0, codex: rawOpusSol.codex ?? 0, ties: rawOpusSol.ties }
-    : { claude: tallies.claude_vs_codex.claude, codex: tallies.claude_vs_codex.codex, ties: tallies.claude_vs_codex.ties };
+  const grokCodex = {
+    grok: tallies.grok_vs_codex.grok,
+    codex: tallies.grok_vs_codex.codex,
+    ties: tallies.grok_vs_codex.ties,
+  };
 
   return (
     <section className="border-y border-border bg-[#050505]">
@@ -58,7 +51,7 @@ export function PairwiseDonutsSection() {
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="border border-border bg-black p-4">
             <div className="mega-label flex justify-center pb-2">
-              <PairwiseMark left="claude" right="grok" />
+              <HeadToHeadMark left="claude" right="grok" />
             </div>
             <TallyDonut
               tally={[
@@ -67,13 +60,13 @@ export function PairwiseDonutsSection() {
                 ...(claudeGrok.ties > 0 ? [{ key: "ties" as const, value: claudeGrok.ties }] : []),
               ]}
               center={`${claudeGrok.claude}–${claudeGrok.grok}`}
-              labels={isRawMode ? "raw wins" : "posture wins"}
+              labels="wins"
             />
           </div>
 
           <div className="border border-border bg-black p-4">
             <div className="mega-label flex justify-center pb-2">
-              <PairwiseMark left="grok" right="codex" />
+              <HeadToHeadMark left="grok" right="codex" />
             </div>
             <TallyDonut
               tally={[
@@ -82,7 +75,7 @@ export function PairwiseDonutsSection() {
                 ...(grokCodex.ties > 0 ? [{ key: "ties" as const, value: grokCodex.ties }] : []),
               ]}
               center={`${grokCodex.grok}–${grokCodex.codex}`}
-              labels={isRawMode ? "raw wins" : "posture wins"}
+              labels="wins"
             />
           </div>
         </div>
@@ -90,3 +83,5 @@ export function PairwiseDonutsSection() {
     </section>
   );
 }
+
+export const PairwiseDonutsSection = HeadToHeadDonutsSection;

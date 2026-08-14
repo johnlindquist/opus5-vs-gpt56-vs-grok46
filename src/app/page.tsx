@@ -11,9 +11,9 @@ import { Separator } from "@/components/ui/separator";
 import { ScoreChart } from "@/components/battle-charts";
 import { DecisionLab } from "@/components/decision-lab";
 import { DemoShowcase } from "@/components/demo-showcase";
-import { PairwiseArena } from "@/components/pairwise-arena";
+import { HeadToHeadArena } from "@/components/pairwise-arena";
 import { ModelOverviewCards } from "@/components/model-overview-cards";
-import { PairwiseDonutsSection } from "@/components/pairwise-donuts";
+import { HeadToHeadDonutsSection } from "@/components/pairwise-donuts";
 import { SpecificationMatrix } from "@/components/specification-matrix";
 import { GlobalPostureBanner, MiniPostureSelector } from "@/components/mini-posture-selector";
 import { ProviderIcon } from "@/components/provider-icon";
@@ -93,9 +93,8 @@ export default function Home() {
       {/* 2. DECISION LAB (CUSTOM PRIORITIES & RANKING) — Positioned directly above results */}
       <DecisionLab metrics={battleMetrics} />
 
-      {/* 3. PAIRWISE BATTLE ARENA */}
-      <PairwiseArena />
-
+      {/* 3. HEAD-TO-HEAD MATCH-UPS */}
+      <HeadToHeadArena />
       {/* 4. INTERACTIVE BENCHMARK SUITE & TRIAD GRADEBOOK */}
       <section id="analytics" className="scroll-mt-20 mx-auto max-w-[1600px] px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
         <div className="mb-10 flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
@@ -121,9 +120,8 @@ export default function Home() {
       {/* 5. ARTIFACT SIGNAL & GALLERY */}
       <DemoShowcase items={showcaseItems} />
 
-      {/* 6. DONUT & METHODOLOGY BREAKDOWN */}
-      <PairwiseDonutsSection />
-
+      {/* 6. HEAD-TO-HEAD WIN SHARES */}
+      <HeadToHeadDonutsSection />
       {/* 7. COMPLETE MATRIX SECTION */}
       <SpecificationMatrix specs={data.specs} />
 

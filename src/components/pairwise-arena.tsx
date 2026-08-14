@@ -3,113 +3,63 @@
 import { usePosture } from "@/context/posture-context";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { PairwiseMark } from "@/components/provider-icon";
+import { PairwiseMark as HeadToHeadMark } from "@/components/provider-icon";
 import { AnimatedNumber } from "@/components/animated-number";
 import { MiniPostureSelector } from "@/components/mini-posture-selector";
-import { PROVIDER_COLOR, data } from "@/lib/data";
+import { PROVIDER_COLOR } from "@/lib/data";
 
-export function PairwiseArena() {
-  const { postureResult, displayName, displayBadge, isPreset, preset, viewMode, setViewMode } = usePosture();
+export function HeadToHeadArena() {
+  const { postureResult, displayName, displayBadge } = usePosture();
   const tallies = postureResult.pairwiseTallies;
 
-  // Raw canonical tallies for comparison
-  const rawOpusSol = data.tallies.canonical;
-  const rawClaudeGrok = data.tallies.claude_vs_grok;
-  const rawGrokCodex = data.tallies.grok_vs_codex;
+  const opusSol = {
+    left: tallies.claude_vs_codex.claude,
+    right: tallies.claude_vs_codex.codex,
+    ties: tallies.claude_vs_codex.ties,
+    leftPct: tallies.claude_vs_codex.claudeWinRate,
+    rightPct: tallies.claude_vs_codex.codexWinRate,
+  };
 
-  const isRawMode = viewMode === "raw";
+  const claudeGrok = {
+    left: tallies.claude_vs_grok.claude,
+    right: tallies.claude_vs_grok.grok,
+    ties: tallies.claude_vs_grok.ties,
+    leftPct: tallies.claude_vs_grok.claudeWinRate,
+    rightPct: tallies.claude_vs_grok.grokWinRate,
+  };
 
-  const opusSol = isRawMode
-    ? {
-        left: rawOpusSol.claude ?? 19,
-        right: rawOpusSol.codex ?? 1,
-        ties: rawOpusSol.ties ?? 0,
-        leftPct: 95,
-        rightPct: 5,
-      }
-    : {
-        left: tallies.claude_vs_codex.claude,
-        right: tallies.claude_vs_codex.codex,
-        ties: tallies.claude_vs_codex.ties,
-        leftPct: tallies.claude_vs_codex.claudeWinRate,
-        rightPct: tallies.claude_vs_codex.codexWinRate,
-      };
+  const grokCodex = {
+    left: tallies.grok_vs_codex.grok,
+    right: tallies.grok_vs_codex.codex,
+    ties: tallies.grok_vs_codex.ties,
+    leftPct: tallies.grok_vs_codex.grokWinRate,
+    rightPct: tallies.grok_vs_codex.codexWinRate,
+  };
 
-  const claudeGrok = isRawMode
-    ? {
-        left: rawClaudeGrok.claude ?? 18,
-        right: rawClaudeGrok.grok ?? 1,
-        ties: rawClaudeGrok.ties ?? 1,
-        leftPct: 90,
-        rightPct: 5,
-      }
-    : {
-        left: tallies.claude_vs_grok.claude,
-        right: tallies.claude_vs_grok.grok,
-        ties: tallies.claude_vs_grok.ties,
-        leftPct: tallies.claude_vs_grok.claudeWinRate,
-        rightPct: tallies.claude_vs_grok.grokWinRate,
-      };
-
-  const grokCodex = isRawMode
-    ? {
-        left: rawGrokCodex.grok ?? 14,
-        right: rawGrokCodex.codex ?? 6,
-        ties: rawGrokCodex.ties ?? 0,
-        leftPct: 70,
-        rightPct: 30,
-      }
-    : {
-        left: tallies.grok_vs_codex.grok,
-        right: tallies.grok_vs_codex.codex,
-        ties: tallies.grok_vs_codex.ties,
-        leftPct: tallies.grok_vs_codex.grokWinRate,
-        rightPct: tallies.grok_vs_codex.codexWinRate,
-      };
   return (
     <section className="border-b border-border bg-[#050505]">
       <div className="mx-auto max-w-[1600px] px-4 py-14 sm:px-6 lg:px-8">
         <div className="mb-8 flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
           <div>
-            <div className="mega-label mb-2">Pairwise battle arena</div>
+            <div className="mega-label mb-2">Head-to-head arena</div>
             <h2 className="pixel-heading text-3xl font-semibold sm:text-4xl">
               Head-to-head match-ups.
             </h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              Direct pairwise records across all twenty specifications, calculated under your active{" "}
+              Direct head-to-head records across all twenty specifications, calculated under your active{" "}
               <strong className="text-foreground">{displayName}</strong> posture [{displayBadge}].
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
             <MiniPostureSelector variant="inline" label="Posture" showLeader={false} />
-            <div className="flex items-center border border-border bg-black p-0.5 font-mono text-[10px]">
-              <button
-                type="button"
-                onClick={() => setViewMode("posture")}
-                className={`px-2 py-1 uppercase transition-colors ${
-                  !isRawMode ? "bg-foreground text-background font-bold" : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                Posture Wins
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMode("raw")}
-                className={`px-2 py-1 uppercase transition-colors ${
-                  isRawMode ? "bg-foreground text-background font-bold" : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                Raw Grade Wins
-              </button>
-            </div>
           </div>
         </div>
 
         <div className="grid gap-4 lg:grid-cols-3">
           {/* Matchup 1: Opus vs Sol */}
           <Card
-            className="corner-marks relative rounded-none border-border bg-black p-6 transition-colors hover:border-border/80"
+            className="corner-marks relative flex flex-col justify-between rounded-none border-border bg-black p-6 min-h-[250px] transition-colors hover:border-border/80"
             style={{
               borderTop: `3px solid ${
                 opusSol.left >= opusSol.right ? PROVIDER_COLOR.claude : PROVIDER_COLOR.codex
@@ -118,7 +68,7 @@ export function PairwiseArena() {
           >
             <span className="cm" />
             <div className="mb-5 flex items-center justify-between">
-              <PairwiseMark left="claude" right="codex" className="font-mono text-xs font-semibold" />
+              <HeadToHeadMark left="claude" right="codex" className="font-mono text-xs font-semibold" />
               <Badge variant="outline" className="rounded-none font-mono text-[10px] uppercase text-muted-foreground">
                 {opusSol.left >= opusSol.right
                   ? `Opus leads (${opusSol.leftPct}%)`
@@ -169,16 +119,14 @@ export function PairwiseArena() {
               </div>
             </div>
 
-            <p className="mt-4 text-xs leading-5 text-muted-foreground">
-              {isRawMode
-                ? "Pairwise decisions derived directly from raw blind review grades across all 20 specs."
-                : `Outcomes calculated by weighting quality, speed, and cost under the ${displayName} posture.`}
+            <p className="mt-4 text-xs leading-5 text-muted-foreground min-h-[40px]">
+              Direct match-up outcomes calculated by weighting quality, speed, and cost under the {displayName} posture.
             </p>
           </Card>
 
           {/* Matchup 2: Opus vs Grok */}
           <Card
-            className="rounded-none border-border bg-black p-6 transition-colors hover:border-border/80"
+            className="rounded-none flex flex-col justify-between border-border bg-black p-6 min-h-[250px] transition-colors hover:border-border/80"
             style={{
               borderTop: `3px solid ${
                 claudeGrok.left >= claudeGrok.right ? PROVIDER_COLOR.claude : PROVIDER_COLOR.grok
@@ -186,7 +134,7 @@ export function PairwiseArena() {
             }}
           >
             <div className="mb-5 flex items-center justify-between">
-              <PairwiseMark left="claude" right="grok" className="font-mono text-xs font-semibold" />
+              <HeadToHeadMark left="claude" right="grok" className="font-mono text-xs font-semibold" />
               <Badge variant="outline" className="rounded-none font-mono text-[10px] uppercase text-muted-foreground">
                 {claudeGrok.left >= claudeGrok.right
                   ? `Opus leads (${claudeGrok.leftPct}%)`
@@ -207,6 +155,7 @@ export function PairwiseArena() {
                 </span>
               )}
             </div>
+
             {/* Win Share Visual Bar */}
             <div className="mt-5 space-y-1.5">
               <div className="flex h-2 w-full overflow-hidden bg-border">
@@ -235,16 +184,15 @@ export function PairwiseArena() {
                 </span>
               </div>
             </div>
-            <p className="mt-4 text-xs leading-5 text-muted-foreground">
-              {isRawMode
-                ? "One blind review context per spec. Direct pairwise calls from the original 100-point grades."
-                : `Recomputed per-spec scores under the ${displayName} posture (${displayBadge}).`}
+
+            <p className="mt-4 text-xs leading-5 text-muted-foreground min-h-[40px]">
+              Direct match-up outcomes calculated by weighting quality, speed, and cost under the {displayName} posture.
             </p>
           </Card>
 
           {/* Matchup 3: Grok vs Sol */}
           <Card
-            className="rounded-none border-border bg-black p-6 transition-colors hover:border-border/80"
+            className="rounded-none flex flex-col justify-between border-border bg-black p-6 min-h-[250px] transition-colors hover:border-border/80"
             style={{
               borderTop: `3px solid ${
                 grokCodex.left >= grokCodex.right ? PROVIDER_COLOR.grok : PROVIDER_COLOR.codex
@@ -252,7 +200,7 @@ export function PairwiseArena() {
             }}
           >
             <div className="mb-5 flex items-center justify-between">
-              <PairwiseMark left="grok" right="codex" className="font-mono text-xs font-semibold" />
+              <HeadToHeadMark left="grok" right="codex" className="font-mono text-xs font-semibold" />
               <Badge variant="outline" className="rounded-none font-mono text-[10px] uppercase text-muted-foreground">
                 {grokCodex.left >= grokCodex.right
                   ? `Grok leads (${grokCodex.leftPct}%)`
@@ -273,6 +221,7 @@ export function PairwiseArena() {
                 </span>
               )}
             </div>
+
             {/* Win Share Visual Bar */}
             <div className="mt-5 space-y-1.5">
               <div className="flex h-2 w-full overflow-hidden bg-border">
@@ -301,10 +250,9 @@ export function PairwiseArena() {
                 </span>
               </div>
             </div>
-            <p className="mt-4 text-xs leading-5 text-muted-foreground">
-              {isRawMode
-                ? "Grok won 14 specs in the blind reviews, with Sol taking 6 specs in local artifacts and AI UX."
-                : `Grok vs Sol posture evaluation across all twenty specifications.`}
+
+            <p className="mt-4 text-xs leading-5 text-muted-foreground min-h-[40px]">
+              Direct match-up outcomes calculated by weighting quality, speed, and cost under the {displayName} posture.
             </p>
           </Card>
         </div>
@@ -312,3 +260,6 @@ export function PairwiseArena() {
     </section>
   );
 }
+
+// Keep export alias for any consumer
+export const PairwiseArena = HeadToHeadArena;

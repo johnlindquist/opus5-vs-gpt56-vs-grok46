@@ -162,7 +162,7 @@ export function MiniPostureSelector({
         >
           {showWeightBar && <PostureWeightBar className="h-1.5 w-8" />}
           <span className="font-semibold text-foreground">{preset ? preset.shortName : "Custom"}</span>
-          <span className="text-muted-foreground">[{displayBadge}]</span>
+          <span className="text-muted-foreground tabular-nums inline-block min-w-[54px] text-center">[{displayBadge}]</span>
           <ChevronDown className={`size-3 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`} />
         </button>
 
@@ -260,7 +260,7 @@ export function MiniPostureSelector({
             })}
           </div>
 
-          <span className="font-mono text-xs text-muted-foreground">
+          <span className="font-mono text-xs text-muted-foreground tabular-nums inline-block min-w-[62px] text-center">
             [{displayBadge}]
           </span>
         </div>
@@ -337,8 +337,7 @@ export function MiniPostureSelector({
           );
         })}
       </div>
-
-      <span className="text-[10px] text-muted-foreground font-mono">
+      <span className="text-[10px] text-muted-foreground font-mono tabular-nums inline-block min-w-[54px] text-center">
         [{displayBadge}]
       </span>
 

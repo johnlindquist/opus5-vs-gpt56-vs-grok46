@@ -168,7 +168,7 @@ function CustomBarTooltip({ active, payload, label, specs }: CustomBarTooltipPro
       </div>
 
       <div className="mt-3 flex items-center justify-between border-t border-border/60 pt-2 text-[10px] text-muted-foreground">
-        <span>{isRawMode ? "Raw pairwise:" : "Posture winner:"}</span>
+        <span>{isRawMode ? "Raw head-to-head:" : "Posture winner:"}</span>
         <div className="flex items-center gap-1 font-mono text-foreground">
           {isRawMode ? (
             <>
@@ -321,7 +321,7 @@ export function ScoreChart({ specs }: { specs: SpecRow[] }) {
   const grokAvg = isRawMode ? averageScore("grok") : postureResult.providerScores.grok;
   const codexAvg = isRawMode ? averageScore("codex") : postureResult.providerScores.codex;
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 min-h-[580px]">
       {/* Top Header & Interactive Controls */}
       <div className="flex flex-col gap-4 border-b border-border/80 pb-5 lg:flex-row lg:items-center lg:justify-between">
         {/* Mode Buttons (Rubric Matrix first on the left) */}

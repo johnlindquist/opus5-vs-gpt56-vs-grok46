@@ -51,7 +51,7 @@
  },
  "disclosures": [
   "Triad letter grades and scores are the opinion of one independent frontier-model review per spec, with all three artifacts assessed blind in a single shared context; they are not objective measurements or a consensus.",
-  "All three agents built the same twenty frozen specifications. Pairwise tallies are reported separately for Opus vs Sol, Opus vs Grok, and Grok vs Sol.",
+  "All three agents built the same twenty frozen specifications. Head-to-head tallies are reported separately for Opus vs Sol, Opus vs Grok, and Grok vs Sol.",
   "Wall-clock durations are per-session receipt clocks. Decision Lab time utility uses each agent's summed recorded runtime.",
   "Token-rate equivalents are not necessarily marginal cash charges, provider invoices, or subscription spend: these runs authenticated through Cursor login and used Cursor's first-party model pool.",
   "Opus vs Sol is 19–1. Opus vs Grok is 18–1 with one tie. Grok vs Sol is 14–6."

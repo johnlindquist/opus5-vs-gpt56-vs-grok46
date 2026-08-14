@@ -78,7 +78,7 @@ export function ProviderGradeCard({ spec, provider }: { spec: SpecRow; provider:
             className="rounded-none font-mono text-[10px] font-semibold uppercase text-black"
             style={{ backgroundColor: color }}
           >
-            pairwise win
+            head-to-head win
           </Badge>
         )}
       </div>

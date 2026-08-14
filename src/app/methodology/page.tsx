@@ -57,8 +57,8 @@ const steps = [
   {
     icon: CheckCircle2,
     n: "06",
-    title: "Derive pairwise calls",
-    body: "The structured category totals produce three pairwise decisions from the same review context: Opus vs Sol, Opus vs Grok, and Grok vs Sol. Equal totals are ties.",
+    title: "Derive head-to-head calls",
+    body: "The structured category totals produce three direct head-to-head decisions from the same review context: Opus vs Sol, Opus vs Grok, and Grok vs Sol. Equal totals are ties.",
   },
 ];
 
@@ -231,10 +231,10 @@ export default function MethodologyPage() {
             <h2 className="pixel-heading text-3xl font-semibold sm:text-4xl">Methodology disclosures.</h2>
           </div>
           <Accordion multiple className="border-t border-border">
-            <AccordionItem value="pairwise" className="border-border">
-              <AccordionTrigger className="text-left text-sm">Why three pairwise tallies instead of one podium?</AccordionTrigger>
+            <AccordionItem value="head-to-head" className="border-border">
+              <AccordionTrigger className="text-left text-sm">Why three head-to-head tallies instead of one podium?</AccordionTrigger>
               <AccordionContent className="text-sm leading-6 text-muted-foreground">
-                Each spec produces one blind review of all three artifacts. That single context yields three pairwise calls—<PairwiseMark left="claude" right="codex" className="align-middle" />, <PairwiseMark left="claude" right="grok" className="align-middle" />, and <PairwiseMark left="grok" right="codex" className="align-middle" />—rather than a merged three-way ranking.
+                Each spec produces one blind review of all three artifacts. That single context yields three head-to-head calls—<PairwiseMark left="claude" right="codex" className="align-middle" />, <PairwiseMark left="claude" right="grok" className="align-middle" />, and <PairwiseMark left="grok" right="codex" className="align-middle" />—rather than a merged three-way ranking.
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="judge" className="border-border">
