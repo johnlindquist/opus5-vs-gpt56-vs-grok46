@@ -44,7 +44,7 @@ const metricMeta: Record<
   speed: {
     label: "Comparable build time",
     shortLabel: "Time",
-    description: "Total receipted wall time; lower is better.",
+    description: "Total canonical wall time; lower is better.",
     icon: TimerReset,
   },
   cost: {
@@ -78,7 +78,7 @@ const presets: Array<{ name: string; description: string; weights: WeightMap }> 
   },
   {
     name: "Quality + cost",
-    description: "Rank all three arms on quality and published-rate cost; set time weight to zero.",
+    description: "Rank all three arms on quality and published-rate cost; omit later-run time.",
     weights: { quality: 60, speed: 0, cost: 40 },
   },
 ];
@@ -105,9 +105,6 @@ function coverageLabel(
     return `${aggregate.quality_receipts}/${aggregate.artifact_count} triad grades`;
   }
   if (metric === "speed") {
-    if (provider === "grok") {
-      return `${aggregate.duration_receipts}/${aggregate.artifact_count} attempt wall clocks`;
-    }
     return `${aggregate.duration_receipts}/${aggregate.artifact_count} canonical durations`;
   }
   if (provider === "grok") {
@@ -202,9 +199,9 @@ export function DecisionLab({ metrics }: DecisionLabProps) {
             </h2>
           </div>
           <p className="max-w-3xl text-sm leading-6 text-muted-foreground xl:justify-self-end">
-            Weight quality, receipted build time, and published-rate cost. All three
-            arms now carry quality, time, and cost. Grok time is the summed attempt
-            wall clock from the twenty Condition G receipts.
+            Weight quality, canonical build time, and published-rate cost. Quality
+            and cost now include Grok. Time still compares only Opus and Sol because
+            Condition G ran later. A Quality + cost preset ranks all three arms.
           </p>
         </div>
 
@@ -506,7 +503,7 @@ export function DecisionLab({ metrics }: DecisionLabProps) {
               <div>
                 <div className="mega-label">Three-provider quality context</div>
                 <h3 className="pixel-heading mt-2 text-2xl font-semibold sm:text-3xl">
-                  All three arms now carry quality, time, and cost.
+                  All three arms now carry quality and cost.
                 </h3>
               </div>
               <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">

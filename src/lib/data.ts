@@ -209,7 +209,7 @@ export const data = battle as unknown as BattleData;
 
 export const PROVIDER_ORDER: ProviderKey[] = ["claude", "grok", "codex"];
 export const COMPARABLE_PROVIDER_ORDER: ComparableProviderKey[] = ["claude", "grok", "codex"];
-export const SPEED_COMPARABLE_ORDER: ProviderKey[] = ["claude", "grok", "codex"];
+export const SPEED_COMPARABLE_ORDER: ProviderKey[] = ["claude", "codex"];
 
 export const PROVIDER_COLOR: Record<ProviderKey, string> = {
   claude: "#7a7aff",
@@ -325,10 +325,9 @@ function deriveBattleMetrics(specs: SpecRow[]): BattleMetrics {
               aggregate.duration_receipts === specs.length
                 ? utility(fastest, aggregate.total_duration_seconds)
                 : null,
-            unit:
-              provider === "grok"
-                ? "receipted attempt wall seconds"
-                : "recorded canonical wall seconds",
+            unit: SPEED_COMPARABLE_ORDER.includes(provider)
+              ? "recorded canonical wall seconds"
+              : "later-run wall seconds (provenance only)",
           },
           cost: {
             value:
@@ -374,11 +373,11 @@ function deriveBattleMetrics(specs: SpecRow[]): BattleMetrics {
       },
       comparability: {
         scope:
-          "Quality, speed, and cost now include all three arms. Cost uses Anthropic provider receipts for Opus and published-rate math for Sol and Grok. Speed uses summed per-run wall seconds from each arm's attempt receipts.",
+          "Quality and cost now include all three arms. Cost uses Anthropic provider receipts for Opus and published-rate math for Sol and Grok. Speed still compares only the canonical Opus and Sol matrix.",
         grok_cost_exclusion:
           "Sol was already a published-rate estimate, not an invoice. Grok list-rate equivalents ($2 / $0.50 / $6 per million) are the same class of math and now enter cost utility. The 50% launch-discount total is disclosed but unused in the composite, matching Sol's standard-rate basis.",
         grok_speed_exclusion:
-          "Condition G still ran later (2026-08-13T20:58:32Z–23:56:31Z) under different host state and concurrency. That is disclosed, not used as a reason to drop the 20/20 attempt wall-clock receipts. Speed utility uses the same summed per-run duration_seconds measure as Opus and Sol (15,432.818s). Campaign elapsed 10,678.278s is overlap provenance only.",
+          "Condition G ran later under different host state and concurrency, so Grok durations remain provenance only and are excluded from controlled speed weighting.",
         missing_values:
           "A missing source value remains unavailable. It is never converted to zero, one, or best-in-class utility.",
       },

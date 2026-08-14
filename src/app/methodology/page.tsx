@@ -143,7 +143,7 @@ export default function MethodologyPage() {
           <div className="mt-4 flex items-start gap-4 border border-border bg-black p-5">
             <Clock3 className="mt-0.5 size-5 shrink-0 text-mega-blue-text" />
             <p className="text-sm leading-6 text-muted-foreground">
-              <strong className="text-foreground">Timing rule:</strong> Condition G ran on 2026-08-13, weeks after the canonical Opus–Sol battle, under different host state and concurrency. The twenty attempt receipts still have wall clocks (15,432.818s summed; 10,678.278s campaign elapsed). The decision lab uses the same summed per-run wall seconds as Opus and Sol. Campaign elapsed stays disclosure-only because some Grok runs overlapped.
+              <strong className="text-foreground">Timing rule:</strong> Condition G ran in August 2026, weeks after the canonical Opus–Sol battle. Host state and concurrency differ. Durations are preserved as provenance but never treated as cross-arm speed evidence or a grading dimension.
             </p>
           </div>
         </div>
@@ -242,13 +242,13 @@ export default function MethodologyPage() {
             <AccordionItem value="tokens" className="border-border">
               <AccordionTrigger className="text-left text-sm">Can token counts or durations compare efficiency?</AccordionTrigger>
               <AccordionContent className="text-sm leading-6 text-muted-foreground">
-                Token counts still do not compare efficiency: providers use different tokenizers. Durations now do enter the decision-lab speed utility as summed per-run wall seconds. Condition G still ran later under different host state and concurrency; that caveat stays on the timing rule, but the 20/20 attempt clocks are no longer dropped.
+                Not across these arms. Providers report tokens with different tokenizers, and Condition G ran later under different host state and concurrency. Both are provenance signals only—not interchangeable units of work or clean speed evidence.
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="grok-cost" className="border-border">
               <AccordionTrigger className="text-left text-sm">Does Grok have a cost figure now?</AccordionTrigger>
               <AccordionContent className="text-sm leading-6 text-muted-foreground">
-                Yes. Sol costs were already published-rate estimates, not invoices. Grok uses the same class of math: twenty Cursor Grok 4.6 Medium receipts sum to {data.grok_resource_summary?.pricing.list_rate_equivalent_usd ?? "33.296900"} USD at list rates, or {data.grok_resource_summary?.pricing.launch_discount_equivalent_usd ?? "16.648450"} USD at the 50% launch discount. The decision lab uses the list-rate total so the basis matches Sol. Auth was Cursor login / first-party pool, so neither figure is a cash invoice. The same twenty receipts also supply attempt wall clocks for the speed weight.
+                Yes. Sol costs were already published-rate estimates, not invoices. Grok uses the same class of math: twenty Cursor Grok 4.6 Medium receipts sum to {data.grok_resource_summary?.pricing.list_rate_equivalent_usd ?? "33.296900"} USD at list rates, or {data.grok_resource_summary?.pricing.launch_discount_equivalent_usd ?? "16.648450"} USD at the 50% launch discount. The decision lab uses the list-rate total so the basis matches Sol. Auth was Cursor login / first-party pool, so neither figure is a cash invoice. Later-run time still stays out of the composite.
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="network" className="border-border">
