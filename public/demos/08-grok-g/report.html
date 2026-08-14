@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trace Sheriff — fixtures/sample.jsonl</title>
+<style>
+  :root {
+    --bg: #12151c;
+    --bg-2: #1b2130;
+    --ink: #e8edf7;
+    --muted: #9aa6bd;
+    --line: #2a3348;
+    --gold: #e2b340;
+    --phase: #5b8def;
+    --tool: #3ecf8e;
+    --exclusive: #ff7a59;
+    --open: #f0c14b;
+    --error: #ff5d6c;
+    --warning: #f4b942;
+    --info: #6cb6ff;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.45 "IBM Plex Sans", "Segoe UI", sans-serif; }
+  body { min-height: 100vh; }
+  header.hero {
+    padding: 28px 32px 18px;
+    border-bottom: 1px solid var(--line);
+    background: linear-gradient(180deg, #1c2436 0%, var(--bg) 100%);
+  }
+  .badge { display: inline-flex; gap: 8px; align-items: center; letter-spacing: 0.12em; text-transform: uppercase; font-size: 11px; color: var(--gold); }
+  .star { width: 14px; height: 14px; background: var(--gold); clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
+  h1 { margin: 8px 0 6px; font-size: 28px; font-weight: 650; }
+  .lede { color: var(--muted); max-width: 70ch; }
+  .stats { display: flex; flex-wrap: wrap; gap: 18px; margin-top: 16px; }
+  .stat { background: var(--bg-2); border: 1px solid var(--line); border-radius: 10px; min-width: 120px; padding: 10px 14px; }
+  .stat b { display: block; font-size: 20px; }
+  .stat span { color: var(--muted); font-size: 12px; }
+  main { padding: 20px 32px 48px; }
+  .axis { position: relative; height: 22px; margin: 8px 0 14px; color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+  .axis span { position: absolute; transform: translateX(-50%); }
+  .axis span:first-child { transform: none; }
+  .axis span:last-child { transform: translateX(-100%); }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .session-card { background: var(--bg-2); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px 16px; min-height: 240px; }
+  .session-card header { display: flex; justify-content: space-between; align-items: center; }
+  .session-card h2 { margin: 0; font-size: 20px; }
+  .window { color: var(--muted); font-variant-numeric: tabular-nums; margin: 4px 0 10px; }
+  .outcome { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; padding: 4px 8px; border-radius: 999px; border: 1px solid var(--line); }
+  .outcome.ok { color: var(--tool); }
+  .outcome.error { color: var(--error); }
+  .outcome.incomplete, .outcome.unknown { color: var(--warning); }
+  .metrics { display: flex; gap: 16px; margin: 0 0 10px; }
+  .metrics div { margin: 0; }
+  .metrics dt { color: var(--muted); font-size: 11px; }
+  .metrics dd { margin: 0; font-weight: 650; }
+  .track { position: relative; height: 54px; background: #10141d; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .bar { position: absolute; top: 8px; height: 16px; border-radius: 4px; overflow: hidden; white-space: nowrap; font-size: 10px; padding: 1px 6px; color: #081018; }
+  .bar.phase { background: var(--phase); top: 8px; }
+  .bar.tool { background: var(--tool); top: 30px; }
+  .bar.exclusive { background: var(--exclusive); }
+  .bar.open { outline: 1px dashed var(--open); background-image: repeating-linear-gradient(135deg, transparent, transparent 4px, rgba(0,0,0,.18) 4px, rgba(0,0,0,.18) 8px); }
+  .split { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 10px; }
+  .split h3 { margin: 0 0 4px; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+  ul { margin: 0; padding-left: 16px; }
+  .counts { list-style: none; padding: 0; }
+  .counts li { display: flex; justify-content: space-between; gap: 8px; }
+  .filters { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; margin: 28px 0 12px; }
+  label { display: flex; flex-direction: column; gap: 4px; color: var(--muted); font-size: 12px; }
+  select { background: var(--bg-2); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
+  table { width: 100%; border-collapse: collapse; background: var(--bg-2); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: 11px; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; }
+  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+  .num { font-variant-numeric: tabular-nums; }
+  .sev { display: inline-block; padding: 2px 7px; border-radius: 999px; font-size: 11px; text-transform: uppercase; }
+  .sev.error { background: rgba(255,93,108,.18); color: var(--error); }
+  .sev.warning { background: rgba(244,185,66,.16); color: var(--warning); }
+  .sev.info { background: rgba(108,182,255,.16); color: var(--info); }
+  .malformed { background: #23181c; border: 1px solid #4a2a32; border-radius: 10px; padding: 10px 16px; }
+  h2.section { margin: 28px 0 8px; font-size: 18px; }
+  .hidden { display: none !important; }
+  @media (max-width: 1100px) { .grid, .split { grid-template-columns: 1fr; } main, header.hero { padding-left: 16px; padding-right: 16px; } }
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="badge"><span class="star"></span> Trace Sheriff · local forensics</div>
+  <h1>Agent timeline reconstruction</h1>
+  <p class="lede">Self-contained report for <span class="mono">fixtures/sample.jsonl</span>. Four concurrent sessions, span reconstruction, and structural anomalies — including every malformed line.</p>
+  <div class="stats">
+    <div class="stat"><b>24</b><span>Lines</span></div>
+    <div class="stat"><b>23</b><span>Valid events</span></div>
+    <div class="stat"><b>1</b><span>Malformed</span></div>
+    <div class="stat"><b>4</b><span>Sessions</span></div>
+    <div class="stat"><b>10</b><span>Findings</span></div>
+    <div class="stat"><b>6/4/0</b><span>Error / warn / info</span></div>
+  </div>
+</header>
+<main>
+  <h2 class="section">Shared wall-clock</h2>
+  <div class="axis"><span style="left:0.0%">01:00:00.000Z</span><span style="left:25.0%">01:45:01.000Z</span><span style="left:50.0%">02:30:02.000Z</span><span style="left:75.0%">03:15:03.000Z</span><span style="left:100.0%">04:00:04.001Z</span></div>
+  <div class="grid" id="session-grid">
+    <article class="session-card" data-session="alpha" id="session-alpha">
+  <header>
+    <h2>alpha</h2>
+    <span class="outcome ok">ok</span>
+  </header>
+  <p class="window">2026-07-26T01:00:00.000Z → 2026-07-26T01:00:07.000Z</p>
+  <dl class="metrics">
+    <div><dt>Wall</dt><dd>7.000 s</dd></div>
+    <div><dt>Tool time</dt><dd>1.500 s</dd></div>
+    <div><dt>Peak tools</dt><dd>1</dd></div>
+  </dl>
+  <div class="track" aria-label="Timeline for alpha"><div class="bar phase" style="left:0.009%;width:0.600%" title="phase phase-plan planning 2026-07-26T01:00:01.000Z → 2026-07-26T01:00:05.000Z"><span>planning</span></div><div class="bar tool" style="left:0.019%;width:0.600%" title="tool tool-read read_file 2026-07-26T01:00:02.000Z → 2026-07-26T01:00:03.500Z"><span>read_file</span></div></div>
+  <div class="split">
+    <div>
+      <h3>Events</h3>
+      <ul class="counts"><li><span>session_start</span><b>1</b></li><li><span>phase_start</span><b>1</b></li><li><span>phase_end</span><b>1</b></li><li><span>tool_start</span><b>1</b></li><li><span>tool_end</span><b>1</b></li><li><span>message</span><b>1</b></li><li><span>session_end</span><b>1</b></li></ul>
+    </div>
+    <div>
+      <h3>Idle gaps</h3>
+      <ul><li>01:00:00.000–01:00:02.000 (2.000 s)</li><li>01:00:03.500–01:00:07.000 (3.500 s)</li></ul>
+    </div>
+    <div>
+      <h3>Incomplete</h3>
+      <ul><li>none</li></ul>
+    </div>
+  </div>
+</article>
+<article class="session-card" data-session="beta" id="session-beta">
+  <header>
+    <h2>beta</h2>
+    <span class="outcome error">error</span>
+  </header>
+  <p class="window">2026-07-26T02:00:00.000Z → 2026-07-26T02:00:07.000Z</p>
+  <dl class="metrics">
+    <div><dt>Wall</dt><dd>7.000 s</dd></div>
+    <div><dt>Tool time</dt><dd>10.0 s</dd></div>
+    <div><dt>Peak tools</dt><dd>2</dd></div>
+  </dl>
+  <div class="track" aria-label="Timeline for beta"><div class="bar tool exclusive" style="left:33.330%;width:0.600%" title="tool tool-build exclusive:build 2026-07-26T02:00:01.000Z → 2026-07-26T02:00:06.000Z"><span>exclusive:build</span></div><div class="bar tool exclusive open" style="left:33.340%;width:66.660%" title="tool tool-test exclusive:test 2026-07-26T02:00:02.000Z → open"><span>exclusive:test</span></div></div>
+  <div class="split">
+    <div>
+      <h3>Events</h3>
+      <ul class="counts"><li><span>session_start</span><b>1</b></li><li><span>tool_start</span><b>2</b></li><li><span>tool_end</span><b>2</b></li><li><span>message</span><b>2</b></li><li><span>session_end</span><b>1</b></li></ul>
+    </div>
+    <div>
+      <h3>Idle gaps</h3>
+      <ul><li>02:00:00.000–02:00:01.000 (1.000 s)</li></ul>
+    </div>
+    <div>
+      <h3>Incomplete</h3>
+      <ul><li>tool tool-test</li></ul>
+    </div>
+  </div>
+</article>
+<article class="session-card" data-session="gamma" id="session-gamma">
+  <header>
+    <h2>gamma</h2>
+    <span class="outcome incomplete">incomplete</span>
+  </header>
+  <p class="window">2026-07-26T03:00:00.000Z → open</p>
+  <dl class="metrics">
+    <div><dt>Wall</dt><dd>5.000 s</dd></div>
+    <div><dt>Tool time</dt><dd>3.000 s</dd></div>
+    <div><dt>Peak tools</dt><dd>1</dd></div>
+  </dl>
+  <div class="track" aria-label="Timeline for gamma"><div class="bar tool" style="left:66.660%;width:0.600%" title="tool tool-write write_file 2026-07-26T03:00:02.000Z → 2026-07-26T03:00:05.000Z"><span>write_file</span></div></div>
+  <div class="split">
+    <div>
+      <h3>Events</h3>
+      <ul class="counts"><li><span>session_start</span><b>1</b></li><li><span>phase_end</span><b>1</b></li><li><span>tool_start</span><b>1</b></li><li><span>tool_end</span><b>1</b></li></ul>
+    </div>
+    <div>
+      <h3>Idle gaps</h3>
+      <ul><li>03:00:00.000–03:00:02.000 (2.000 s)</li></ul>
+    </div>
+    <div>
+      <h3>Incomplete</h3>
+      <ul><li>none</li></ul>
+    </div>
+  </div>
+</article>
+<article class="session-card" data-session="delta" id="session-delta">
+  <header>
+    <h2>delta</h2>
+    <span class="outcome ok">ok</span>
+  </header>
+  <p class="window">2026-07-26T04:00:00.000Z → 2026-07-26T04:00:04.000Z</p>
+  <dl class="metrics">
+    <div><dt>Wall</dt><dd>4.000 s</dd></div>
+    <div><dt>Tool time</dt><dd>0 ms</dd></div>
+    <div><dt>Peak tools</dt><dd>0</dd></div>
+  </dl>
+  <div class="track" aria-label="Timeline for delta"><div class="bar phase open" style="left:99.981%;width:0.600%" title="phase phase-open unfinished 2026-07-26T04:00:02.000Z → open"><span>unfinished</span></div></div>
+  <div class="split">
+    <div>
+      <h3>Events</h3>
+      <ul class="counts"><li><span>session_start</span><b>2</b></li><li><span>phase_start</span><b>1</b></li><li><span>session_end</span><b>1</b></li></ul>
+    </div>
+    <div>
+      <h3>Idle gaps</h3>
+      <ul><li>04:00:00.000–04:00:04.000 (4.000 s)</li></ul>
+    </div>
+    <div>
+      <h3>Incomplete</h3>
+      <ul><li>phase phase-open</li></ul>
+    </div>
+  </div>
+</article>
+  </div>
+
+  <h2 class="section">Malformed input</h2>
+  <ul class="malformed"><li><span class="mono">L19</span> Line 19 is not valid JSON: JSON Parse error: Unexpected identifier &quot;this&quot;</li></ul>
+
+  <div class="filters">
+    <label>Session
+      <select id="session-filter">
+        <option value="">All sessions</option>
+        <option value="alpha">alpha</option><option value="beta">beta</option><option value="gamma">gamma</option><option value="delta">delta</option>
+      </select>
+    </label>
+    <label>Severity
+      <select id="severity-filter">
+        <option value="">All severities</option>
+        <option value="error">error</option>
+        <option value="warning">warning</option>
+        <option value="info">info</option>
+      </select>
+    </label>
+  </div>
+
+  <h2 class="section">Findings</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Severity</th><th>Code</th><th>Line</th><th>Session</th><th>Event</th><th>Span</th><th>Explanation</th>
+      </tr>
+    </thead>
+    <tbody id="findings-body">
+      <tr data-session="beta" data-severity="error" data-code="EXCLUSIVE_TOOL_OVERLAP">
+  <td><span class="sev error">error</span></td>
+  <td class="mono">EXCLUSIVE_TOOL_OVERLAP</td>
+  <td class="num">10</td>
+  <td>beta</td>
+  <td class="mono">b3</td>
+  <td class="mono">tool-test</td>
+  <td>Exclusive tool exclusive:test overlaps open exclusive span tool-build (exclusive:build).</td>
+</tr>
+<tr data-session="beta" data-severity="warning" data-code="OPEN_TOOL_SPAN">
+  <td><span class="sev warning">warning</span></td>
+  <td class="mono">OPEN_TOOL_SPAN</td>
+  <td class="num">10</td>
+  <td>beta</td>
+  <td class="mono">b3</td>
+  <td class="mono">tool-test</td>
+  <td>Tool span tool-test (exclusive:test) is still open at end of input.</td>
+</tr>
+<tr data-session="beta" data-severity="error" data-code="ORPHAN_TOOL_END">
+  <td><span class="sev error">error</span></td>
+  <td class="mono">ORPHAN_TOOL_END</td>
+  <td class="num">11</td>
+  <td>beta</td>
+  <td class="mono">b4</td>
+  <td class="mono">tool-ghost</td>
+  <td>tool_end for tool-ghost has no matching open tool_start.</td>
+</tr>
+<tr data-session="beta" data-severity="error" data-code="DUPLICATE_EVENT_ID">
+  <td><span class="sev error">error</span></td>
+  <td class="mono">DUPLICATE_EVENT_ID</td>
+  <td class="num">12</td>
+  <td>beta</td>
+  <td class="mono">b3</td>
+  <td class="mono">—</td>
+  <td>event_id b3 duplicates line 10 (session beta).</td>
+</tr>
+<tr data-session="beta" data-severity="warning" data-code="TIMESTAMP_REVERSAL">
+  <td><span class="sev warning">warning</span></td>
+  <td class="mono">TIMESTAMP_REVERSAL</td>
+  <td class="num">13</td>
+  <td>beta</td>
+  <td class="mono">b6</td>
+  <td class="mono">—</td>
+  <td>Timestamp 2026-07-26T01:59:59.000Z is earlier than previous session event 2026-07-26T02:00:04.000Z (file order).</td>
+</tr>
+<tr data-session="gamma" data-severity="warning" data-code="MISSING_SESSION_END">
+  <td><span class="sev warning">warning</span></td>
+  <td class="mono">MISSING_SESSION_END</td>
+  <td class="num">16</td>
+  <td>gamma</td>
+  <td class="mono">—</td>
+  <td class="mono">—</td>
+  <td>Session gamma has no session_end event.</td>
+</tr>
+<tr data-session="gamma" data-severity="error" data-code="ORPHAN_PHASE_END">
+  <td><span class="sev error">error</span></td>
+  <td class="mono">ORPHAN_PHASE_END</td>
+  <td class="num">17</td>
+  <td>gamma</td>
+  <td class="mono">g2</td>
+  <td class="mono">phase-missing</td>
+  <td>phase_end for phase-missing has no matching open phase_start.</td>
+</tr>
+<tr data-session="" data-severity="error" data-code="MALFORMED_JSON">
+  <td><span class="sev error">error</span></td>
+  <td class="mono">MALFORMED_JSON</td>
+  <td class="num">19</td>
+  <td>—</td>
+  <td class="mono">—</td>
+  <td class="mono">—</td>
+  <td>Line 19 is not valid JSON: JSON Parse error: Unexpected identifier &quot;this&quot;</td>
+</tr>
+<tr data-session="delta" data-severity="error" data-code="MULTIPLE_SESSION_START">
+  <td><span class="sev error">error</span></td>
+  <td class="mono">MULTIPLE_SESSION_START</td>
+  <td class="num">22</td>
+  <td>delta</td>
+  <td class="mono">d2</td>
+  <td class="mono">—</td>
+  <td>Session delta has another session_start (count 2).</td>
+</tr>
+<tr data-session="delta" data-severity="warning" data-code="OPEN_PHASE_SPAN">
+  <td><span class="sev warning">warning</span></td>
+  <td class="mono">OPEN_PHASE_SPAN</td>
+  <td class="num">23</td>
+  <td>delta</td>
+  <td class="mono">d3</td>
+  <td class="mono">phase-open</td>
+  <td>Phase span phase-open (unfinished) is still open at end of input.</td>
+</tr>
+    </tbody>
+  </table>
+
+  <h2 class="section">Anomaly codes</h2>
+  <table>
+    <thead><tr><th>Code</th><th>Default severity</th><th>Title</th><th>Meaning</th></tr></thead>
+    <tbody><tr>
+  <td class="mono">DUPLICATE_EVENT_ID</td>
+  <td><span class="sev error">error</span></td>
+  <td>Duplicate event_id</td>
+  <td>An event_id was reused. Identifiers are intended to be globally unique.</td>
+</tr><tr>
+  <td class="mono">EXCLUSIVE_TOOL_OVERLAP</td>
+  <td><span class="sev error">error</span></td>
+  <td>Exclusive tool overlap</td>
+  <td>Two tools whose names begin with exclusive: were concurrently open in the same session.</td>
+</tr><tr>
+  <td class="mono">INVALID_TIMESTAMP</td>
+  <td><span class="sev error">error</span></td>
+  <td>Invalid timestamp</td>
+  <td>The ts field is missing or is not a parseable ISO-8601 timestamp.</td>
+</tr><tr>
+  <td class="mono">MALFORMED_JSON</td>
+  <td><span class="sev error">error</span></td>
+  <td>Malformed JSON</td>
+  <td>The line is not valid JSON. It is recorded as a finding and skipped as an event.</td>
+</tr><tr>
+  <td class="mono">MISSING_REQUIRED_FIELD</td>
+  <td><span class="sev error">error</span></td>
+  <td>Missing required field</td>
+  <td>A parsed object is missing ts, session, type, event_id, or a span_id required for phase/tool events.</td>
+</tr><tr>
+  <td class="mono">MISSING_SESSION_END</td>
+  <td><span class="sev warning">warning</span></td>
+  <td>Missing session_end</td>
+  <td>The session started (or emitted events) but never recorded a session_end.</td>
+</tr><tr>
+  <td class="mono">MULTIPLE_SESSION_START</td>
+  <td><span class="sev error">error</span></td>
+  <td>Multiple session_start</td>
+  <td>The same session emitted more than one session_start event.</td>
+</tr><tr>
+  <td class="mono">OPEN_PHASE_SPAN</td>
+  <td><span class="sev warning">warning</span></td>
+  <td>Open phase span</td>
+  <td>A phase_start never received a matching phase_end before the end of input.</td>
+</tr><tr>
+  <td class="mono">OPEN_TOOL_SPAN</td>
+  <td><span class="sev warning">warning</span></td>
+  <td>Open tool span</td>
+  <td>A tool_start never received a matching tool_end before the end of input.</td>
+</tr><tr>
+  <td class="mono">ORPHAN_PHASE_END</td>
+  <td><span class="sev error">error</span></td>
+  <td>Orphan phase_end</td>
+  <td>A phase_end arrived with no matching open phase_start for that span_id in the session.</td>
+</tr><tr>
+  <td class="mono">ORPHAN_TOOL_END</td>
+  <td><span class="sev error">error</span></td>
+  <td>Orphan tool_end</td>
+  <td>A tool_end arrived with no matching open tool_start for that span_id in the session.</td>
+</tr><tr>
+  <td class="mono">TIMESTAMP_REVERSAL</td>
+  <td><span class="sev warning">warning</span></td>
+  <td>Timestamp reversal</td>
+  <td>Within a session, a later file-order event has an earlier timestamp than the previous event.</td>
+</tr><tr>
+  <td class="mono">UNKNOWN_EVENT_TYPE</td>
+  <td><span class="sev error">error</span></td>
+  <td>Unknown event type</td>
+  <td>The type field is not one of the seven recognized agent timeline event types.</td>
+</tr></tbody>
+  </table>
+</main>
+<script>
+(function () {
+  const sessionFilter = document.getElementById("session-filter");
+  const severityFilter = document.getElementById("severity-filter");
+  const rows = Array.from(document.querySelectorAll("#findings-body tr"));
+  const cards = Array.from(document.querySelectorAll(".session-card"));
+  function apply() {
+    const session = sessionFilter.value;
+    const severity = severityFilter.value;
+    for (const card of cards) {
+      card.classList.toggle("hidden", Boolean(session) && card.getAttribute("data-session") !== session);
+    }
+    for (const row of rows) {
+      const rowSession = row.getAttribute("data-session") || "";
+      const sessionMatch = !session || rowSession === session || rowSession === "";
+      const severityMatch = !severity || row.getAttribute("data-severity") === severity;
+      row.classList.toggle("hidden", !(sessionMatch && severityMatch));
+    }
+  }
+  sessionFilter.addEventListener("change", apply);
+  severityFilter.addEventListener("change", apply);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,351 @@
+{
+  "schema_version": 1,
+  "source": "fixtures/sample.jsonl",
+  "generated_with": "trace-sheriff/1.0.0",
+  "line_count": 24,
+  "valid_event_count": 23,
+  "malformed_line_count": 1,
+  "session_count": 4,
+  "finding_count": 11,
+  "severity_counts": {
+    "info": 0,
+    "warning": 5,
+    "error": 6
+  },
+  "idle_gap_threshold_ms": 30000,
+  "sessions": [
+    {
+      "session": "alpha",
+      "outcome": "ok",
+      "status": "ok",
+      "first_line": 1,
+      "last_line": 7,
+      "start_ts": "2026-07-26T01:00:00.000Z",
+      "end_ts": "2026-07-26T01:00:07.000Z",
+      "wall_clock_ms": 7000,
+      "tool_time_ms": 1500,
+      "tool_utilization_pct": 21.4,
+      "peak_concurrent_tools": 1,
+      "event_count": 7,
+      "event_counts": {
+        "message": 1,
+        "phase_end": 1,
+        "phase_start": 1,
+        "session_end": 1,
+        "session_start": 1,
+        "tool_end": 1,
+        "tool_start": 1
+      },
+      "span_count": 2,
+      "tool_span_count": 1,
+      "phase_span_count": 1,
+      "incomplete_span_count": 0,
+      "idle_gap_count": 0,
+      "total_idle_ms": 0,
+      "max_idle_gap_ms": 0,
+      "finding_count": 0,
+      "severity_counts": {
+        "info": 0,
+        "warning": 0,
+        "error": 0
+      },
+      "idle_gaps": [],
+      "spans": [
+        {
+          "span_id": "phase-plan",
+          "kind": "phase",
+          "name": "planning",
+          "exclusive": false,
+          "start_ts": "2026-07-26T01:00:01.000Z",
+          "end_ts": "2026-07-26T01:00:05.000Z",
+          "start_line": 2,
+          "end_line": 6,
+          "duration_ms": 4000,
+          "status": "ok",
+          "complete": true
+        },
+        {
+          "span_id": "tool-read",
+          "kind": "tool",
+          "name": "read_file",
+          "exclusive": false,
+          "start_ts": "2026-07-26T01:00:02.000Z",
+          "end_ts": "2026-07-26T01:00:03.500Z",
+          "start_line": 3,
+          "end_line": 4,
+          "duration_ms": 1500,
+          "status": "ok",
+          "complete": true
+        }
+      ]
+    },
+    {
+      "session": "beta",
+      "outcome": "error",
+      "status": "error",
+      "first_line": 8,
+      "last_line": 15,
+      "start_ts": "2026-07-26T01:59:59.000Z",
+      "end_ts": "2026-07-26T02:00:07.000Z",
+      "wall_clock_ms": 8000,
+      "tool_time_ms": 5000,
+      "tool_utilization_pct": 62.5,
+      "peak_concurrent_tools": 2,
+      "event_count": 8,
+      "event_counts": {
+        "message": 2,
+        "session_end": 1,
+        "session_start": 1,
+        "tool_end": 2,
+        "tool_start": 2
+      },
+      "span_count": 2,
+      "tool_span_count": 2,
+      "phase_span_count": 0,
+      "incomplete_span_count": 1,
+      "idle_gap_count": 0,
+      "total_idle_ms": 0,
+      "max_idle_gap_ms": 0,
+      "finding_count": 6,
+      "severity_counts": {
+        "info": 0,
+        "warning": 3,
+        "error": 3
+      },
+      "idle_gaps": [],
+      "spans": [
+        {
+          "span_id": "tool-build",
+          "kind": "tool",
+          "name": "exclusive:build",
+          "exclusive": true,
+          "start_ts": "2026-07-26T02:00:01.000Z",
+          "end_ts": "2026-07-26T02:00:06.000Z",
+          "start_line": 9,
+          "end_line": 14,
+          "duration_ms": 5000,
+          "status": "ok",
+          "complete": true
+        },
+        {
+          "span_id": "tool-test",
+          "kind": "tool",
+          "name": "exclusive:test",
+          "exclusive": true,
+          "start_ts": "2026-07-26T02:00:02.000Z",
+          "end_ts": null,
+          "start_line": 10,
+          "end_line": null,
+          "duration_ms": null,
+          "status": null,
+          "complete": false
+        }
+      ]
+    },
+    {
+      "session": "gamma",
+      "outcome": "incomplete",
+      "status": null,
+      "first_line": 16,
+      "last_line": 20,
+      "start_ts": "2026-07-26T03:00:00.000Z",
+      "end_ts": "2026-07-26T03:00:05.000Z",
+      "wall_clock_ms": 5000,
+      "tool_time_ms": 3000,
+      "tool_utilization_pct": 60,
+      "peak_concurrent_tools": 1,
+      "event_count": 4,
+      "event_counts": {
+        "phase_end": 1,
+        "session_start": 1,
+        "tool_end": 1,
+        "tool_start": 1
+      },
+      "span_count": 1,
+      "tool_span_count": 1,
+      "phase_span_count": 0,
+      "incomplete_span_count": 0,
+      "idle_gap_count": 0,
+      "total_idle_ms": 0,
+      "max_idle_gap_ms": 0,
+      "finding_count": 2,
+      "severity_counts": {
+        "info": 0,
+        "warning": 1,
+        "error": 1
+      },
+      "idle_gaps": [],
+      "spans": [
+        {
+          "span_id": "tool-write",
+          "kind": "tool",
+          "name": "write_file",
+          "exclusive": false,
+          "start_ts": "2026-07-26T03:00:02.000Z",
+          "end_ts": "2026-07-26T03:00:05.000Z",
+          "start_line": 18,
+          "end_line": 20,
+          "duration_ms": 3000,
+          "status": "ok",
+          "complete": true
+        }
+      ]
+    },
+    {
+      "session": "delta",
+      "outcome": "ok",
+      "status": "ok",
+      "first_line": 21,
+      "last_line": 24,
+      "start_ts": "2026-07-26T04:00:00.000Z",
+      "end_ts": "2026-07-26T04:00:04.000Z",
+      "wall_clock_ms": 4000,
+      "tool_time_ms": 0,
+      "tool_utilization_pct": 0,
+      "peak_concurrent_tools": 0,
+      "event_count": 4,
+      "event_counts": {
+        "phase_start": 1,
+        "session_end": 1,
+        "session_start": 2
+      },
+      "span_count": 1,
+      "tool_span_count": 0,
+      "phase_span_count": 1,
+      "incomplete_span_count": 1,
+      "idle_gap_count": 0,
+      "total_idle_ms": 0,
+      "max_idle_gap_ms": 0,
+      "finding_count": 2,
+      "severity_counts": {
+        "info": 0,
+        "warning": 1,
+        "error": 1
+      },
+      "idle_gaps": [],
+      "spans": [
+        {
+          "span_id": "phase-open",
+          "kind": "phase",
+          "name": "unfinished",
+          "exclusive": false,
+          "start_ts": "2026-07-26T04:00:02.000Z",
+          "end_ts": null,
+          "start_line": 23,
+          "end_line": null,
+          "duration_ms": null,
+          "status": null,
+          "complete": false
+        }
+      ]
+    }
+  ],
+  "malformed_lines": [
+    {
+      "line": 19,
+      "reason": "JSON Parse error: Unexpected identifier \"this\"",
+      "snippet": "this is not json"
+    }
+  ],
+  "findings": [
+    {
+      "code": "EXCLUSIVE_OVERLAP",
+      "severity": "error",
+      "session": "beta",
+      "line": 10,
+      "message": "Exclusive tool spans \"exclusive:build\" (tool-build) and \"exclusive:test\" (tool-test) overlapped in session \"beta\".",
+      "event_id": null,
+      "span_id": "tool-test"
+    },
+    {
+      "code": "OPEN_TOOL_SPAN",
+      "severity": "warning",
+      "session": "beta",
+      "line": 10,
+      "message": "Tool span \"tool-test\" (exclusive:test) was still open at end of input.",
+      "event_id": null,
+      "span_id": "tool-test"
+    },
+    {
+      "code": "ORPHAN_TOOL_END",
+      "severity": "error",
+      "session": "beta",
+      "line": 11,
+      "message": "tool_end for span \"tool-ghost\" (ghost) has no matching tool_start in session \"beta\".",
+      "event_id": "b4",
+      "span_id": "tool-ghost"
+    },
+    {
+      "code": "DUPLICATE_EVENT_ID",
+      "severity": "error",
+      "session": "beta",
+      "line": 12,
+      "message": "event_id \"b3\" was already used on line 10; event IDs must be globally unique.",
+      "event_id": "b3",
+      "span_id": null
+    },
+    {
+      "code": "CLOCK_REVERSAL",
+      "severity": "warning",
+      "session": "beta",
+      "line": 13,
+      "message": "Timestamp 2026-07-26T01:59:59.000Z is earlier than the previous event of session \"beta\" at 2026-07-26T02:00:04.000Z (line order says it came later).",
+      "event_id": "b6",
+      "span_id": null
+    },
+    {
+      "code": "SESSION_ENDED_NON_OK",
+      "severity": "warning",
+      "session": "beta",
+      "line": 15,
+      "message": "Session \"beta\" ended with status \"error\".",
+      "event_id": null,
+      "span_id": null
+    },
+    {
+      "code": "ORPHAN_PHASE_END",
+      "severity": "error",
+      "session": "gamma",
+      "line": 17,
+      "message": "phase_end for span \"phase-missing\" (implementation) has no matching phase_start in session \"gamma\".",
+      "event_id": "g2",
+      "span_id": "phase-missing"
+    },
+    {
+      "code": "MALFORMED_JSON",
+      "severity": "error",
+      "session": null,
+      "line": 19,
+      "message": "Line is not valid JSON: JSON Parse error: Unexpected identifier \"this\"",
+      "event_id": null,
+      "span_id": null
+    },
+    {
+      "code": "MISSING_SESSION_END",
+      "severity": "warning",
+      "session": "gamma",
+      "line": 20,
+      "message": "Session \"gamma\" never emitted session_end.",
+      "event_id": null,
+      "span_id": null
+    },
+    {
+      "code": "DUPLICATE_SESSION_START",
+      "severity": "error",
+      "session": "delta",
+      "line": 22,
+      "message": "Session \"delta\" already emitted session_start on line 21; a session must start exactly once.",
+      "event_id": "d2",
+      "span_id": null
+    },
+    {
+      "code": "OPEN_PHASE_SPAN",
+      "severity": "warning",
+      "session": "delta",
+      "line": 23,
+      "message": "Phase span \"phase-open\" (unfinished) was still open at end of input.",
+      "event_id": null,
+      "span_id": "phase-open"
+    }
+  ]
+}

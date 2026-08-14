@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "status": "complete",
+  "title": "Neon Courier — One-Button Rooftop Heist",
+  "kind": "visual",
+  "entrypoint": "index.html",
+  "artifacts": [
+    "index.html",
+    "README.md",
+    "verify.mjs"
+  ],
+  "checks": [
+    {
+      "name": "Offline package and gameplay feature verification",
+      "command": "node verify.mjs",
+      "status": "passed",
+      "details": "Parsed the inline JavaScript, rejected remote runtime references, checked the README structure, and verified 14 required gameplay, input, accessibility, persistence, collision, procedural-generation, and bounded-entity feature groups."
+    },
+    {
+      "name": "Seven-second direct-open Chrome attract-mode smoke test",
+      "command": "'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' --headless=new --disable-gpu --no-sandbox --disable-background-networking --disable-component-update --disable-sync --metrics-recording-only --no-first-run --enable-logging=stderr --user-data-dir='/Users/johnlindquist/dev/opus5-vs-gpt56-battle/runs/03-neon-courier/codex/attempt-1/workspace/.browser-check/profile-final' --window-size=1600,900 --virtual-time-budget=7000 --screenshot='/Users/johnlindquist/dev/opus5-vs-gpt56-battle/runs/03-neon-courier/codex/attempt-1/workspace/.browser-check/final-after-patch.png' 'file:///Users/johnlindquist/dev/opus5-vs-gpt56-battle/runs/03-neon-courier/codex/attempt-1/workspace/index.html' 2> .browser-check/chrome-final.log",
+      "status": "passed",
+      "details": "Opened index.html directly from disk at 1600×900, advanced attract mode for seven virtual seconds, produced a complete screenshot with title, objective, courier, rooftops, hazards, skyline, rain, and HUD visible, and found no uncaught JavaScript or page-console errors in the Chrome log."
+    }
+  ],
+  "summary": "A polished dependency-free Canvas 2D endless rooftop runner with a representative automated attract run, one-button charged jumps and air dashes, deterministic procedural rooftops, fair swept collisions, near misses, escalating difficulty, local best-score persistence, accessibility support, and a neon graphic-novel city presentation.",
+  "known_issues": []
+}

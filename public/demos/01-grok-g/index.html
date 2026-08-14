@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <title>Signal Garden — Bioluminescent Ecosystem Synth</title>
+  <link rel="stylesheet" href="garden.css">
+</head>
+<body>
+  <div id="app">
+    <canvas id="garden" width="1600" height="900" role="img" aria-labelledby="title" aria-describedby="scene-desc"></canvas>
+
+    <p id="scene-desc">
+      Signal Garden is a dark underwater field of living light. Cyan-lime blooms stay nearly still,
+      drink nutrient glow, and periodically open into petal rings that send signal waves outward.
+      Violet drifters swim toward those blooms, carry stolen energy as fading trails, and split when full.
+      Coral hunters are rarer and dart after bright drifters, briefly scrambling nearby signals.
+      Move the pointer to bend trails like a current. Click to plant a beacon. Drag to paint nutrient.
+      Space sends a global pulse. P pauses. R reseeds. Keys 1, 2, and 3 load curated climates.
+    </p>
+
+    <header class="hud hud-left">
+      <h1 id="title">Signal Garden</h1>
+      <p class="tag">Bioluminescent ecosystem synth</p>
+    </header>
+
+    <aside class="hud hud-right" aria-live="polite" aria-atomic="true">
+      <dl id="stats">
+        <div><dt>Blooms</dt><dd id="stat-blooms">0</dd></div>
+        <div><dt>Drifters</dt><dd id="stat-drifters">0</dd></div>
+        <div><dt>Hunters</dt><dd id="stat-hunters">0</dd></div>
+        <div><dt>Energy</dt><dd id="stat-energy">0</dd></div>
+        <div><dt>Seed</dt><dd id="stat-seed">0</dd></div>
+        <div><dt>Time</dt><dd id="stat-time">0.0s</dd></div>
+        <div class="wide"><dt>Preset</dt><dd id="stat-preset">Tide Garden</dd></div>
+      </dl>
+    </aside>
+
+    <nav class="hud hud-controls" aria-label="Garden controls">
+      <button type="button" id="btn-pulse" title="Global pulse (Space)">Pulse</button>
+      <button type="button" id="btn-pause" title="Pause or resume (P)" aria-pressed="false">Pause</button>
+      <button type="button" id="btn-reseed" title="Regenerate next seed (R)">Reseed</button>
+      <button type="button" id="btn-audio" title="Optional sound after gesture" aria-pressed="false">Sound</button>
+      <span class="presets" role="group" aria-label="Ecosystem presets">
+        <button type="button" id="btn-p1" data-preset="0" aria-pressed="true">1 Tide</button>
+        <button type="button" id="btn-p2" data-preset="1" aria-pressed="false">2 Swarm</button>
+        <button type="button" id="btn-p3" data-preset="2" aria-pressed="false">3 Hunt</button>
+      </span>
+    </nav>
+
+    <footer class="hud hud-legend">
+      <span>Move · current</span>
+      <span>Click · beacon</span>
+      <span>Drag · nutrient</span>
+      <span>Space · pulse</span>
+      <span>P · pause</span>
+      <span>R · reseed</span>
+      <span>1–3 · climates</span>
+    </footer>
+  </div>
+  <script src="garden.js"></script>
+</body>
+</html>

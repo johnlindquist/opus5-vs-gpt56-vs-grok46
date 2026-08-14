@@ -1,0 +1,490 @@
+{
+  "schema_version": 1,
+  "source": "fixtures/sample.jsonl",
+  "line_count": 24,
+  "valid_event_count": 23,
+  "malformed_line_count": 1,
+  "session_count": 4,
+  "finding_count": 10,
+  "severity_counts": {
+    "info": 0,
+    "warning": 4,
+    "error": 6
+  },
+  "sessions": [
+    {
+      "session": "alpha",
+      "start_ts": "2026-07-26T01:00:00.000Z",
+      "end_ts": "2026-07-26T01:00:07.000Z",
+      "wall_clock_ms": 7000,
+      "tool_time_ms": 1500,
+      "peak_concurrent_tools": 1,
+      "event_count": 7,
+      "incomplete_span_count": 0,
+      "outcome": "ok",
+      "idle_gaps": [
+        {
+          "start_ts": "2026-07-26T01:00:00.000Z",
+          "end_ts": "2026-07-26T01:00:02.000Z",
+          "duration_ms": 2000
+        },
+        {
+          "start_ts": "2026-07-26T01:00:03.500Z",
+          "end_ts": "2026-07-26T01:00:07.000Z",
+          "duration_ms": 3500
+        }
+      ],
+      "spans": [
+        {
+          "kind": "phase",
+          "span_id": "phase-plan",
+          "name": "planning",
+          "start_line": 2,
+          "end_line": 6,
+          "start_ts": "2026-07-26T01:00:01.000Z",
+          "end_ts": "2026-07-26T01:00:05.000Z",
+          "duration_ms": 4000,
+          "status": "ok",
+          "incomplete": false
+        },
+        {
+          "kind": "tool",
+          "span_id": "tool-read",
+          "name": "read_file",
+          "start_line": 3,
+          "end_line": 4,
+          "start_ts": "2026-07-26T01:00:02.000Z",
+          "end_ts": "2026-07-26T01:00:03.500Z",
+          "duration_ms": 1500,
+          "status": "ok",
+          "incomplete": false
+        }
+      ],
+      "events": [
+        {
+          "ts": "2026-07-26T01:00:00.000Z",
+          "timestamp_ms": 1785027600000,
+          "session": "alpha",
+          "type": "session_start",
+          "event_id": "a1",
+          "line": 1
+        },
+        {
+          "ts": "2026-07-26T01:00:01.000Z",
+          "timestamp_ms": 1785027601000,
+          "session": "alpha",
+          "type": "phase_start",
+          "event_id": "a2",
+          "line": 2,
+          "span_id": "phase-plan",
+          "name": "planning"
+        },
+        {
+          "ts": "2026-07-26T01:00:02.000Z",
+          "timestamp_ms": 1785027602000,
+          "session": "alpha",
+          "type": "tool_start",
+          "event_id": "a3",
+          "line": 3,
+          "span_id": "tool-read",
+          "name": "read_file"
+        },
+        {
+          "ts": "2026-07-26T01:00:03.500Z",
+          "timestamp_ms": 1785027603500,
+          "session": "alpha",
+          "type": "tool_end",
+          "event_id": "a4",
+          "line": 4,
+          "span_id": "tool-read",
+          "name": "read_file",
+          "status": "ok"
+        },
+        {
+          "ts": "2026-07-26T01:00:04.000Z",
+          "timestamp_ms": 1785027604000,
+          "session": "alpha",
+          "type": "message",
+          "event_id": "a5",
+          "line": 5,
+          "text": "plan complete"
+        },
+        {
+          "ts": "2026-07-26T01:00:05.000Z",
+          "timestamp_ms": 1785027605000,
+          "session": "alpha",
+          "type": "phase_end",
+          "event_id": "a6",
+          "line": 6,
+          "span_id": "phase-plan",
+          "name": "planning",
+          "status": "ok"
+        },
+        {
+          "ts": "2026-07-26T01:00:07.000Z",
+          "timestamp_ms": 1785027607000,
+          "session": "alpha",
+          "type": "session_end",
+          "event_id": "a7",
+          "line": 7,
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "session": "beta",
+      "start_ts": "2026-07-26T02:00:00.000Z",
+      "end_ts": "2026-07-26T02:00:07.000Z",
+      "wall_clock_ms": 7000,
+      "tool_time_ms": 10000,
+      "peak_concurrent_tools": 2,
+      "event_count": 8,
+      "incomplete_span_count": 1,
+      "outcome": "error",
+      "idle_gaps": [
+        {
+          "start_ts": "2026-07-26T02:00:00.000Z",
+          "end_ts": "2026-07-26T02:00:01.000Z",
+          "duration_ms": 1000
+        }
+      ],
+      "spans": [
+        {
+          "kind": "tool",
+          "span_id": "tool-build",
+          "name": "exclusive:build",
+          "start_line": 9,
+          "end_line": 14,
+          "start_ts": "2026-07-26T02:00:01.000Z",
+          "end_ts": "2026-07-26T02:00:06.000Z",
+          "duration_ms": 5000,
+          "status": "ok",
+          "incomplete": false
+        },
+        {
+          "kind": "tool",
+          "span_id": "tool-test",
+          "name": "exclusive:test",
+          "start_line": 10,
+          "end_line": null,
+          "start_ts": "2026-07-26T02:00:02.000Z",
+          "end_ts": null,
+          "duration_ms": null,
+          "status": null,
+          "incomplete": true
+        }
+      ],
+      "events": [
+        {
+          "ts": "2026-07-26T02:00:00.000Z",
+          "timestamp_ms": 1785031200000,
+          "session": "beta",
+          "type": "session_start",
+          "event_id": "b1",
+          "line": 8
+        },
+        {
+          "ts": "2026-07-26T02:00:01.000Z",
+          "timestamp_ms": 1785031201000,
+          "session": "beta",
+          "type": "tool_start",
+          "event_id": "b2",
+          "line": 9,
+          "span_id": "tool-build",
+          "name": "exclusive:build"
+        },
+        {
+          "ts": "2026-07-26T02:00:02.000Z",
+          "timestamp_ms": 1785031202000,
+          "session": "beta",
+          "type": "tool_start",
+          "event_id": "b3",
+          "line": 10,
+          "span_id": "tool-test",
+          "name": "exclusive:test"
+        },
+        {
+          "ts": "2026-07-26T02:00:03.000Z",
+          "timestamp_ms": 1785031203000,
+          "session": "beta",
+          "type": "tool_end",
+          "event_id": "b4",
+          "line": 11,
+          "span_id": "tool-ghost",
+          "name": "ghost",
+          "status": "ok"
+        },
+        {
+          "ts": "2026-07-26T02:00:04.000Z",
+          "timestamp_ms": 1785031204000,
+          "session": "beta",
+          "type": "message",
+          "event_id": "b3",
+          "line": 12,
+          "text": "duplicate event id"
+        },
+        {
+          "ts": "2026-07-26T01:59:59.000Z",
+          "timestamp_ms": 1785031199000,
+          "session": "beta",
+          "type": "message",
+          "event_id": "b6",
+          "line": 13,
+          "text": "clock moved backward in file order"
+        },
+        {
+          "ts": "2026-07-26T02:00:06.000Z",
+          "timestamp_ms": 1785031206000,
+          "session": "beta",
+          "type": "tool_end",
+          "event_id": "b7",
+          "line": 14,
+          "span_id": "tool-build",
+          "name": "exclusive:build",
+          "status": "ok"
+        },
+        {
+          "ts": "2026-07-26T02:00:07.000Z",
+          "timestamp_ms": 1785031207000,
+          "session": "beta",
+          "type": "session_end",
+          "event_id": "b8",
+          "line": 15,
+          "status": "error"
+        }
+      ]
+    },
+    {
+      "session": "gamma",
+      "start_ts": "2026-07-26T03:00:00.000Z",
+      "end_ts": null,
+      "wall_clock_ms": 5000,
+      "tool_time_ms": 3000,
+      "peak_concurrent_tools": 1,
+      "event_count": 4,
+      "incomplete_span_count": 0,
+      "outcome": "incomplete",
+      "idle_gaps": [
+        {
+          "start_ts": "2026-07-26T03:00:00.000Z",
+          "end_ts": "2026-07-26T03:00:02.000Z",
+          "duration_ms": 2000
+        }
+      ],
+      "spans": [
+        {
+          "kind": "tool",
+          "span_id": "tool-write",
+          "name": "write_file",
+          "start_line": 18,
+          "end_line": 20,
+          "start_ts": "2026-07-26T03:00:02.000Z",
+          "end_ts": "2026-07-26T03:00:05.000Z",
+          "duration_ms": 3000,
+          "status": "ok",
+          "incomplete": false
+        }
+      ],
+      "events": [
+        {
+          "ts": "2026-07-26T03:00:00.000Z",
+          "timestamp_ms": 1785034800000,
+          "session": "gamma",
+          "type": "session_start",
+          "event_id": "g1",
+          "line": 16
+        },
+        {
+          "ts": "2026-07-26T03:00:01.000Z",
+          "timestamp_ms": 1785034801000,
+          "session": "gamma",
+          "type": "phase_end",
+          "event_id": "g2",
+          "line": 17,
+          "span_id": "phase-missing",
+          "name": "implementation",
+          "status": "ok"
+        },
+        {
+          "ts": "2026-07-26T03:00:02.000Z",
+          "timestamp_ms": 1785034802000,
+          "session": "gamma",
+          "type": "tool_start",
+          "event_id": "g3",
+          "line": 18,
+          "span_id": "tool-write",
+          "name": "write_file"
+        },
+        {
+          "ts": "2026-07-26T03:00:05.000Z",
+          "timestamp_ms": 1785034805000,
+          "session": "gamma",
+          "type": "tool_end",
+          "event_id": "g4",
+          "line": 20,
+          "span_id": "tool-write",
+          "name": "write_file",
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "session": "delta",
+      "start_ts": "2026-07-26T04:00:00.000Z",
+      "end_ts": "2026-07-26T04:00:04.000Z",
+      "wall_clock_ms": 4000,
+      "tool_time_ms": 0,
+      "peak_concurrent_tools": 0,
+      "event_count": 4,
+      "incomplete_span_count": 1,
+      "outcome": "ok",
+      "idle_gaps": [
+        {
+          "start_ts": "2026-07-26T04:00:00.000Z",
+          "end_ts": "2026-07-26T04:00:04.000Z",
+          "duration_ms": 4000
+        }
+      ],
+      "spans": [
+        {
+          "kind": "phase",
+          "span_id": "phase-open",
+          "name": "unfinished",
+          "start_line": 23,
+          "end_line": null,
+          "start_ts": "2026-07-26T04:00:02.000Z",
+          "end_ts": null,
+          "duration_ms": null,
+          "status": null,
+          "incomplete": true
+        }
+      ],
+      "events": [
+        {
+          "ts": "2026-07-26T04:00:00.000Z",
+          "timestamp_ms": 1785038400000,
+          "session": "delta",
+          "type": "session_start",
+          "event_id": "d1",
+          "line": 21
+        },
+        {
+          "ts": "2026-07-26T04:00:01.000Z",
+          "timestamp_ms": 1785038401000,
+          "session": "delta",
+          "type": "session_start",
+          "event_id": "d2",
+          "line": 22
+        },
+        {
+          "ts": "2026-07-26T04:00:02.000Z",
+          "timestamp_ms": 1785038402000,
+          "session": "delta",
+          "type": "phase_start",
+          "event_id": "d3",
+          "line": 23,
+          "span_id": "phase-open",
+          "name": "unfinished"
+        },
+        {
+          "ts": "2026-07-26T04:00:04.000Z",
+          "timestamp_ms": 1785038404000,
+          "session": "delta",
+          "type": "session_end",
+          "event_id": "d4",
+          "line": 24,
+          "status": "ok"
+        }
+      ]
+    }
+  ],
+  "findings": [
+    {
+      "code": "EXCLUSIVE_TOOL_OVERLAP",
+      "severity": "error",
+      "session": "beta",
+      "line": 10,
+      "message": "Exclusive tool \"exclusive:test\" overlaps \"exclusive:build\" opened on line 9.",
+      "related_id": "tool-test"
+    },
+    {
+      "code": "OPEN_TOOL_SPAN",
+      "severity": "warning",
+      "session": "beta",
+      "line": 10,
+      "message": "Tool span \"tool-test\" remains open at end of input.",
+      "related_id": "tool-test"
+    },
+    {
+      "code": "ORPHAN_TOOL_END",
+      "severity": "error",
+      "session": "beta",
+      "line": 11,
+      "message": "tool end \"tool-ghost\" has no matching start.",
+      "related_id": "tool-ghost"
+    },
+    {
+      "code": "DUPLICATE_EVENT_ID",
+      "severity": "error",
+      "session": "beta",
+      "line": 12,
+      "message": "Event ID \"b3\" duplicates line 10.",
+      "related_id": "b3"
+    },
+    {
+      "code": "TIMESTAMP_REVERSAL",
+      "severity": "warning",
+      "session": "beta",
+      "line": 13,
+      "message": "Timestamp moves backward within session file order (2026-07-26T01:59:59.000Z).",
+      "related_id": "b6"
+    },
+    {
+      "code": "ORPHAN_PHASE_END",
+      "severity": "error",
+      "session": "gamma",
+      "line": 17,
+      "message": "phase end \"phase-missing\" has no matching start.",
+      "related_id": "phase-missing"
+    },
+    {
+      "code": "MALFORMED_JSON",
+      "severity": "error",
+      "session": null,
+      "line": 19,
+      "message": "Malformed JSON: JSON Parse error: Unexpected identifier \"this\"",
+      "related_id": null
+    },
+    {
+      "code": "MISSING_SESSION_END",
+      "severity": "warning",
+      "session": "gamma",
+      "line": 20,
+      "message": "Session \"gamma\" has no session_end event.",
+      "related_id": "gamma"
+    },
+    {
+      "code": "MULTIPLE_SESSION_START",
+      "severity": "error",
+      "session": "delta",
+      "line": 22,
+      "message": "Session \"delta\" has multiple session_start events.",
+      "related_id": "d2"
+    },
+    {
+      "code": "OPEN_PHASE_SPAN",
+      "severity": "warning",
+      "session": "delta",
+      "line": 23,
+      "message": "Phase span \"phase-open\" remains open at end of input.",
+      "related_id": "phase-open"
+    }
+  ],
+  "malformed_lines": [
+    {
+      "line": 19,
+      "text": "this is not json",
+      "error": "JSON Parse error: Unexpected identifier \"this\""
+    }
+  ]
+}

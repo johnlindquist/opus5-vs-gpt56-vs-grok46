@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lightweaver — Mirror Lab</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <a class="skip" href="#board">Skip to optical bench</a>
+  <div class="app">
+    <header class="masthead">
+      <div class="brand">
+        <h1>LIGHTWEAVER</h1>
+        <p>Mirror laboratory</p>
+      </div>
+      <nav class="level-strip" id="levels" aria-label="Laboratories">
+        <button type="button" data-level="0" aria-label="Load level 1 First Reflection" aria-keyshortcuts="1">1</button>
+        <button type="button" data-level="1" aria-label="Load level 2 Binary Mix" aria-keyshortcuts="2">2</button>
+        <button type="button" data-level="2" aria-label="Load level 3 Dichroic Gate" aria-keyshortcuts="3">3</button>
+        <button type="button" data-level="3" aria-label="Load level 4 Dispersion Loom" aria-keyshortcuts="4">4</button>
+        <button type="button" data-level="4" aria-label="Load level 5 Silent Corridor" aria-keyshortcuts="5">5</button>
+      </nav>
+      <div class="meters">
+        <span>Moves <strong id="move-count">0</strong></span>
+        <span>Best <strong id="best-count">—</strong></span>
+      </div>
+    </header>
+
+    <aside class="side" aria-label="Objective">
+      <p class="kicker">Objective</p>
+      <h2 id="level-name">First Reflection</h2>
+      <p class="sub" id="level-sub">Twin galleries</p>
+      <p class="objective" id="objective"></p>
+      <div class="targets" id="targets"></div>
+      <p id="sensor-status" class="sub" hidden></p>
+      <p class="hint" id="hint-text">Press H for a staged hint. The lab will not solve itself.</p>
+      <div class="toolbar">
+        <button type="button" id="btn-undo" aria-keyshortcuts="Z">Undo</button>
+        <button type="button" id="btn-redo" aria-keyshortcuts="Y">Redo</button>
+        <button type="button" id="btn-reset" aria-keyshortcuts="R">Reset</button>
+        <button type="button" id="btn-hint" aria-keyshortcuts="H">Hint</button>
+      </div>
+    </aside>
+
+    <div class="stage">
+      <canvas id="board" tabindex="0" role="img" aria-label="Optical bench. Drag pieces, rotate with Q and E, move with arrow keys."></canvas>
+      <div class="toast" id="toast" role="status" aria-live="polite"></div>
+      <div class="victory" id="victory" role="dialog" aria-labelledby="victory-title">
+        <div class="card">
+          <h3 id="victory-title">Aligned</h3>
+          <p>Every aperture is fed at color and intensity. <span id="victory-moves">0 moves</span>.</p>
+          <button type="button" id="btn-next">Next laboratory</button>
+        </div>
+      </div>
+    </div>
+
+    <footer class="legend">
+      <span>Drag a free optic</span>
+      <span><kbd>Q</kbd> <kbd>E</kbd> rotate</span>
+      <span>Wheel rotates the selection</span>
+      <span><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> nudge</span>
+      <span><kbd>Shift</kbd> fine control</span>
+      <span><kbd>Z</kbd> undo <kbd>Y</kbd> redo</span>
+      <span><kbd>R</kbd> reset</span>
+      <span><kbd>H</kbd> hint</span>
+      <span><kbd>1</kbd>–<kbd>5</kbd> levels</span>
+      <span><kbd>Tab</kbd> cycle pieces</span>
+    </footer>
+  </div>
+  <script src="js/optics.js"></script>
+  <script src="js/levels.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "status": "complete",
+  "title": "The Haunted Queue — Refactor an Async Scheduler",
+  "kind": "dev",
+  "entrypoint": "report.html",
+  "artifacts": [
+    "report.html",
+    "README.md",
+    "legacy/queue.ts",
+    "src/job-queue.ts",
+    "src/types.ts",
+    "src/errors.ts",
+    "src/backoff.ts",
+    "src/events.ts",
+    "test/job-queue.test.ts",
+    "test/legacy-failures.test.ts",
+    "demo.ts",
+    "build-report.ts",
+    "package.json",
+    "tsconfig.json",
+    "out/demo.txt",
+    "out/test.txt",
+    "out/test-results.xml"
+  ],
+  "checks": [
+    {
+      "name": "test suite",
+      "command": "bun test",
+      "status": "passed",
+      "details": "34 tests, 132 assertions, 0 failures. 24 tests cover the replacement (priority and FIFO, concurrency ceiling, duplicate-id lifecycle, id reuse after each terminal state, synchronous throw, successful retry with asserted 25/50ms delays, retry exhaustion, pending/running/backoff cancellation, drain with active jobs and during backoff, drain inclusion of late additions, close, invalid additions, event ordering, listener containment, and a mixed-workload check asserting no leaked timers, live ids, or unsettled promises). 10 characterization tests run against legacy/queue.ts and pin each documented defect."
+    },
+    {
+      "name": "deterministic demonstration",
+      "command": "bun run demo.ts",
+      "status": "passed",
+      "details": "The mixed-priority demonstration completed without unresolved jobs: 8 jobs across 6 phases, all 8 promises settled, 0 retry timers left armed, final stats pending=0 running=0 retryWaiting=0 liveIds=0. Output is byte-identical across runs (verified by diffing two consecutive runs) and captured to out/demo.txt."
+    },
+    {
+      "name": "strict typecheck of src/",
+      "command": "tsc -p tsconfig.json",
+      "status": "passed",
+      "details": "Every module under src/ typechecks clean with strict and noUncheckedIndexedAccess using the system TypeScript 5.9.3. demo.ts, build-report.ts, and the test files report only missing Bun ambient types (Cannot find name 'Bun' / module 'bun:test'), which ship in @types/bun; the delivery contract forbids installing packages, so those four diagnostics remain and are documented in the README."
+    },
+    {
+      "name": "report generated from real artifacts",
+      "command": "bun run build-report.ts",
+      "status": "passed",
+      "details": "report.html is generated from out/demo.txt and out/test-results.xml, so the timeline and test summary cannot drift from what ran: 31 events, 8 job lanes, 34 tests, 7 stats snapshots. Verified to contain zero external references (no http(s) URLs, no src/href attributes) and no NaN or undefined artifacts."
+    }
+  ],
+  "summary": "A deliberately tangled async job queue rebuilt as five focused TypeScript modules with an explicit six-state machine (pending, running, retry-waiting, fulfilled, rejected, cancelled) and clear ownership of retry timers — each live record owns exactly one. The public surface (JobFunction, AddOptions, JobQueue with concurrency, add, cancel, close, drain) is preserved; stats() and a typed six-event subscription are added, with listener failures contained so they cannot break execution. Eleven legacy defects are fixed and each is pinned by a characterization test against the original file: synchronous throws that unwound the Promise executor and wedged the queue, retry-waiting being an unnamed invisible state, drain() resolving while work was still running or armed, retries losing their priority, backoff being off by one (50ms instead of 25ms for the first retry), cancelling a running job silently retrying it, jobs resurrecting out of backoff after cancellation, duplicate ids clobbering each other, add throwing synchronously with an untyped error, and NaN concurrency deadlocking the queue. add now never throws — every rejected addition is a rejected promise carrying a typed QueueClosedError, DuplicateJobIdError, or InvalidJobError — and cancellation is terminal from every live state, rejecting exactly once with an AbortError. An injectable Scheduler keeps the suite free of real sleeps and lets tests assert directly that no retry timer survives a drain.",
+  "known_issues": [
+    "Cancelling a running job releases its concurrency slot and its id immediately rather than waiting for the abandoned task to settle. This is a deliberate trade-off, documented in the README: a task that ignores its AbortSignal cannot hold drain() or its id hostage, at the cost of that misbehaving task briefly overlapping a replacement job. Tasks that honour the signal see no difference.",
+    "A bare `tsc` reports four diagnostics for missing Bun ambient types (@types/bun) in demo.ts, build-report.ts, and the two test files. Installing packages is out of scope for this task; src/ itself is clean under strict mode."
+  ]
+}

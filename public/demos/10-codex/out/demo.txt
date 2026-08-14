@@ -1,0 +1,18 @@
+queued    control priority=100 attempt=1
+started   control attempt=1
+queued    low priority=1 attempt=1
+queued    flaky-high priority=5 attempt=1
+queued    high-fifo priority=5 attempt=1
+release   control
+fulfilled control attempt=1
+started   flaky-high attempt=1
+retrying  flaky-high nextAttempt=2 delay=0ms
+started   high-fifo attempt=1
+fulfilled high-fifo attempt=1
+started   low attempt=1
+fulfilled low attempt=1
+queued    flaky-high priority=5 attempt=2
+started   flaky-high attempt=2
+fulfilled flaky-high attempt=2
+results   [null,"low-result","flaky-result","high-result"]
+stats     {"pending":0,"running":0,"retryWaiting":0,"live":0}

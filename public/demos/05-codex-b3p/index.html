@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Lightweaver — Mirror Lab Puzzle</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="instrument">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></div>
+        <div>
+          <p class="eyebrow">Optical routing instrument</p>
+          <h1>LIGHTWEAVER</h1>
+        </div>
+      </div>
+      <nav class="level-strip" aria-label="Puzzle levels" id="levelStrip"></nav>
+      <div class="readout">
+        <span>Moves</span>
+        <strong id="moveCount">00</strong>
+      </div>
+    </header>
+
+    <section class="workspace">
+      <div class="board-shell" id="boardShell">
+        <canvas id="gameCanvas" width="1200" height="680" tabindex="0"
+          aria-label="Interactive optical puzzle board. Select and move optical pieces to route light into targets."></canvas>
+        <div class="canvas-vignette" aria-hidden="true"></div>
+        <div class="selection-label" id="selectionLabel" aria-live="polite"></div>
+        <div class="toast" id="toast" role="status" aria-live="polite"></div>
+        <div class="victory" id="victory" aria-live="assertive">
+          <div class="victory-rays" aria-hidden="true"></div>
+          <p>Optical circuit complete</p>
+          <h2>LIGHT WOVEN</h2>
+          <span id="victoryMoves"></span>
+          <button id="nextLevel">Next experiment <kbd>↵</kbd></button>
+        </div>
+      </div>
+
+      <aside class="sidebar">
+        <section class="objective-card">
+          <p class="eyebrow">Current experiment</p>
+          <div class="level-title-row">
+            <span id="levelNumber">01</span>
+            <h2 id="levelName"></h2>
+          </div>
+          <p id="objective"></p>
+          <div class="target-list" id="targetList"></div>
+        </section>
+
+        <section class="inspector">
+          <div class="inspector-head">
+            <span>Selected optic</span>
+            <strong id="selectedName">None</strong>
+          </div>
+          <div class="angle-dial" id="angleDial" aria-hidden="true">
+            <div class="dial-line" id="dialLine"></div>
+            <div class="dial-core"></div>
+          </div>
+          <div class="angle-readout"><span>Angle</span><b id="angleValue">—</b></div>
+          <p id="selectedDescription">Click a movable optic to inspect it.</p>
+        </section>
+
+        <section class="controls" aria-label="Controls">
+          <button id="undoBtn" title="Undo (Z)">↶ <span>Undo</span><kbd>Z</kbd></button>
+          <button id="redoBtn" title="Redo (Y)">↷ <span>Redo</span><kbd>Y</kbd></button>
+          <button id="hintBtn" class="accent" title="Hint (H)">◇ <span>Hint</span><kbd>H</kbd></button>
+          <button id="resetBtn" title="Reset level (R)">↺ <span>Reset</span><kbd>R</kbd></button>
+        </section>
+
+        <section class="key-guide">
+          <p><kbd>Drag</kbd> move optic</p>
+          <p><kbd>Wheel</kbd> / <kbd>Q</kbd><kbd>E</kbd> rotate</p>
+          <p><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> nudge</p>
+        </section>
+      </aside>
+    </section>
+
+    <footer>
+      <span id="statusText">Ray engine stable</span>
+      <span class="legend"><i class="dot source-dot"></i> source <i class="dot target-dot"></i> target <i class="dot movable-dot"></i> movable optic</span>
+      <span>Geometry / 1200×680</span>
+    </footer>
+  </main>
+
+  <script src="engine.js"></script>
+  <script src="levels.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

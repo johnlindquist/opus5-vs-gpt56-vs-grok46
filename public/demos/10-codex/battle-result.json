@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "status": "complete",
+  "title": "The Haunted Queue — Refactor an Async Scheduler",
+  "kind": "dev",
+  "entrypoint": "report.html",
+  "artifacts": [
+    "report.html",
+    "README.md",
+    "legacy/queue.ts",
+    "src/job-queue.ts",
+    "src/types.ts",
+    "src/errors.ts",
+    "src/backoff.ts",
+    "src/index.ts",
+    "test/job-queue.test.ts",
+    "demo.ts",
+    "out/demo.txt",
+    "battle-result.json"
+  ],
+  "checks": [
+    {
+      "name": "test suite",
+      "command": "bun test",
+      "status": "passed",
+      "details": "All queue semantics tests passed."
+    },
+    {
+      "name": "deterministic demonstration",
+      "command": "bun run demo.ts",
+      "status": "passed",
+      "details": "The mixed-priority demonstration completed without unresolved jobs."
+    }
+  ],
+  "summary": "A typed, deterministic job queue with stable priority scheduling, explicit retry ownership, complete cancellation and drain semantics, immutable stats, and isolated transition events.",
+  "known_issues": []
+}

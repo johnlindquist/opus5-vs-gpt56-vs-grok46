@@ -1,0 +1,845 @@
+{
+  "schema_version": 1,
+  "source": "data/requests.csv",
+  "row_count": 80,
+  "quantile_convention": "Hyndman-Fan type 7 (R / Excel default): p-quantile is linearly interpolated at index p*(n-1) on the 0-based sorted sample. Empty samples yield null.",
+  "variants": {
+    "control": {
+      "variant": "control",
+      "n": 40,
+      "mean": 316.75,
+      "median": 235.5,
+      "p95": 787.25,
+      "min": 169,
+      "max": 854,
+      "non_200_count": 0,
+      "non_200_rate": 0,
+      "status_200": {
+        "n": 40,
+        "mean": 316.75,
+        "median": 235.5,
+        "p95": 787.25,
+        "min": 169,
+        "max": 854
+      }
+    },
+    "candidate": {
+      "variant": "candidate",
+      "n": 40,
+      "mean": 604.7,
+      "median": 416.5,
+      "p95": 1457.85,
+      "min": 146,
+      "max": 1584,
+      "non_200_count": 4,
+      "non_200_rate": 0.1,
+      "status_200": {
+        "n": 36,
+        "mean": 513.8889,
+        "median": 403.5,
+        "p95": 1278.5,
+        "min": 146,
+        "max": 1455
+      }
+    }
+  },
+  "traffic_mix": {
+    "region": [
+      {
+        "key": "us",
+        "control_n": 24,
+        "control_share": 0.6,
+        "candidate_n": 18,
+        "candidate_share": 0.45,
+        "share_delta": -0.15
+      },
+      {
+        "key": "eu",
+        "control_n": 16,
+        "control_share": 0.4,
+        "candidate_n": 22,
+        "candidate_share": 0.55,
+        "share_delta": 0.15
+      }
+    ],
+    "device": [
+      {
+        "key": "desktop",
+        "control_n": 28,
+        "control_share": 0.7,
+        "candidate_n": 16,
+        "candidate_share": 0.4,
+        "share_delta": -0.3
+      },
+      {
+        "key": "mobile",
+        "control_n": 12,
+        "control_share": 0.3,
+        "candidate_n": 24,
+        "candidate_share": 0.6,
+        "share_delta": 0.3
+      }
+    ],
+    "cache": [
+      {
+        "key": "warm",
+        "control_n": 28,
+        "control_share": 0.7,
+        "candidate_n": 16,
+        "candidate_share": 0.4,
+        "share_delta": -0.3
+      },
+      {
+        "key": "cold",
+        "control_n": 12,
+        "control_share": 0.3,
+        "candidate_n": 24,
+        "candidate_share": 0.6,
+        "share_delta": 0.3
+      }
+    ],
+    "payload_range": [
+      {
+        "key": "0-99",
+        "control_n": 16,
+        "control_share": 0.4,
+        "candidate_n": 8,
+        "candidate_share": 0.2,
+        "share_delta": -0.2
+      },
+      {
+        "key": "100-249",
+        "control_n": 14,
+        "control_share": 0.35,
+        "candidate_n": 8,
+        "candidate_share": 0.2,
+        "share_delta": -0.15
+      },
+      {
+        "key": "250-499",
+        "control_n": 6,
+        "control_share": 0.15,
+        "candidate_n": 8,
+        "candidate_share": 0.2,
+        "share_delta": 0.05
+      },
+      {
+        "key": "500-799",
+        "control_n": 1,
+        "control_share": 0.025,
+        "candidate_n": 6,
+        "candidate_share": 0.15,
+        "share_delta": 0.125
+      },
+      {
+        "key": "800+",
+        "control_n": 3,
+        "control_share": 0.075,
+        "candidate_n": 10,
+        "candidate_share": 0.25,
+        "share_delta": 0.175
+      }
+    ]
+  },
+  "strata": [
+    {
+      "region": "us",
+      "device": "desktop",
+      "cache": "warm",
+      "key": "us|desktop|warm",
+      "control": {
+        "variant": "control",
+        "n": 16,
+        "mean": 180,
+        "median": 180,
+        "p95": 191,
+        "min": 169,
+        "max": 191,
+        "non_200_count": 0,
+        "non_200_rate": 0,
+        "status_200": {
+          "n": 16,
+          "mean": 180,
+          "median": 180,
+          "p95": 191,
+          "min": 169,
+          "max": 191
+        }
+      },
+      "candidate": {
+        "variant": "candidate",
+        "n": 8,
+        "mean": 155.375,
+        "median": 155,
+        "p95": 164.95,
+        "min": 146,
+        "max": 166,
+        "non_200_count": 0,
+        "non_200_rate": 0,
+        "status_200": {
+          "n": 8,
+          "mean": 155.375,
+          "median": 155,
+          "p95": 164.95,
+          "min": 146,
+          "max": 166
+        }
+      },
+      "mean_delta_all": -24.625,
+      "mean_delta_200": -24.625,
+      "candidate_vs_control": "faster"
+    },
+    {
+      "region": "us",
+      "device": "mobile",
+      "cache": "cold",
+      "key": "us|mobile|cold",
+      "control": {
+        "variant": "control",
+        "n": 8,
+        "mean": 466.875,
+        "median": 466,
+        "p95": 496.8,
+        "min": 438,
+        "max": 501,
+        "non_200_count": 0,
+        "non_200_rate": 0,
+        "status_200": {
+          "n": 8,
+          "mean": 466.875,
+          "median": 466,
+          "p95": 496.8,
+          "min": 438,
+          "max": 501
+        }
+      },
+      "candidate": {
+        "variant": "candidate",
+        "n": 10,
+        "mean": 421.7,
+        "median": 420,
+        "p95": 445.2,
+        "min": 397,
+        "max": 447,
+        "non_200_count": 0,
+        "non_200_rate": 0,
+        "status_200": {
+          "n": 10,
+          "mean": 421.7,
+          "median": 420,
+          "p95": 445.2,
+          "min": 397,
+          "max": 447
+        }
+      },
+      "mean_delta_all": -45.175,
+      "mean_delta_200": -45.175,
+      "candidate_vs_control": "faster"
+    },
+    {
+      "region": "eu",
+      "device": "desktop",
+      "cache": "warm",
+      "key": "eu|desktop|warm",
+      "control": {
+        "variant": "control",
+        "n": 12,
+        "mean": 238.5,
+        "median": 239.5,
+        "p95": 249,
+        "min": 226,
+        "max": 249,
+        "non_200_count": 0,
+        "non_200_rate": 0,
+        "status_200": {
+          "n": 12,
+          "mean": 238.5,
+          "median": 239.5,
+          "p95": 249,
+          "min": 226,
+          "max": 249
+        }
+      },
+      "candidate": {
+        "variant": "candidate",
+        "n": 8,
+        "mean": 211.375,
+        "median": 211.5,
+        "p95": 223.6,
+        "min": 198,
+        "max": 225,
+        "non_200_count": 0,
+        "non_200_rate": 0,
+        "status_200": {
+          "n": 8,
+          "mean": 211.375,
+          "median": 211.5,
+          "p95": 223.6,
+          "min": 198,
+          "max": 225
+        }
+      },
+      "mean_delta_all": -27.125,
+      "mean_delta_200": -27.125,
+      "candidate_vs_control": "faster"
+    },
+    {
+      "region": "eu",
+      "device": "mobile",
+      "cache": "cold",
+      "key": "eu|mobile|cold",
+      "control": {
+        "variant": "control",
+        "n": 4,
+        "mean": 798.25,
+        "median": 798.5,
+        "p95": 847.55,
+        "min": 742,
+        "max": 854,
+        "non_200_count": 0,
+        "non_200_rate": 0,
+        "status_200": {
+          "n": 4,
+          "mean": 798.25,
+          "median": 798.5,
+          "p95": 847.55,
+          "min": 742,
+          "max": 854
+        }
+      },
+      "candidate": {
+        "variant": "candidate",
+        "n": 14,
+        "mean": 1216.9286,
+        "median": 1219,
+        "p95": 1537.2,
+        "min": 902,
+        "max": 1584,
+        "non_200_count": 4,
+        "non_200_rate": 0.285714,
+        "status_200": {
+          "n": 10,
+          "mean": 1134.9,
+          "median": 1109,
+          "p95": 1424.85,
+          "min": 902,
+          "max": 1455
+        }
+      },
+      "mean_delta_all": 418.6786,
+      "mean_delta_200": 336.65,
+      "candidate_vs_control": "slower"
+    }
+  ],
+  "payload_analysis": {
+    "bins": [
+      {
+        "label": "0-99",
+        "control": {
+          "variant": "control",
+          "n": 16,
+          "mean": 180,
+          "median": 180,
+          "p95": 191,
+          "min": 169,
+          "max": 191,
+          "non_200_count": 0,
+          "non_200_rate": 0,
+          "status_200": {
+            "n": 16,
+            "mean": 180,
+            "median": 180,
+            "p95": 191,
+            "min": 169,
+            "max": 191
+          }
+        },
+        "candidate": {
+          "variant": "candidate",
+          "n": 8,
+          "mean": 155.375,
+          "median": 155,
+          "p95": 164.95,
+          "min": 146,
+          "max": 166,
+          "non_200_count": 0,
+          "non_200_rate": 0,
+          "status_200": {
+            "n": 8,
+            "mean": 155.375,
+            "median": 155,
+            "p95": 164.95,
+            "min": 146,
+            "max": 166
+          }
+        }
+      },
+      {
+        "label": "100-249",
+        "control": {
+          "variant": "control",
+          "n": 14,
+          "mean": 268.5714,
+          "median": 241,
+          "p95": 445.7,
+          "min": 226,
+          "max": 460,
+          "non_200_count": 0,
+          "non_200_rate": 0,
+          "status_200": {
+            "n": 14,
+            "mean": 268.5714,
+            "median": 241,
+            "p95": 445.7,
+            "min": 226,
+            "max": 460
+          }
+        },
+        "candidate": {
+          "variant": "candidate",
+          "n": 8,
+          "mean": 261.125,
+          "median": 211.5,
+          "p95": 429.5,
+          "min": 198,
+          "max": 447,
+          "non_200_count": 0,
+          "non_200_rate": 0,
+          "status_200": {
+            "n": 8,
+            "mean": 261.125,
+            "median": 211.5,
+            "p95": 429.5,
+            "min": 198,
+            "max": 447
+          }
+        }
+      },
+      {
+        "label": "250-499",
+        "control": {
+          "variant": "control",
+          "n": 6,
+          "mean": 472.8333,
+          "median": 475,
+          "p95": 498,
+          "min": 446,
+          "max": 501,
+          "non_200_count": 0,
+          "non_200_rate": 0,
+          "status_200": {
+            "n": 6,
+            "mean": 472.8333,
+            "median": 475,
+            "p95": 498,
+            "min": 446,
+            "max": 501
+          }
+        },
+        "candidate": {
+          "variant": "candidate",
+          "n": 8,
+          "mean": 370.25,
+          "median": 412,
+          "p95": 435.55,
+          "min": 221,
+          "max": 438,
+          "non_200_count": 0,
+          "non_200_rate": 0,
+          "status_200": {
+            "n": 8,
+            "mean": 370.25,
+            "median": 412,
+            "p95": 435.55,
+            "min": 221,
+            "max": 438
+          }
+        }
+      },
+      {
+        "label": "500-799",
+        "control": {
+          "variant": "control",
+          "n": 1,
+          "mean": 742,
+          "median": 742,
+          "p95": 742,
+          "min": 742,
+          "max": 742,
+          "non_200_count": 0,
+          "non_200_rate": 0,
+          "status_200": {
+            "n": 1,
+            "mean": 742,
+            "median": 742,
+            "p95": 742,
+            "min": 742,
+            "max": 742
+          }
+        },
+        "candidate": {
+          "variant": "candidate",
+          "n": 6,
+          "mean": 837.8333,
+          "median": 923,
+          "p95": 1202,
+          "min": 414,
+          "max": 1242,
+          "non_200_count": 0,
+          "non_200_rate": 0,
+          "status_200": {
+            "n": 6,
+            "mean": 837.8333,
+            "median": 923,
+            "p95": 1202,
+            "min": 414,
+            "max": 1242
+          }
+        }
+      },
+      {
+        "label": "800+",
+        "control": {
+          "variant": "control",
+          "n": 3,
+          "mean": 817,
+          "median": 811,
+          "p95": 849.7,
+          "min": 786,
+          "max": 854,
+          "non_200_count": 0,
+          "non_200_rate": 0,
+          "status_200": {
+            "n": 3,
+            "mean": 817,
+            "median": 811,
+            "p95": 849.7,
+            "min": 786,
+            "max": 854
+          }
+        },
+        "candidate": {
+          "variant": "candidate",
+          "n": 10,
+          "mean": 1286.7,
+          "median": 1296,
+          "p95": 1551.6,
+          "min": 986,
+          "max": 1584,
+          "non_200_count": 4,
+          "non_200_rate": 0.4,
+          "status_200": {
+            "n": 6,
+            "mean": 1196.5,
+            "median": 1166,
+            "p95": 1438.25,
+            "min": 986,
+            "max": 1455
+          }
+        }
+      }
+    ],
+    "eu_mobile_cold": {
+      "control": {
+        "variant": "control",
+        "n": 4,
+        "mean": 798.25,
+        "median": 798.5,
+        "p95": 847.55,
+        "min": 742,
+        "max": 854,
+        "non_200_count": 0,
+        "non_200_rate": 0,
+        "status_200": {
+          "n": 4,
+          "mean": 798.25,
+          "median": 798.5,
+          "p95": 847.55,
+          "min": 742,
+          "max": 854
+        }
+      },
+      "candidate": {
+        "variant": "candidate",
+        "n": 14,
+        "mean": 1216.9286,
+        "median": 1219,
+        "p95": 1537.2,
+        "min": 902,
+        "max": 1584,
+        "non_200_count": 4,
+        "non_200_rate": 0.285714,
+        "status_200": {
+          "n": 10,
+          "mean": 1134.9,
+          "median": 1109,
+          "p95": 1424.85,
+          "min": 902,
+          "max": 1455
+        }
+      },
+      "comparable_payload_720_960": {
+        "control": {
+          "variant": "control",
+          "n": 4,
+          "mean": 798.25,
+          "median": 798.5,
+          "p95": 847.55,
+          "min": 742,
+          "max": 854,
+          "non_200_count": 0,
+          "non_200_rate": 0,
+          "status_200": {
+            "n": 4,
+            "mean": 798.25,
+            "median": 798.5,
+            "p95": 847.55,
+            "min": 742,
+            "max": 854
+          }
+        },
+        "candidate": {
+          "variant": "candidate",
+          "n": 10,
+          "mean": 1156.7,
+          "median": 1166,
+          "p95": 1397.85,
+          "min": 902,
+          "max": 1455,
+          "non_200_count": 2,
+          "non_200_rate": 0.2,
+          "status_200": {
+            "n": 8,
+            "mean": 1121.875,
+            "median": 1109,
+            "p95": 1380.45,
+            "min": 902,
+            "max": 1455
+          }
+        }
+      },
+      "payload_latency_pairs": [
+        {
+          "request_id": "r037",
+          "variant": "control",
+          "payload_kb": 720,
+          "latency_ms": 742,
+          "status": 200
+        },
+        {
+          "request_id": "r038",
+          "variant": "control",
+          "payload_kb": 800,
+          "latency_ms": 811,
+          "status": 200
+        },
+        {
+          "request_id": "r039",
+          "variant": "control",
+          "payload_kb": 880,
+          "latency_ms": 786,
+          "status": 200
+        },
+        {
+          "request_id": "r040",
+          "variant": "control",
+          "payload_kb": 960,
+          "latency_ms": 854,
+          "status": 200
+        },
+        {
+          "request_id": "r067",
+          "variant": "candidate",
+          "payload_kb": 720,
+          "latency_ms": 902,
+          "status": 200
+        },
+        {
+          "request_id": "r068",
+          "variant": "candidate",
+          "payload_kb": 800,
+          "latency_ms": 1018,
+          "status": 200
+        },
+        {
+          "request_id": "r069",
+          "variant": "candidate",
+          "payload_kb": 880,
+          "latency_ms": 1136,
+          "status": 200
+        },
+        {
+          "request_id": "r070",
+          "variant": "candidate",
+          "payload_kb": 960,
+          "latency_ms": 1264,
+          "status": 504
+        },
+        {
+          "request_id": "r071",
+          "variant": "candidate",
+          "payload_kb": 1040,
+          "latency_ms": 1388,
+          "status": 200
+        },
+        {
+          "request_id": "r072",
+          "variant": "candidate",
+          "payload_kb": 1120,
+          "latency_ms": 1512,
+          "status": 504
+        },
+        {
+          "request_id": "r073",
+          "variant": "candidate",
+          "payload_kb": 760,
+          "latency_ms": 944,
+          "status": 200
+        },
+        {
+          "request_id": "r074",
+          "variant": "candidate",
+          "payload_kb": 720,
+          "latency_ms": 1082,
+          "status": 200
+        },
+        {
+          "request_id": "r075",
+          "variant": "candidate",
+          "payload_kb": 800,
+          "latency_ms": 1196,
+          "status": 200
+        },
+        {
+          "request_id": "r076",
+          "variant": "candidate",
+          "payload_kb": 880,
+          "latency_ms": 1328,
+          "status": 504
+        },
+        {
+          "request_id": "r077",
+          "variant": "candidate",
+          "payload_kb": 960,
+          "latency_ms": 1455,
+          "status": 200
+        },
+        {
+          "request_id": "r078",
+          "variant": "candidate",
+          "payload_kb": 1040,
+          "latency_ms": 1584,
+          "status": 504
+        },
+        {
+          "request_id": "r079",
+          "variant": "candidate",
+          "payload_kb": 1120,
+          "latency_ms": 986,
+          "status": 200
+        },
+        {
+          "request_id": "r080",
+          "variant": "candidate",
+          "payload_kb": 760,
+          "latency_ms": 1242,
+          "status": 200
+        }
+      ]
+    },
+    "error_rows": [
+      {
+        "request_id": "r070",
+        "variant": "candidate",
+        "minute": 27,
+        "region": "eu",
+        "device": "mobile",
+        "cache": "cold",
+        "payload_kb": 960,
+        "latency_ms": 1264,
+        "status": 504
+      },
+      {
+        "request_id": "r072",
+        "variant": "candidate",
+        "minute": 29,
+        "region": "eu",
+        "device": "mobile",
+        "cache": "cold",
+        "payload_kb": 1120,
+        "latency_ms": 1512,
+        "status": 504
+      },
+      {
+        "request_id": "r076",
+        "variant": "candidate",
+        "minute": 33,
+        "region": "eu",
+        "device": "mobile",
+        "cache": "cold",
+        "payload_kb": 880,
+        "latency_ms": 1328,
+        "status": 504
+      },
+      {
+        "request_id": "r078",
+        "variant": "candidate",
+        "minute": 35,
+        "region": "eu",
+        "device": "mobile",
+        "cache": "cold",
+        "payload_kb": 1040,
+        "latency_ms": 1584,
+        "status": 504
+      }
+    ]
+  },
+  "findings": [
+    {
+      "id": "F1",
+      "kind": "fact",
+      "text": "All-row means: control 316.75 ms (n=40) vs candidate 604.7 ms (n=40). Candidate p95 1457.85 vs control 787.25. Candidate non-200 rate 0.1 (4/40); control 0 (0/40)."
+    },
+    {
+      "id": "F2",
+      "kind": "fact",
+      "text": "Traffic mix shifted toward slower cells. EU share 0.4 control vs 0.55 candidate; mobile 0.3 vs 0.6; cold cache 0.3 vs 0.6; payload 800+ 0.075 vs 0.25."
+    },
+    {
+      "id": "F3",
+      "kind": "fact",
+      "text": "Within region×device×cache strata with both variants, candidate is faster in 3 stratum/strata (us|desktop|warm, us|mobile|cold, eu|desktop|warm) and slower in 1 (eu|mobile|cold)."
+    },
+    {
+      "id": "F4",
+      "kind": "interpretation",
+      "text": "Aggregate ranking conceals a mix-plus-interaction pattern similar to Simpson’s paradox: candidate is faster in the three non-EU-mobile-cold strata, yet slower overall because candidate traffic is heavier in EU mobile cold and that stratum itself is slower."
+    },
+    {
+      "id": "F5",
+      "kind": "fact",
+      "text": "The materially worse interaction is candidate × EU × mobile × cold. Mean delta all-rows 418.6786 ms (control n=4, candidate n=14). All 4 non-200 rows are candidate 504s in that stratum: r070, r072, r076, r078."
+    },
+    {
+      "id": "F6",
+      "kind": "interpretation",
+      "text": "Large cold EU mobile payloads are supported as the problem cell, not merely a mix artifact. At overlapping payloads 720–960 KB, candidate mean 1156.7 ms (n=10) vs control 798.25 ms (n=4). Candidate also extends to 1040–1120 KB with the highest latencies and the 504s. This is association in a small observational cell, not a proven payload causal mechanism."
+    }
+  ],
+  "limitations": [
+    "Variants occupy disjoint time windows (control minutes 0–15, candidate 20–37), so period effects are confounded with variant.",
+    "Assignment is not a concurrent randomized experiment; mix of region, device, cache, and payload is not balanced by design.",
+    "EU mobile cold control has only 4 rows; candidate has 14. Small n makes p95 and interaction magnitude fragile.",
+    "Cache state is collinear with device (desktop=warm, mobile=cold); region×device×cache strata cannot separate cache from device.",
+    "Payload size is collinear with region and device (US desktop smallest, EU mobile largest), so payload effects are not independently identified.",
+    "Four 504s are retained in latency statistics; failed requests may not be comparable to successful latency.",
+    "No retries, upstream dependency, or concurrency traces are present; a single-path regression cannot be isolated from correlated load.",
+    "Observational association must not be read as definitive causation of the candidate code path."
+  ],
+  "recommendations": [
+    "Do not continue an unguarded full rollout. Hold or exclude candidate on EU mobile cold (especially payloads ≥720 KB) until a concurrent stratified test reproduces or refutes the cell.",
+    "Warm desktop US/EU and US mobile cold look faster for candidate in this file; those cells may continue only behind a region/device/payload guard, not as proof of global safety.",
+    "Follow-up 1: run a concurrent randomized A/B with pre-registered strata and equalized mix, oversampling EU mobile cold large payloads.",
+    "Follow-up 2: run a payload-size sweep on EU mobile with cache warm vs cold held separately to test whether size, cache, or their interaction drives the 504s and latency slope."
+  ]
+}

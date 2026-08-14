@@ -1,0 +1,1923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Neon Courier — One-Button Rooftop Heist</title>
+<style>
+  :root{
+    --cyan:#3ff2ff; --magenta:#ff3ea5; --amber:#ffc247; --red:#ff4d4d;
+    --ink:#05060d; --panel:rgba(8,10,20,.62); --edge:rgba(63,242,255,.28);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; background:#03040a; color:#cfe9ff; overflow:hidden;
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Roboto Mono",monospace;
+    -webkit-font-smoothing:antialiased; touch-action:manipulation;
+  }
+  #stage{position:fixed; inset:0; display:block}
+  canvas{position:absolute; inset:0; width:100%; height:100%; display:block; background:#03040a; outline:none}
+  canvas:focus-visible{outline:3px solid var(--cyan); outline-offset:-3px}
+
+  /* ---- overlay UI (buttons + accessible text). Canvas draws the HUD itself. ---- */
+  #ui{position:absolute; inset:0; pointer-events:none}
+  #tools{
+    position:absolute; right:14px; bottom:12px; display:flex; gap:8px; pointer-events:auto;
+    flex-wrap:wrap; justify-content:flex-end;
+  }
+  #tools button{
+    font:inherit; font-size:12px; letter-spacing:.08em; text-transform:uppercase;
+    color:#bfe9ff; background:var(--panel); border:1px solid var(--edge);
+    border-radius:6px; padding:7px 10px; cursor:pointer; backdrop-filter:blur(4px);
+  }
+  #tools button:hover{border-color:var(--cyan); color:#fff}
+  #tools button:focus-visible{outline:3px solid var(--amber); outline-offset:2px; color:#fff}
+  #tools button[aria-pressed="true"]{border-color:var(--magenta); color:#ffd7ec}
+  #help{
+    position:absolute; left:14px; bottom:12px; max-width:min(46ch,60vw); pointer-events:none;
+    font-size:12px; line-height:1.5; color:#8fb6d6; background:var(--panel);
+    border:1px solid rgba(63,242,255,.16); border-radius:6px; padding:8px 10px; backdrop-filter:blur(4px);
+  }
+  #help b{color:#dff4ff; font-weight:600}
+  .sr{position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden;
+      clip:rect(0 0 0 0); clip-path:inset(50%); white-space:nowrap; border:0}
+  @media (max-width:760px){ #help{display:none} }
+</style>
+</head>
+<body>
+<main id="stage">
+  <canvas id="game" tabindex="0" role="application"
+    aria-label="Neon Courier. One button rooftop runner. Press Space, or tap the screen, to jump. Tap in the air to dash. Hold on the ground to charge a higher jump. Press P to pause, R to restart, M for sound."></canvas>
+
+  <div id="ui">
+    <div id="help">
+      <b>SPACE / TAP</b> jump · <b>HOLD</b> charge · <b>TAP IN AIR</b> dash · <b>P</b> pause · <b>R</b> restart · <b>M</b> sound
+    </div>
+    <div id="tools">
+      <button id="btnPause" type="button" aria-pressed="false">Pause</button>
+      <button id="btnRestart" type="button">Restart</button>
+      <button id="btnSound" type="button" aria-pressed="false">Sound</button>
+      <button id="btnMotion" type="button" aria-pressed="false">Reduced&nbsp;motion</button>
+    </div>
+  </div>
+
+  <p id="live" class="sr" role="status" aria-live="polite"></p>
+  <p class="sr" id="rules">
+    Neon Courier is a one-button rooftop runner. The courier runs automatically to the right.
+    Tap to jump, hold to charge a higher jump, tap while airborne to dash forward through breakable neon signs.
+    Avoid gaps, crates, overhead gantries, drones and sweepers. Passing close to a hazard scores a near miss and
+    raises your combo. Tap after a crash to start a new run.
+  </p>
+</main>
+
+<script>
+"use strict";
+/* ============================================================================
+   NEON COURIER — One-Button Rooftop Heist
+   Canvas 2D, no dependencies, single file, runs from file://
+
+   Architecture (see README.md):
+     RNG          deterministic mulberry32 seeded from a daily-style seed
+     World        procedural rooftop segments from a curated template set
+     Player       fixed-timestep physics, coyote time, jump buffer, dash
+     Director     difficulty curve + near-miss / slow-motion drama
+     Bot          attract-mode controller that plays by the same rules
+     Renderer     parallax city, rain, courier poses, HUD  (pure draw, no state writes)
+   ========================================================================== */
+
+/* ------------------------------ constants -------------------------------- */
+const VW = 1600, VH = 900;              // virtual design resolution
+const DT = 1 / 120;                     // fixed gameplay timestep
+const MAX_FRAME = 0.25;                 // bounded delta
+const GROUND_LIMIT = VH + 260;          // below this = fell to the street
+
+const GRAV = 2750;
+const FALL_CAP = 2000;
+const JUMP_V = -940;
+const JUMP_V_MAX = -1250;               // fully charged
+const CHARGE_TIME = 0.34;               // seconds to full charge
+const TAP_TIME = 0.085;                 // below this a press is a plain tap
+const COYOTE = 0.11;
+const BUFFER = 0.15;
+const DASH_TIME = 0.20;
+const DASH_SPEED = 1180;                // additional px/s while dashing
+const DASH_COOL = 0.16;
+
+const SPEED_START = 400;
+const SPEED_MAX = 880;
+const SPEED_RAMP = 10.5;                // px/s gained per second of survival
+
+const NEAR_MISS_DIST = 34;              // px of clearance that counts as a near miss
+const CLOSE_CALL_DIST = 16;             // triggers slow motion
+const COMBO_HOLD = 3.2;
+
+const STEP_UP = 26;                     // ledge the courier vaults automatically
+const STEP_DOWN = 22;                   // small drop that is followed, not fallen
+
+const PLAYER_W = 40, PLAYER_H = 84;
+const CAM_OFFSET = 430;                 // player's resting screen x
+
+const C = {
+  cyan:'#3ff2ff', magenta:'#ff3ea5', amber:'#ffc247', red:'#ff4d4d',
+  ink:'#05060d', deep:'#0a0f1f', roof:'#131a2e', roofLip:'#1e2a47'
+};
+
+/* ------------------------------ utilities -------------------------------- */
+const clamp = (v,a,b)=> v<a?a:(v>b?b:v);
+const lerp  = (a,b,t)=> a+(b-a)*t;
+const aabb  = (a,b)=> a.x < b.x+b.w && a.x+a.w > b.x && a.y < b.y+b.h && a.y+a.h > b.y;
+
+function mulberry32(a){
+  return function(){
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function hashStr(s){
+  let h = 2166136261 >>> 0;
+  for (let i=0;i<s.length;i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return h >>> 0;
+}
+/** Daily-style seed: same for everyone on the same calendar day. */
+function dailySeedLabel(){
+  const d = new Date();
+  const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), dd = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${dd}`;
+}
+
+/* --------------------------- persistent best ----------------------------- */
+const STORE_KEY = 'neon-courier.v1';
+const store = {
+  read(){
+    try{ const raw = localStorage.getItem(STORE_KEY); return raw ? JSON.parse(raw) : {}; }
+    catch(e){ return {}; }
+  },
+  write(obj){
+    try{ localStorage.setItem(STORE_KEY, JSON.stringify(obj)); }
+    catch(e){ /* private mode / disabled storage: run stays playable */ }
+  }
+};
+
+/* ============================================================================
+   WORLD — procedural rooftop assembly
+   A "segment" is one rooftop: a solid box from `top` down past the bottom of
+   the screen. Between segments there may be a gap. Hazards live on segments.
+   ========================================================================== */
+
+/** Curated segment templates. `build` returns {w, top, hazards[], gapAfter}. */
+const TEMPLATES = [
+  { name:'flat-open',  minDiff:0, weight:26, build(g){
+      const w = g.rand(300, 460);
+      return { w, dy: g.step(0.5), haz:[], gap: g.gap(0.55) };
+  }},
+  { name:'crate-run',  minDiff:0, weight:22, build(g){
+      const w = g.rand(360, 520), haz=[];
+      const n = g.diff > .5 ? 2 : 1;
+      for(let i=0;i<n;i++) haz.push({t:'crate', ox: 130 + i*g.rand(150,210), h:g.rand(34,54)});
+      return { w, dy:g.step(0.4), haz, gap:g.gap(0.5) };
+  }},
+  { name:'gantry',     minDiff:0.04, weight:16, build(g){
+      // overhead beam: you must stay low (do not jump) or dash under it
+      const w = g.rand(340, 460);
+      // clearance is measured from the courier's own height so the rule stays
+      // "stay grounded" no matter how the character is sized
+      return { w, dy:g.step(0.3), haz:[{t:'beam', ox:g.rand(150,230), h:g.rand(30,42),
+               clear:PLAYER_H + g.rand(22,54)}], gap:g.gap(0.45) };
+  }},
+  { name:'sign-wall',  minDiff:0.05, weight:16, build(g){
+      // breakable neon sign: dash through it, or clear it with a charged jump
+      const w = g.rand(340, 470);
+      return { w, dy:g.step(0.35), haz:[{t:'sign', ox:g.rand(150,240), h:g.rand(150,195), hue:g.pick(['m','c','a'])}], gap:g.gap(0.5) };
+  }},
+  { name:'drone-lane', minDiff:0.07, weight:16, build(g){
+      const w = g.rand(360, 520), haz=[];
+      haz.push({t:'drone', ox:g.rand(150,260), hover:g.rand(78,150), amp:g.rand(18,48), spd:g.rand(1.1,2.2), ph:g.rand(0,6.28)});
+      if (g.diff > .6 && g.chance(.45))
+        haz.push({t:'drone', ox:g.rand(300,440), hover:g.rand(60,130), amp:g.rand(20,50), spd:g.rand(1.2,2.4), ph:g.rand(0,6.28)});
+      return { w, dy:g.step(0.4), haz, gap:g.gap(0.55) };
+  }},
+  { name:'sweeper',    minDiff:0.20, weight:13, build(g){
+      const w = g.rand(400, 560);
+      return { w, dy:g.step(0.3), haz:[{t:'sweep', ox:g.rand(120,180), range:g.rand(140, 240), spd:g.rand(90,170), h:g.rand(40,58)}], gap:g.gap(0.5) };
+  }},
+  { name:'canyon',     minDiff:0.10, weight:14, build(g){
+      // short landing pad framed by wide gaps — rewards a charged jump or dash
+      const w = g.rand(190, 260);
+      return { w, dy:g.step(0.75), haz: g.chance(.35)?[{t:'crate', ox:w*0.55, h:36}]:[], gap:g.gap(1.0, true) };
+  }},
+  { name:'gauntlet',   minDiff:0.55, weight:12, build(g){
+      const w = g.rand(480, 620), haz=[];
+      haz.push({t:'crate', ox:130, h:44});
+      haz.push({t:'beam',  ox:290, h:34, clear:PLAYER_H + g.rand(26,46)});
+      if (g.chance(.55)) haz.push({t:'sign', ox:430, h:g.rand(150,180), hue:g.pick(['m','c','a'])});
+      return { w, dy:g.step(0.25), haz, gap:g.gap(0.6) };
+  }},
+];
+
+class World {
+  constructor(seed){ this.reset(seed); }
+  reset(seed){
+    this.rng = mulberry32(seed);
+    this.segs = [];
+    this.hazards = [];
+    this.cursor = -700;       // world x where the next segment starts
+    this.lastTop = VH - 330;
+    this.id = 0;
+    this.difficulty = 0;
+    // Opening runway: wide enough to fill the screen behind the courier, short
+    // enough that the first hazard arrives about 1.5s in (attract readability).
+    this.pushSegment({ w: 1600, dy: 0, haz: [], gap: 0 }, true);
+  }
+
+  /** generator helper bag handed to templates */
+  helpers(diff){
+    const r = this.rng;
+    return {
+      diff,
+      rand:(a,b)=> a + r()*(b-a),
+      chance:(p)=> r() < p,
+      pick:(arr)=> arr[(r()*arr.length)|0],
+      /** vertical step between rooftops, scaled by difficulty.
+       *  Upward steps are capped so a charged jump can always clear them. */
+      step:(k)=>{
+        const amp = (46 + 130*diff) * k;
+        const v = (r()*2-1) * amp;
+        return v < 0 ? Math.max(v, -105) : Math.min(v, 220);
+      },
+      /** gap width after this segment */
+      gap:(k, force)=>{
+        if (!force && r() < 0.34 - 0.18*diff) return 0;
+        const base = 90 + 150*diff;
+        return clamp((base + r()*130) * k, 70, 330);
+      }
+    };
+  }
+
+  pushSegment(spec, isFirst){
+    const top = isFirst ? this.lastTop
+      : clamp(this.lastTop + spec.dy, 260, VH - 170);
+    const seg = { id:this.id++, x:this.cursor, w:spec.w, top, hazards:[] };
+    this.lastTop = top;
+
+    for (const h of (spec.haz||[])){
+      const hz = this.makeHazard(h, seg);
+      if (hz){ seg.hazards.push(hz); this.hazards.push(hz); }
+    }
+    this.segs.push(seg);
+    this.cursor += spec.w + (spec.gap||0);
+    return seg;
+  }
+
+  makeHazard(h, seg){
+    const x = seg.x + h.ox;
+    if (x > seg.x + seg.w - 60) return null;     // keep hazards off the far lip
+    const base = { seg, kind:h.t, passed:false, dead:false, minGap:1e9, t:0 };
+    switch(h.t){
+      case 'crate': return Object.assign(base,{ x, y:seg.top-h.h, w:40+h.h*0.35, h:h.h });
+      case 'beam':  return Object.assign(base,{ x, y:seg.top-h.clear-h.h, w:96, h:h.h, clear:h.clear });
+      case 'sign':  return Object.assign(base,{ x, y:seg.top-h.h, w:26, h:h.h, hue:h.hue, flick:this.rng()*6 });
+      case 'drone': return Object.assign(base,{ x, x0:x, y:seg.top-h.hover, y0:seg.top-h.hover,
+                                                w:52, h:26, amp:h.amp, spd:h.spd, ph:h.ph });
+      case 'sweep': return Object.assign(base,{ x, x0:x, y:seg.top-h.h, w:46, h:h.h,
+                                                range:Math.min(h.range, seg.w-h.ox-80), spd:h.spd, dir:1 });
+    }
+    return null;
+  }
+
+  /** keep the world filled ahead of the camera and drop what is behind it */
+  ensure(aheadX, difficulty){
+    this.difficulty = difficulty;
+    let guard = 0;
+    while (this.cursor < aheadX && guard++ < 64){
+      const g = this.helpers(difficulty);
+      const pool = TEMPLATES.filter(t => difficulty >= t.minDiff);
+      let total = 0; for (const t of pool) total += t.weight;
+      let pick = this.rng()*total, chosen = pool[0];
+      for (const t of pool){ pick -= t.weight; if (pick <= 0){ chosen = t; break; } }
+      this.pushSegment(chosen.build(g), false);
+    }
+  }
+  cull(behindX){
+    while (this.segs.length && this.segs[0].x + this.segs[0].w < behindX) this.segs.shift();
+    let w = 0;
+    for (let i=0;i<this.hazards.length;i++){
+      const h = this.hazards[i];
+      if (h.x + h.w >= behindX && !h.dead) this.hazards[w++] = h;
+    }
+    this.hazards.length = w;
+  }
+  segmentAt(x){
+    for (let i=0;i<this.segs.length;i++){
+      const s = this.segs[i];
+      if (x >= s.x && x <= s.x + s.w) return s;
+    }
+    return null;
+  }
+  /** highest solid surface overlapping [x0,x1]; null if it is all open air */
+  surfaceOver(x0, x1){
+    let best = null;
+    for (let i=0;i<this.segs.length;i++){
+      const s = this.segs[i];
+      if (x1 > s.x && x0 < s.x + s.w){ if (!best || s.top < best.top) best = s; }
+    }
+    return best;
+  }
+  update(dt){
+    for (let i=0;i<this.hazards.length;i++){
+      const h = this.hazards[i];
+      h.t += dt;
+      if (h.kind === 'drone'){
+        h.y = h.y0 + Math.sin(h.t*h.spd + h.ph) * h.amp;
+        h.x = h.x0 + Math.cos(h.t*h.spd*0.6 + h.ph) * 18;
+      } else if (h.kind === 'sweep'){
+        h.x += h.spd * h.dir * dt;
+        if (h.x > h.x0 + h.range){ h.x = h.x0 + h.range; h.dir = -1; }
+        if (h.x < h.x0){ h.x = h.x0; h.dir = 1; }
+      }
+    }
+  }
+}
+
+/* ============================================================================
+   PARTICLES — single bounded pool, never grows
+   ========================================================================== */
+const PMAX = 420;
+class Particles {
+  constructor(){ this.a = new Array(PMAX); this.n = 0;
+    for (let i=0;i<PMAX;i++) this.a[i] = {x:0,y:0,vx:0,vy:0,life:0,max:1,size:2,col:'#fff',grav:1,kind:0}; }
+  clear(){ this.n = 0; }
+  spawn(x,y,vx,vy,life,size,col,grav,kind){
+    const p = this.n < PMAX ? this.a[this.n++] : this.a[(Math.random()*PMAX)|0];
+    p.x=x; p.y=y; p.vx=vx; p.vy=vy; p.life=life; p.max=life; p.size=size; p.col=col;
+    p.grav = grav===undefined?1:grav; p.kind = kind||0;
+  }
+  burst(x,y,count,col,spread,speed){
+    for(let i=0;i<count;i++){
+      const a = Math.random()*Math.PI*2, s = speed*(0.35+Math.random());
+      this.spawn(x+(Math.random()-0.5)*spread, y+(Math.random()-0.5)*spread,
+                 Math.cos(a)*s, Math.sin(a)*s, 0.35+Math.random()*0.5, 2+Math.random()*3, col, 1, 0);
+    }
+  }
+  update(dt){
+    let w = 0;
+    for (let i=0;i<this.n;i++){
+      const p = this.a[i];
+      p.life -= dt;
+      if (p.life <= 0) continue;
+      p.vy += 1500*dt*p.grav; p.x += p.vx*dt; p.y += p.vy*dt;
+      if (w !== i){ const tmp = this.a[w]; this.a[w] = p; this.a[i] = tmp; }
+      w++;
+    }
+    this.n = w;
+  }
+}
+
+/* ============================================================================
+   RAIN — pooled, density scales with reduced-motion setting
+   ========================================================================== */
+class Rain {
+  constructor(){ this.drops = []; this.build(260); }
+  build(n){
+    this.drops.length = 0;
+    for (let i=0;i<n;i++){
+      this.drops.push({
+        x: Math.random()*(VW+400)-200, y: Math.random()*VH,
+        len: 16+Math.random()*40, spd: 1100+Math.random()*900,
+        par: 0.55+Math.random()*0.95, a: 0.10+Math.random()*0.30
+      });
+    }
+  }
+  update(dt, wind){
+    for (const d of this.drops){
+      d.y += d.spd*dt; d.x -= wind*dt*d.par;
+      if (d.y > VH+40){ d.y = -40-Math.random()*160; d.x = Math.random()*(VW+400)-200; }
+      if (d.x < -220) d.x += VW+420;
+    }
+  }
+}
+
+/* ============================================================================
+   PLAYER
+   ========================================================================== */
+class Player {
+  constructor(){ this.reset(0, 0); }
+  reset(x, top){
+    this.x = x; this.y = top - PLAYER_H;
+    this.w = PLAYER_W; this.h = PLAYER_H;
+    this.vy = 0; this.vxBoost = 0;
+    this.onGround = true; this.coyote = COYOTE; this.buffer = 0;
+    this.charging = false; this.chargeT = 0; this.holdT = 0;
+    this.dashT = 0; this.dashCool = 0; this.dashReady = true; this.dashGrace = 0;
+    this.state = 'run'; this.runPhase = 0; this.stumble = 0;
+    this.crashT = 0; this.spin = 0; this.trail = [];
+    this.lastGroundTop = top;
+  }
+  get box(){ return { x:this.x, y:this.y, w:this.w, h:this.h }; }
+}
+
+/* ============================================================================
+   GAME
+   ========================================================================== */
+const MODE = { ATTRACT:'attract', PLAY:'play', DEAD:'dead' };
+
+class Game {
+  constructor(canvas){
+    this.canvas = canvas;
+    this.ctx = canvas.getContext('2d', { alpha:false });
+    this.seedLabel = dailySeedLabel();
+    this.seedBase = hashStr('neon-courier|' + this.seedLabel);
+
+    this.world = new World(this.seedBase);
+    this.player = new Player();
+    this.particles = new Particles();
+    this.rain = new Rain();
+    this.bot = new Bot(this);
+
+    const saved = store.read();
+    this.best = Number(saved.best) || 0;
+    this.bestDist = Number(saved.bestDist) || 0;
+    this.sound = false;
+    this.audio = null;
+
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    this.reduced = mq.matches;
+    this.reducedForced = false;
+    mq.addEventListener?.('change', e => { if (!this.reducedForced) this.setReduced(e.matches); });
+
+    this.paused = false;
+    this.input = { down:false, pressed:false, released:false };
+    this.runCount = 0;
+
+    this.setReduced(this.reduced);
+    this.startAttract();
+  }
+
+  setReduced(v){
+    this.reduced = v;
+    this.rain.build(v ? 90 : 260);
+    document.getElementById('btnMotion')?.setAttribute('aria-pressed', String(v));
+  }
+
+  /* ---------------------------- run lifecycle ---------------------------- */
+  newRun(mode){
+    this.runCount++;
+    // Attract always replays the daily seed; real runs vary per attempt so the
+    // day's seed stays the recognisable "course" but repeats do not feel canned.
+    const seed = mode === MODE.ATTRACT ? this.seedBase : (this.seedBase ^ Math.imul(this.runCount, 0x9E3779B1)) >>> 0;
+    this.world.reset(seed);
+    const start = this.world.segs[0];
+    this.player.reset(320, start.top);
+    this.particles.clear();
+
+    this.mode = mode;
+    this.time = 0;
+    this.speed = SPEED_START;
+    this.dist = 0;
+    this.score = 0;
+    this.combo = 1;
+    this.comboT = 0;
+    this.nearMisses = 0;
+    this.breaks = 0;
+    this.slowmo = 0;
+    this.timeScale = 1;
+    this.shake = 0;
+    this.flash = 0;
+    this.lightning = 0;
+    this.lightningNext = 4 + Math.random()*9;
+    this.camX = this.player.x - CAM_OFFSET;
+    this.camY = 0;
+    this.deathT = 0;
+    this.deathReason = '';
+    this.checkpoint = 400;
+    this.toast = null;
+    this.bot.reset();
+    this.world.ensure(this.camX + VW*2.5, 0);
+    this.announce(mode === MODE.ATTRACT
+      ? 'Attract mode: a demo courier is running. Press Space or tap to take over.'
+      : 'Run started. Tap to jump.');
+  }
+  startAttract(){ this.newRun(MODE.ATTRACT); }
+  startPlay(){ this.newRun(MODE.PLAY); this.beep('start'); }
+
+  announce(msg){
+    const el = document.getElementById('live');
+    if (el && el.textContent !== msg) el.textContent = msg;
+  }
+
+  /* ------------------------------- input --------------------------------- */
+  /** raw button edges — shared by the human and by the attract bot */
+  rawPress(){
+    if (this.paused) return;
+    this.input.down = true; this.input.pressed = true;
+  }
+  rawRelease(){
+    if (!this.input.down) return;
+    this.input.down = false; this.input.released = true;
+  }
+  /** human input: also owns the mode transitions */
+  press(){
+    if (this.mode === MODE.ATTRACT){ this.startPlay(); return; }
+    if (this.mode === MODE.DEAD){ if (this.deathT > 0.45) this.startPlay(); return; }
+    this.rawPress();
+  }
+  release(){ this.rawRelease(); }
+  togglePause(){
+    if (this.mode !== MODE.PLAY) return;
+    this.paused = !this.paused;
+    document.getElementById('btnPause')?.setAttribute('aria-pressed', String(this.paused));
+    this.announce(this.paused ? 'Paused.' : 'Resumed.');
+  }
+
+  /* ------------------------------- audio --------------------------------- */
+  ensureAudio(){
+    if (this.audio || !this.sound) return;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    try{
+      const ctx = new AC();
+      const gain = ctx.createGain(); gain.gain.value = 0.16; gain.connect(ctx.destination);
+      this.audio = { ctx, gain };
+    }catch(e){ this.audio = null; }
+  }
+  beep(kind){
+    if (!this.sound) return;
+    this.ensureAudio();
+    const A = this.audio; if (!A) return;
+    if (A.ctx.state === 'suspended') A.ctx.resume();
+    const t = A.ctx.currentTime;
+    const spec = {
+      jump:  [520, 880, 0.10, 'triangle'],
+      charge:[300, 700, 0.16, 'square'],
+      dash:  [900, 240, 0.16, 'sawtooth'],
+      near:  [1500,2100,0.07, 'sine'],
+      brk:   [700, 120, 0.22, 'square'],
+      land:  [180, 120, 0.06, 'sine'],
+      crash: [260,  50, 0.55, 'sawtooth'],
+      start: [300, 900, 0.18, 'triangle'],
+    }[kind];
+    if (!spec) return;
+    const o = A.ctx.createOscillator(), g = A.ctx.createGain();
+    o.type = spec[3]; o.frequency.setValueAtTime(spec[0], t);
+    o.frequency.exponentialRampToValueAtTime(Math.max(30,spec[1]), t + spec[2]);
+    g.gain.setValueAtTime(0.001, t);
+    g.gain.exponentialRampToValueAtTime(0.6, t + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.001, t + spec[2]);
+    o.connect(g); g.connect(A.gain); o.start(t); o.stop(t + spec[2] + 0.02);
+  }
+
+  /* ============================== UPDATE ================================= */
+  update(dt){
+    if (this.paused) return;
+
+    // slow motion easing for close calls / death
+    const target = this.slowmo > 0 ? 0.32 : 1;
+    this.timeScale = lerp(this.timeScale, target, 1 - Math.pow(0.0001, dt));
+    if (this.slowmo > 0) this.slowmo -= dt;
+
+    const sdt = dt * (this.reduced ? Math.max(this.timeScale, 0.55) : this.timeScale);
+
+    if (this.mode === MODE.DEAD){
+      this.deathT += dt;
+      this.updateDeath(sdt);
+    } else {
+      this.time += sdt;
+      if (this.mode === MODE.ATTRACT) this.bot.think(sdt);
+      this.updatePlay(sdt);
+    }
+
+    // ambience runs on wall-clock so the city keeps breathing during slow-mo
+    this.rain.update(dt, this.speed*0.35 + 220);
+    this.particles.update(sdt);
+    this.shake = Math.max(0, this.shake - dt*(this.reduced?9:4.5));
+    this.flash = Math.max(0, this.flash - dt*3.4);
+    this.lightningNext -= dt;
+    if (this.lightningNext <= 0){
+      this.lightningNext = 5 + Math.random()*11;
+      this.lightning = this.reduced ? 0.18 : 0.9;
+    }
+    this.lightning = Math.max(0, this.lightning - dt*2.6);
+
+    // camera
+    const targetCam = this.player.x - CAM_OFFSET;
+    this.camX = lerp(this.camX, targetCam, 1 - Math.pow(0.0004, dt));
+    const targetCamY = clamp((this.player.y - (VH-330)) * 0.36, -180, 190);
+    this.camY = lerp(this.camY, targetCamY, 1 - Math.pow(0.002, dt));
+
+    this.world.update(sdt);
+    this.world.ensure(this.camX + VW*2.2, this.difficulty());
+    this.world.cull(this.camX - 600);
+  }
+
+  difficulty(){ return clamp(this.dist / 3400, 0, 1); }
+
+  updateDeath(dt){
+    const p = this.player;
+    p.vy = Math.min(p.vy + GRAV*0.8*dt, FALL_CAP);
+    p.x += (this.speed*0.25 + p.vxBoost) * dt;
+    p.y += p.vy * dt;
+    p.spin += dt * 7 * Math.sign(1);
+    p.vxBoost *= Math.pow(0.2, dt);
+    if (Math.random() < dt*20) this.particles.spawn(p.x+p.w/2, p.y+p.h/2, (Math.random()-.5)*90, -Math.random()*120, .5, 3, C.red, 1, 0);
+  }
+
+  updatePlay(dt){
+    const p = this.player;
+
+    /* --- speed & difficulty ramp (gradual, never a step change) --- */
+    this.speed = Math.min(SPEED_MAX, SPEED_START + this.time * SPEED_RAMP);
+
+    /* --- input edges --- */
+    const pressed = this.input.pressed, released = this.input.released;
+    this.input.pressed = false; this.input.released = false;
+
+    /* --- press handling: charge on ground, dash in air, otherwise buffer --- */
+    if (pressed){
+      if (p.onGround || p.coyote > 0){
+        p.charging = true; p.holdT = 0;
+      } else if (p.dashReady && p.dashCool <= 0){
+        this.startDash();
+      } else {
+        p.buffer = BUFFER;
+      }
+    }
+    if (p.charging){
+      p.holdT += dt;
+      p.chargeT = clamp(p.holdT / CHARGE_TIME, 0, 1);
+      // jump fires on release (a tap releases immediately, so it still feels instant)
+      if (released || !this.input.down) this.doJump();
+    }
+
+    /* --- buffered jump fires the instant we touch down --- */
+    if (p.buffer > 0){ p.buffer -= dt; }
+
+    /* --- dash timers --- */
+    if (p.dashT > 0){
+      p.dashT -= dt;
+      if (p.dashT <= 0){ p.vxBoost = 0; p.dashCool = DASH_COOL; }
+    }
+    if (p.dashCool > 0) p.dashCool -= dt;
+    if (p.dashGrace > 0) p.dashGrace -= dt;
+
+    /* --- integrate with sub-stepping so nothing tunnels --- */
+    const vx = this.speed + p.vxBoost;
+    if (p.dashT > 0){
+      p.vy = lerp(p.vy, -40, 1 - Math.pow(0.002, dt));   // dash floats a little
+    } else {
+      p.vy = Math.min(p.vy + GRAV*dt, FALL_CAP);
+    }
+    const maxStep = 5;
+    const steps = clamp(Math.ceil(Math.max(Math.abs(vx), Math.abs(p.vy)) * dt / maxStep), 1, 24);
+    const sdt = dt / steps;
+    let landed = false, walled = false;
+
+    for (let i=0;i<steps;i++){
+      // horizontal
+      p.x += vx * sdt;
+
+      // Resolve the horizontal move against the rooftop line. This runs whether
+      // or not the courier is grounded: an airborne runner clipping the corner
+      // of the next roof must be vaulted up or stopped, never let inside.
+      const surf = this.world.surfaceOver(p.x, p.x + p.w);
+      if (surf){
+        const d = surf.top - (p.y + p.h);      // >0 surface below feet, <0 feet inside roof
+        if (d < 0){
+          if (-d <= STEP_UP){
+            // shallow: a ledge. Vault onto it (this is the ledge forgiveness).
+            if (!p.onGround) landed = true;
+            p.y = surf.top - p.h; p.vy = 0; p.onGround = true; p.lastGroundTop = surf.top;
+            continue;
+          }
+          // deep: a genuine wall face
+          p.x -= vx * sdt;
+          walled = true;
+          break;
+        }
+        // grounded: follow small drops instead of briefly going airborne
+        if (p.onGround && p.vy >= 0 && d <= STEP_DOWN){
+          p.y = surf.top - p.h; p.vy = 0; p.lastGroundTop = surf.top;
+          continue;
+        }
+      }
+
+      // vertical
+      const prevBottom = p.y + p.h;
+      p.y += p.vy * sdt;
+      const hit = this.landing(p, prevBottom);
+      if (hit){
+        p.y = hit.top - p.h;
+        p.vy = 0;
+        if (!p.onGround) landed = true;
+        p.onGround = true;
+        p.lastGroundTop = hit.top;
+      } else {
+        const under = this.world.surfaceOver(p.x, p.x + p.w);
+        const standing = under && Math.abs((p.y + p.h) - under.top) < 1.5;
+        if (!standing) p.onGround = false;
+      }
+    }
+
+    this.dist += (vx * dt) / 16;                       // 16 world px = 1 metre
+
+    /* --- ground / coyote --- */
+    if (p.onGround){
+      p.coyote = COYOTE;
+      p.dashReady = true;
+      p.runPhase += dt * (6 + this.speed/110);
+      p.state = p.stumble > 0 ? 'stumble' : 'run';
+    } else {
+      p.coyote = Math.max(0, p.coyote - dt);
+      p.state = p.dashT > 0 ? 'dash' : 'jump';
+    }
+    if (p.stumble > 0) p.stumble -= dt;
+
+    if (landed){
+      this.particles.burst(p.x+p.w/2, p.y+p.h, this.reduced?4:10, C.cyan, 16, 150);
+      this.beep('land');
+      if (p.buffer > 0){ p.buffer = 0; p.charging = false; p.chargeT = 0; this.doJump(true); }
+    }
+    if (walled){
+      // ran into the face of a taller rooftop
+      this.die('slammed into a wall');
+      return;
+    }
+
+    /* --- dash trail --- */
+    if (p.dashT > 0 && !this.reduced){
+      p.trail.push({x:p.x, y:p.y, a:1});
+      if (p.trail.length > 16) p.trail.shift();
+    } else if (p.trail.length){
+      const keep = this.reduced ? 0 : 12;
+      while (p.trail.length > keep) p.trail.shift();
+      for (const t of p.trail) t.a -= dt*3.5;
+      while (p.trail.length && p.trail[0].a <= 0) p.trail.shift();
+    }
+
+    /* --- hazards: collision + near miss --- */
+    this.resolveHazards(dt);
+
+    /* --- fell off the world --- */
+    if (p.y > GROUND_LIMIT){ this.die('fell into the alley'); return; }
+
+    /* --- combo decay --- */
+    if (this.comboT > 0){
+      this.comboT -= dt;
+      if (this.comboT <= 0 && this.combo > 1){ this.combo = 1; }
+    }
+
+    /* --- score --- */
+    this.score += (vx * dt) * 0.075 * this.combo;
+
+    /* --- objective checkpoints --- */
+    if (this.dist >= this.checkpoint){
+      this.score += 250 * this.combo;
+      this.checkpoint += 400 + Math.floor(this.dist/800)*100;
+      this.toast = { text:'DATA PACKET SECURED  +' + (250*this.combo), t:1.9 };
+      this.particles.burst(p.x+p.w/2, p.y+p.h/2, this.reduced?8:22, C.amber, 30, 320);
+      if (this.mode === MODE.PLAY) this.announce(`Checkpoint reached at ${Math.floor(this.dist)} metres. Score ${Math.floor(this.score)}.`);
+    }
+    if (this.toast){ this.toast.t -= dt; if (this.toast.t <= 0) this.toast = null; }
+  }
+
+  doJump(fromBuffer){
+    const p = this.player;
+    if (!(p.onGround || p.coyote > 0)) { p.charging = false; p.chargeT = 0; return; }
+    const charge = fromBuffer ? 0 : (p.holdT < TAP_TIME ? 0 : clamp(p.holdT / CHARGE_TIME, 0, 1));
+    p.vy = lerp(JUMP_V, JUMP_V_MAX, charge);
+    p.onGround = false; p.coyote = 0;
+    p.charging = false; p.chargeT = 0; p.holdT = 0;
+    p.dashReady = true;
+    this.particles.burst(p.x+p.w/2, p.y+p.h, this.reduced?4:(6+charge*10), charge>0.4?C.amber:C.cyan, 18, 170+charge*160);
+    this.beep(charge > 0.4 ? 'charge' : 'jump');
+  }
+
+  startDash(){
+    const p = this.player;
+    p.dashT = DASH_TIME; p.dashReady = false; p.vxBoost = DASH_SPEED; p.vy = Math.min(p.vy, -30);
+    // signs stay breakable for a beat after the dash ends, so a slightly early
+    // input still reads as "I dashed through that"
+    p.dashGrace = DASH_TIME + 0.14;
+    p.trail.length = 0;
+    if (!this.reduced) this.shake = Math.max(this.shake, 5);
+    this.particles.burst(p.x, p.y+p.h/2, this.reduced?5:14, C.magenta, 20, 260);
+    this.beep('dash');
+  }
+
+  /** rooftop we just landed on this sub-step, or null */
+  landing(p, prevBottom){
+    if (p.vy < 0) return null;
+    const bottom = p.y + p.h;
+    const segs = this.world.segs;
+    let best = null;
+    for (let i=0;i<segs.length;i++){
+      const s = segs[i];
+      if (p.x + p.w <= s.x || p.x >= s.x + s.w) continue;
+      if (prevBottom <= s.top + 0.5 && bottom >= s.top){
+        if (!best || s.top < best.top) best = s;
+      }
+    }
+    return best;
+  }
+
+  resolveHazards(dt){
+    const p = this.player, box = p.box;
+    const list = this.world.hazards;
+    for (let i=0;i<list.length;i++){
+      const h = list[i];
+      if (h.dead) continue;
+      if (h.x + h.w < p.x - 200) continue;
+      if (h.x > p.x + 900) continue;
+
+      const hb = { x:h.x, y:h.y, w:h.w, h:h.h };
+
+      if (aabb(box, hb)){
+        if (h.kind === 'sign' && (p.dashT > 0 || p.dashGrace > 0)){
+          h.dead = true; this.breaks++;
+          this.bumpCombo(1);
+          this.score += 180 * this.combo;
+          this.particles.burst(h.x+h.w/2, h.y+h.h/2, this.reduced?10:30,
+            h.hue==='m'?C.magenta:(h.hue==='c'?C.cyan:C.amber), 40, 420);
+          if (!this.reduced) this.shake = Math.max(this.shake, 9);
+          this.flash = Math.max(this.flash, this.reduced?0.12:0.35);
+          this.toast = { text:'SIGN SMASHED  +' + Math.round(180*this.combo), t:1.2 };
+          this.beep('brk');
+          continue;
+        }
+        this.die(h.kind === 'drone' ? 'clipped a drone'
+             : h.kind === 'beam'  ? 'hit an overhead gantry'
+             : h.kind === 'sweep' ? 'caught by a sweeper'
+             : h.kind === 'sign'  ? 'smacked a neon sign'
+             : 'hit a crate');
+        return;
+      }
+
+      // clearance tracking for near misses
+      const dx = Math.max(hb.x - (box.x+box.w), box.x - (hb.x+hb.w), 0);
+      const dy = Math.max(hb.y - (box.y+box.h), box.y - (hb.y+hb.h), 0);
+      const gap = Math.hypot(dx, dy);
+      if (gap < h.minGap) h.minGap = gap;
+
+      if (!h.passed && h.x + h.w < p.x){
+        h.passed = true;
+        if (h.minGap < NEAR_MISS_DIST){
+          this.nearMisses++;
+          this.bumpCombo(1);
+          const bonus = Math.round((60 + (NEAR_MISS_DIST - h.minGap)*9) * this.combo);
+          this.score += bonus;
+          this.particles.burst(p.x+p.w/2, p.y+p.h/2, this.reduced?4:12, C.cyan, 26, 220);
+          this.beep('near');
+          if (h.minGap < CLOSE_CALL_DIST){
+            this.slowmo = this.reduced ? 0.16 : 0.42;
+            this.flash = Math.max(this.flash, this.reduced?0.1:0.28);
+            if (!this.reduced) this.shake = Math.max(this.shake, 6);
+            if (p.onGround) p.stumble = 0.30;   // brief off-balance pose
+            this.toast = { text:'CLOSE CALL!  x' + this.combo + '  +' + bonus, t:1.3 };
+          } else {
+            this.toast = { text:'NEAR MISS  x' + this.combo + '  +' + bonus, t:1.0 };
+          }
+        }
+      }
+    }
+  }
+
+  bumpCombo(n){
+    this.combo = Math.min(20, this.combo + n);
+    this.comboT = COMBO_HOLD;
+  }
+
+  die(reason){
+    if (this.mode === MODE.DEAD) return;
+    const p = this.player;
+    p.state = 'crash'; p.spin = 0;
+    p.vy = -520; p.vxBoost = -180; p.dashT = 0;
+    this.deathReason = reason;
+    this.deathT = 0;
+    this.slowmo = this.reduced ? 0.2 : 0.75;
+    this.shake = this.reduced ? 6 : 22;
+    this.flash = this.reduced ? 0.2 : 0.7;
+    this.particles.burst(p.x+p.w/2, p.y+p.h/2, this.reduced?12:34, C.red, 34, 460);
+    this.beep('crash');
+
+    if (this.mode === MODE.PLAY){
+      const s = Math.floor(this.score), d = Math.floor(this.dist);
+      if (s > this.best){ this.best = s; this.newBest = true; } else this.newBest = false;
+      if (d > this.bestDist) this.bestDist = d;
+      store.write({ best:this.best, bestDist:this.bestDist, seen:this.seedLabel });
+      this.announce(`Crash: ${reason}. Score ${s}, distance ${d} metres, ${this.nearMisses} near misses. Press Space or tap to run again.`);
+      this.mode = MODE.DEAD;
+    } else {
+      this.mode = MODE.DEAD;
+      this.attractRestart = 1.2;    // attract loops itself
+    }
+  }
+}
+
+/* ============================================================================
+   BOT — attract-mode controller. Uses only the public one-button interface.
+   ========================================================================== */
+class Bot {
+  constructor(game){ this.g = game; this.reset(); }
+  reset(){ this.down = false; this.holdUntil = 0; this.cool = 0; this.t = 0; this.plan = null; }
+
+  hold(g, dur){ g.rawPress(); this.down = true; this.holdUntil = this.t + dur; }
+  letGo(g){ if (this.down){ g.rawRelease(); this.down = false; } }
+
+  /** how long a hold lasts for a given charge fraction */
+  holdFor(charge){ return TAP_TIME*1.3 + charge*CHARGE_TIME; }
+
+  /**
+   * Commit to a jump so that the *release* happens `lead` seconds before the
+   * courier reaches the thing being jumped. Holding the button still runs the
+   * courier forward, so the press has to start `holdFor(charge)` earlier — the
+   * previous version pressed at impact time and jumped into everything.
+   */
+  tryJump(g, timeToTarget, charge, lead, plan){
+    const hold = this.holdFor(charge);
+    if (timeToTarget > hold + lead) return false;
+    this.hold(g, hold);
+    this.cool = hold + 0.05;
+    this.plan = plan || null;
+    return true;
+  }
+
+  think(dt){
+    const g = this.g, p = g.player;
+    this.t += dt;
+    if (this.down && this.t >= this.holdUntil) this.letGo(g);
+    if (this.cool > 0) this.cool -= dt;
+
+    const vx = g.speed + p.vxBoost;
+    const front = p.x + p.w;
+    const canAct = p.onGround && this.cool <= 0 && !this.down;
+
+    /* --- 1. edge of the current rooftop: gap and/or step up --- */
+    const seg = g.world.segmentAt(p.x + p.w*0.5);
+    if (canAct && seg){
+      const edge = seg.x + seg.w;
+      const timeToEdge = (edge - front) / vx;
+      let next = null;
+      for (const s of g.world.segs){ if (s.x > seg.x && (!next || s.x < next.x)) next = s; }
+      const gapW  = next ? next.x - edge : 400;
+      const rise  = next ? (seg.top - next.top) : 0;     // >0 = next roof is higher
+      if (timeToEdge >= 0 && (gapW > 6 || rise > STEP_UP - 6)){
+        const charge = clamp(gapW/240 + Math.max(0, rise)/150, 0.2, 1);
+        const plan = { dashAt: this.t + this.holdFor(charge) + 0.16,
+                       need: gapW > 200 || rise > 70 };
+        if (this.tryJump(g, timeToEdge, charge, 0.02, plan)) return;
+      }
+    }
+
+    /* --- 2. nearest hazard ahead --- */
+    let threat = null, threatT = 1e9;
+    for (const h of g.world.hazards){
+      if (h.dead) continue;
+      const dx = h.x - front;
+      if (dx < -h.w) continue;
+      const tt = dx / vx;
+      if (tt < threatT){ threatT = tt; threat = h; }
+    }
+
+    if (threat && canAct){
+      const roof = p.lastGroundTop;
+      switch (threat.kind){
+        case 'beam':
+          break;                                   // duck it by simply staying grounded
+        case 'sign':
+          // hop, then dash through the neon at chest height
+          this.tryJump(g, threatT, 0.12, 0.20,
+            { dashAt: this.t + this.holdFor(0.12) + 0.08, need:true });
+          break;
+        case 'drone': {
+          const low = threat.y + threat.h > roof - 52;
+          if (low) this.tryJump(g, threatT, 0.45, 0.24, null);
+          break;
+        }
+        case 'sweep':
+          this.tryJump(g, threatT, 0.5, 0.26, null);
+          break;
+        case 'crate':
+          this.tryJump(g, threatT, threat.h > 44 ? 0.35 : 0.18, 0.22, null);
+          break;
+      }
+    }
+
+    /* --- 3. mid-air: dash when the plan calls for it, or to save a long fall --- */
+    if (!p.onGround && p.dashReady && p.dashT <= 0 && !this.down){
+      const wantPlan = this.plan && this.plan.need && this.t >= this.plan.dashAt;
+      // emergency: falling toward open air, or toward the face of a taller roof
+      let panic = false;
+      if (p.vy > 100){
+        const probe = p.x + vx*0.24;
+        const s = g.world.surfaceOver(probe, probe + p.w);
+        panic = !s || s.top < p.y + p.h - 12;
+      }
+      // about to drop onto something solid: the dash floats us over it
+      if (!panic && p.vy > -60){
+        for (const h of g.world.hazards){
+          if (h.dead || h.kind === 'beam') continue;
+          const tt = (h.x - (p.x + p.w)) / vx;
+          if (tt < 0 || tt > 0.30) continue;
+          // only worth dashing if we are currently clearing it and would not be
+          // by the time we arrive — the dash holds altitude, it cannot gain any
+          if (p.y + p.h >= h.y - 4) continue;
+          const feetThen = p.y + p.h + p.vy*tt + 0.5*GRAV*tt*tt;
+          if (feetThen > h.y + 6){ panic = true; break; }
+        }
+      }
+      if (wantPlan || panic){
+        g.rawPress(); g.rawRelease();
+        this.plan = null;
+        return;
+      }
+    }
+    if (p.onGround) this.plan = null;
+  }
+}
+
+/* ============================================================================
+   RENDERER — draws only; never mutates simulation state
+   ========================================================================== */
+
+/* deterministic city layers, built once from the daily seed */
+function buildCity(seed){
+  const rng = mulberry32(seed);
+  const LOOP = 3400;
+  const layer = (count, hMin, hMax, wMin, wMax) => {
+    const list = []; let x = 0;
+    while (x < LOOP){
+      const w = wMin + rng()*(wMax-wMin);
+      const h = hMin + rng()*(hMax-hMin);
+      list.push({
+        x, w, h,
+        win: rng(), lit: rng(),
+        ant: rng() < 0.3 ? 40 + rng()*90 : 0,
+        sign: rng() < 0.25 ? { y: 0.2+rng()*0.5, h: 20+rng()*70, w: 8+rng()*14,
+                               hue: ['m','c','a'][(rng()*3)|0], ph: rng()*6.28 } : null,
+        tank: rng() < 0.18
+      });
+      x += w + 6 + rng()*30;
+    }
+    return { list, LOOP };
+  };
+  return {
+    far:  layer(0, 150, 330, 70, 150),
+    mid:  layer(0, 220, 470, 90, 190),
+    near: layer(0, 300, 620, 130, 260),
+  };
+}
+
+class Renderer {
+  constructor(game){
+    this.g = game;
+    this.city = buildCity(game.seedBase);
+    this.t = 0;
+  }
+
+  draw(ctx, dtWall){
+    const g = this.g;
+    this.t += dtWall;
+
+    ctx.save();
+    // screen shake
+    let sx = 0, sy = 0;
+    if (g.shake > 0.05){
+      const k = g.reduced ? 0.25 : 1;
+      sx = (Math.random()-0.5) * g.shake * k;
+      sy = (Math.random()-0.5) * g.shake * k;
+    }
+    ctx.translate(sx, sy);
+
+    this.sky(ctx);
+    this.cityLayer(ctx, this.city.far,  0.055, '#0b1226', '#101a36', 0.34, 620);
+    this.cityLayer(ctx, this.city.mid,  0.14,  '#0a1330', '#0f1c42', 0.62, 430);
+    this.mist(ctx, 0.16, 250);
+    this.cityLayer(ctx, this.city.near, 0.30,  '#060a18', '#0a1024', 1.0, 210);
+    this.mist(ctx, 0.34, 120);
+
+    this.rain(ctx, 0.55, 0.5);
+
+    // --- world layer ---
+    ctx.save();
+    ctx.translate(-g.camX, -g.camY);
+    this.roofs(ctx);
+    this.hazards(ctx);
+    this.particles(ctx);
+    this.player(ctx);
+    ctx.restore();
+
+    this.rain(ctx, 1.35, 1.0);
+    this.speedLines(ctx);
+    this.weatherFx(ctx);
+    ctx.restore();
+
+    this.vignette(ctx);
+    this.hud(ctx);
+  }
+
+  /* ------------------------------- sky ---------------------------------- */
+  sky(ctx){
+    const gr = ctx.createLinearGradient(0,0,0,VH);
+    gr.addColorStop(0,   '#04060f');
+    gr.addColorStop(0.34,'#0a1030');
+    gr.addColorStop(0.62,'#151038');
+    gr.addColorStop(0.86,'#2a0f36');
+    gr.addColorStop(1,   '#3a1030');
+    ctx.fillStyle = gr; ctx.fillRect(0,0,VW,VH);
+
+    // moon / smog halo
+    const mx = 1230, my = 195;
+    const halo = ctx.createRadialGradient(mx,my,10,mx,my,300);
+    halo.addColorStop(0,'rgba(255,214,150,0.30)');
+    halo.addColorStop(0.35,'rgba(255,120,180,0.09)');
+    halo.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle = halo; ctx.fillRect(mx-320,my-320,640,640);
+    ctx.fillStyle = 'rgba(255,232,200,0.55)';
+    ctx.beginPath(); ctx.arc(mx,my,42,0,6.2832); ctx.fill();
+  }
+
+  /* --------------------------- parallax city ----------------------------- */
+  cityLayer(ctx, layer, par, colA, colB, glow, baseY){
+    const g = this.g;
+    const LOOP = layer.LOOP;
+    let off = (g.camX * par) % LOOP; if (off < 0) off += LOOP;
+    const yBase = VH - baseY + g.camY * par * 0.5;
+
+    for (let rep = -1; rep <= 2; rep++){
+      const ox = rep*LOOP - off;
+      for (const b of layer.list){
+        const x = b.x + ox;
+        if (x > VW+40 || x + b.w < -40) continue;
+        const y = yBase - b.h;
+
+        const gr = ctx.createLinearGradient(0,y,0,y+b.h);
+        gr.addColorStop(0, colB); gr.addColorStop(1, colA);
+        ctx.fillStyle = gr;
+        ctx.fillRect(x, y, b.w, b.h + 260);
+
+        // rim light
+        ctx.fillStyle = `rgba(63,242,255,${0.10*glow})`;
+        ctx.fillRect(x, y, b.w, 2);
+        ctx.fillStyle = `rgba(255,62,165,${0.09*glow})`;
+        ctx.fillRect(x + b.w - 2, y, 2, b.h);
+
+        // windows
+        if (glow > 0.3){
+          const cw = 7*glow + 3, ch = 9*glow + 3, gapx = cw + 7, gapy = ch + 10;
+          const cols = Math.floor((b.w - 14) / gapx), rows = Math.floor((b.h - 18) / gapy);
+          for (let cx = 0; cx < cols; cx++){
+            for (let cy = 0; cy < rows; cy++){
+              const n = ((b.win*977 + cx*37 + cy*61) % 1 + 1) % 1;
+              if (n > 0.52) continue;
+              const flick = (Math.sin(this.t*0.7 + cx*2.1 + cy*1.3 + b.lit*9) > 0.985) ? 0.15 : 1;
+              const warm = n < 0.16;
+              ctx.fillStyle = warm
+                ? `rgba(255,196,90,${(0.30+n)*glow*flick})`
+                : `rgba(120,214,255,${(0.16+n*0.5)*glow*flick})`;
+              ctx.fillRect(x + 9 + cx*gapx, y + 12 + cy*gapy, cw, ch);
+            }
+          }
+        }
+        // antenna
+        if (b.ant){
+          ctx.strokeStyle = `rgba(140,190,230,${0.35*glow})`; ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.moveTo(x + b.w*0.5, y); ctx.lineTo(x + b.w*0.5, y - b.ant); ctx.stroke();
+          const blink = 0.35 + 0.65*Math.abs(Math.sin(this.t*1.6 + b.lit*7));
+          ctx.fillStyle = `rgba(255,70,70,${blink*glow})`;
+          ctx.beginPath(); ctx.arc(x + b.w*0.5, y - b.ant, 3.2, 0, 6.2832); ctx.fill();
+        }
+        // water tank
+        if (b.tank && glow > 0.5){
+          const tw = Math.min(46, b.w*0.3);
+          ctx.fillStyle = colA;
+          ctx.fillRect(x + b.w*0.62, y - 26, tw, 26);
+          ctx.fillStyle = `rgba(63,242,255,${0.12*glow})`;
+          ctx.fillRect(x + b.w*0.62, y - 26, tw, 2);
+        }
+        // neon sign
+        if (b.sign && glow > 0.4){
+          const s = b.sign;
+          const col = s.hue==='m'?[255,62,165] : s.hue==='c'?[63,242,255] : [255,194,71];
+          const pulse = 0.55 + 0.45*Math.sin(this.t*2.1 + s.ph);
+          const sx2 = x + b.w*0.16, sy2 = y + b.h*s.y;
+          ctx.save();
+          ctx.shadowColor = `rgba(${col[0]},${col[1]},${col[2]},${0.9*glow})`;
+          ctx.shadowBlur = 22*glow;
+          ctx.fillStyle = `rgba(${col[0]},${col[1]},${col[2]},${(0.35+0.4*pulse)*glow})`;
+          ctx.fillRect(sx2, sy2, s.w, s.h);
+          ctx.restore();
+        }
+      }
+    }
+  }
+
+  mist(ctx, alpha, y){
+    const gr = ctx.createLinearGradient(0, VH-y-160, 0, VH);
+    gr.addColorStop(0,'rgba(90,130,190,0)');
+    gr.addColorStop(0.55,`rgba(88,120,180,${alpha*0.5})`);
+    gr.addColorStop(1,`rgba(120,90,160,${alpha})`);
+    ctx.fillStyle = gr; ctx.fillRect(0, VH-y-160, VW, y+160);
+  }
+
+  /* ------------------------------- rain --------------------------------- */
+  rain(ctx, par, weight){
+    const g = this.g;
+    ctx.save();
+    ctx.lineCap = 'round';
+    for (const d of g.rain.drops){
+      if (d.par < 0.9 && par > 1) continue;
+      if (d.par >= 0.9 && par < 1) continue;
+      const x = d.x, y = d.y;
+      ctx.strokeStyle = `rgba(180,232,255,${d.a*weight})`;
+      ctx.lineWidth = d.par > 1.1 ? 2.2 : 1.2;
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x - 9*d.par, y + d.len*d.par);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  /* ------------------------------ rooftops ------------------------------- */
+  roofs(ctx){
+    const g = this.g;
+    const x0 = g.camX - 80, x1 = g.camX + VW + 80;
+    for (const s of g.world.segs){
+      if (s.x > x1 || s.x + s.w < x0) continue;
+      const h = VH + 420 - (s.top - g.camY);
+
+      // Building mass. This is the read-critical layer: it has to sit clearly
+      // in front of the parallax city, so it is lighter at the top and only
+      // fades out well below the play line.
+      const gr = ctx.createLinearGradient(0, s.top, 0, s.top + 520);
+      gr.addColorStop(0,    '#26355c');
+      gr.addColorStop(0.06, '#1a2442');
+      gr.addColorStop(0.45, '#101830');
+      gr.addColorStop(1,    '#070b16');
+      ctx.fillStyle = gr;
+      ctx.fillRect(s.x, s.top, s.w, h);
+
+      // lit facade windows — gives the near geometry weight and depth
+      const rows = Math.min(6, Math.floor((VH + this.g.camY - s.top) / 74) + 1);
+      for (let r = 0; r < rows; r++){
+        const wy = s.top + 40 + r*74;
+        const fade = 1 - r/(rows + 1.2);
+        for (let i = 24; i < s.w - 34; i += 58){
+          const n = ((s.id*13.7 + i*0.081 + r*2.3) % 1 + 1) % 1;
+          if (n > 0.72) continue;
+          const warm = n < 0.24;
+          ctx.fillStyle = warm ? `rgba(255,186,84,${0.30*fade})` : `rgba(96,186,240,${0.17*fade})`;
+          ctx.fillRect(s.x + i, wy, 30, 40);
+          ctx.fillStyle = `rgba(6,10,20,${0.5*fade})`;
+          ctx.fillRect(s.x + i, wy + 18, 30, 4);
+        }
+      }
+
+      // parapet + neon edge (keeps geometry readable through the effects)
+      ctx.fillStyle = '#3a4d7e';
+      ctx.fillRect(s.x, s.top, s.w, 9);
+      ctx.fillStyle = 'rgba(63,242,255,0.95)';
+      ctx.fillRect(s.x, s.top - 3, s.w, 3);
+      ctx.fillStyle = 'rgba(255,62,165,0.6)';
+      ctx.fillRect(s.x, s.top + 9, s.w, 2);
+
+      // corner markers so the gaps read instantly
+      ctx.fillStyle = 'rgba(255,194,71,0.95)';
+      ctx.fillRect(s.x, s.top - 20, 6, 20);
+      ctx.fillRect(s.x + s.w - 6, s.top - 20, 6, 20);
+      // dark side faces sell the drop into the gap
+      ctx.fillStyle = 'rgba(3,5,12,0.55)';
+      ctx.fillRect(s.x, s.top + 9, 10, h);
+      ctx.fillRect(s.x + s.w - 10, s.top + 9, 10, h);
+
+      // vents
+      for (let i = 60; i < s.w - 60; i += 170){
+        ctx.fillStyle = '#101a2e';
+        ctx.fillRect(s.x + i, s.top - 14, 22, 14);
+        ctx.fillStyle = 'rgba(63,242,255,0.25)';
+        ctx.fillRect(s.x + i, s.top - 15, 22, 1.5);
+      }
+    }
+  }
+
+  /* ------------------------------ hazards -------------------------------- */
+  hazards(ctx){
+    const g = this.g;
+    const x0 = g.camX - 100, x1 = g.camX + VW + 100;
+    for (const h of g.world.hazards){
+      if (h.dead) continue;
+      if (h.x > x1 || h.x + h.w < x0) continue;
+      switch(h.kind){
+        case 'crate': this.drawCrate(ctx,h); break;
+        case 'beam':  this.drawBeam(ctx,h); break;
+        case 'sign':  this.drawSign(ctx,h); break;
+        case 'drone': this.drawDrone(ctx,h); break;
+        case 'sweep': this.drawSweep(ctx,h); break;
+      }
+    }
+  }
+  drawCrate(ctx,h){
+    ctx.fillStyle = '#131c33'; ctx.fillRect(h.x, h.y, h.w, h.h);
+    ctx.strokeStyle = 'rgba(255,194,71,0.85)'; ctx.lineWidth = 2;
+    ctx.strokeRect(h.x+1, h.y+1, h.w-2, h.h-2);
+    ctx.strokeStyle = 'rgba(255,194,71,0.30)';
+    ctx.beginPath(); ctx.moveTo(h.x,h.y); ctx.lineTo(h.x+h.w,h.y+h.h);
+    ctx.moveTo(h.x+h.w,h.y); ctx.lineTo(h.x,h.y+h.h); ctx.stroke();
+  }
+  drawBeam(ctx,h){
+    ctx.fillStyle = '#0e1730'; ctx.fillRect(h.x, h.y, h.w, h.h);
+    ctx.fillStyle = 'rgba(255,77,77,0.9)'; ctx.fillRect(h.x, h.y+h.h-3, h.w, 3);
+    ctx.fillStyle = 'rgba(255,77,77,0.18)'; ctx.fillRect(h.x, h.y+h.h, h.w, h.clear);
+    // hazard stripes
+    ctx.save(); ctx.beginPath(); ctx.rect(h.x,h.y,h.w,h.h); ctx.clip();
+    ctx.strokeStyle = 'rgba(255,194,71,0.55)'; ctx.lineWidth = 6;
+    for (let i=-h.h; i<h.w; i+=18){ ctx.beginPath(); ctx.moveTo(h.x+i, h.y+h.h); ctx.lineTo(h.x+i+h.h, h.y); ctx.stroke(); }
+    ctx.restore();
+    // support legs to the roof above
+    ctx.fillStyle = '#0b1226';
+    ctx.fillRect(h.x+3, h.y-260, 7, 260);
+    ctx.fillRect(h.x+h.w-10, h.y-260, 7, 260);
+  }
+  drawSign(ctx,h){
+    const col = h.hue==='m'?[255,62,165] : h.hue==='c'?[63,242,255] : [255,194,71];
+    const pulse = 0.6 + 0.4*Math.sin(this.t*6 + h.flick);
+    ctx.save();
+    ctx.shadowColor = `rgba(${col[0]},${col[1]},${col[2]},0.95)`;
+    ctx.shadowBlur = this.g.reduced ? 8 : 26;
+    ctx.fillStyle = `rgba(${col[0]},${col[1]},${col[2]},${0.55+0.35*pulse})`;
+    ctx.fillRect(h.x, h.y, h.w, h.h);
+    ctx.restore();
+    ctx.fillStyle = 'rgba(0,0,0,0.45)';
+    for (let i = 10; i < h.h-8; i += 16) ctx.fillRect(h.x+3, h.y+i, h.w-6, 5);
+    ctx.strokeStyle = `rgba(${col[0]},${col[1]},${col[2]},0.9)`; ctx.lineWidth=2;
+    ctx.strokeRect(h.x, h.y, h.w, h.h);
+    // "dash me" chevrons
+    ctx.fillStyle = 'rgba(255,255,255,0.8)';
+    ctx.font = 'bold 13px ui-monospace, monospace'; ctx.textAlign='center';
+    ctx.fillText('»', h.x+h.w/2, h.y+h.h/2);
+  }
+  drawDrone(ctx,h){
+    const cx = h.x + h.w/2, cy = h.y + h.h/2;
+    ctx.save();
+    ctx.fillStyle = '#101a30';
+    ctx.beginPath(); ctx.ellipse(cx, cy, h.w/2, h.h/2, 0, 0, 6.2832); ctx.fill();
+    ctx.strokeStyle = 'rgba(255,77,77,0.9)'; ctx.lineWidth = 2; ctx.stroke();
+    // rotors
+    const spin = Math.sin(this.t*30 + h.ph)*h.w*0.28;
+    ctx.strokeStyle = 'rgba(180,220,255,0.5)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(cx-h.w/2-6, cy-h.h/2); ctx.lineTo(cx-h.w/2-6+spin, cy-h.h/2); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx+h.w/2+6, cy-h.h/2); ctx.lineTo(cx+h.w/2+6-spin, cy-h.h/2); ctx.stroke();
+    // scan eye
+    const glow = 0.5+0.5*Math.sin(this.t*5+h.ph);
+    ctx.shadowColor = 'rgba(255,77,77,0.9)'; ctx.shadowBlur = this.g.reduced?6:18;
+    ctx.fillStyle = `rgba(255,90,90,${0.6+0.4*glow})`;
+    ctx.beginPath(); ctx.arc(cx+h.w*0.28, cy, 4, 0, 6.2832); ctx.fill();
+    ctx.restore();
+    // search beam
+    if (!this.g.reduced){
+      ctx.fillStyle = 'rgba(255,77,77,0.06)';
+      ctx.beginPath(); ctx.moveTo(cx-10, cy+8); ctx.lineTo(cx+10, cy+8);
+      ctx.lineTo(cx+46, cy+180); ctx.lineTo(cx-46, cy+180); ctx.closePath(); ctx.fill();
+    }
+  }
+  drawSweep(ctx,h){
+    ctx.save();
+    ctx.fillStyle = '#141d36'; ctx.fillRect(h.x, h.y, h.w, h.h);
+    ctx.strokeStyle = 'rgba(255,77,77,0.95)'; ctx.lineWidth = 2;
+    ctx.strokeRect(h.x+1, h.y+1, h.w-2, h.h-2);
+    const p = 0.5+0.5*Math.sin(this.t*7);
+    ctx.shadowColor='rgba(255,77,77,.9)'; ctx.shadowBlur=this.g.reduced?5:16;
+    ctx.fillStyle = `rgba(255,90,90,${0.4+0.5*p})`;
+    ctx.fillRect(h.x+4, h.y+6, h.w-8, 6);
+    ctx.restore();
+    // rail
+    ctx.fillStyle = 'rgba(255,194,71,0.25)';
+    ctx.fillRect(h.x0, h.y + h.h - 3, h.range + h.w, 3);
+  }
+
+  /* ----------------------------- particles ------------------------------- */
+  particles(ctx){
+    const P = this.g.particles;
+    for (let i=0;i<P.n;i++){
+      const p = P.a[i];
+      const a = clamp(p.life/p.max, 0, 1);
+      ctx.globalAlpha = a;
+      ctx.fillStyle = p.col;
+      ctx.fillRect(p.x - p.size/2, p.y - p.size/2, p.size, p.size);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  /* ------------------------------ courier -------------------------------- */
+  player(ctx){
+    const g = this.g, p = g.player;
+
+    // dash after-images
+    for (const t of p.trail){
+      ctx.globalAlpha = clamp(t.a,0,1)*0.35;
+      ctx.fillStyle = C.magenta;
+      ctx.fillRect(t.x+6, t.y+8, p.w-12, p.h-14);
+    }
+    ctx.globalAlpha = 1;
+
+    // charge cue: compact bar just above the courier's head
+    if (p.charging && p.chargeT > 0.05){
+      const bw = 46, bx = p.x + p.w/2 - bw/2, by = p.y - 20;
+      ctx.save();
+      ctx.fillStyle = 'rgba(4,7,16,0.75)'; ctx.fillRect(bx-1, by-1, bw+2, 8);
+      ctx.fillStyle = p.chargeT > 0.85 ? C.amber : C.cyan;
+      ctx.shadowColor = ctx.fillStyle; ctx.shadowBlur = g.reduced ? 0 : 10;
+      ctx.fillRect(bx, by, bw * p.chargeT, 6);
+      ctx.restore();
+    }
+
+    // ground shadow — tells the player exactly where they are over the roof
+    if (g.mode !== MODE.DEAD){
+      const under = g.world.surfaceOver(p.x, p.x + p.w);
+      if (under){
+        const h = clamp(under.top - (p.y + p.h), 0, 420);
+        const k = 1 - h/420;
+        ctx.save();
+        ctx.globalAlpha = 0.16 + 0.34*k;
+        ctx.fillStyle = '#01030a';
+        ctx.beginPath();
+        ctx.ellipse(p.x + p.w/2, under.top + 4, (14 + 20*k), 4 + 3*k, 0, 0, 6.2832);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    ctx.save();
+    const cx = p.x + p.w/2, cy = p.y + p.h/2;
+    ctx.translate(cx, cy);
+
+    // separation glow: darkens the city right behind the courier so the
+    // silhouette stays legible over bright windows and neon
+    {
+      const a = g.reduced ? 0.62 : 0.72;     // contrast aid, not motion: always on
+      const halo = ctx.createRadialGradient(0, 0, 6, 0, 0, 78);
+      halo.addColorStop(0,   `rgba(2,4,10,${a})`);
+      halo.addColorStop(0.55,`rgba(2,4,10,${a*0.5})`);
+      halo.addColorStop(1,   'rgba(2,4,10,0)');
+      ctx.fillStyle = halo;
+      ctx.fillRect(-84, -84, 168, 168);
+    }
+    if (p.state === 'crash'){ ctx.rotate(p.spin); }
+    else if (p.state === 'dash'){ ctx.rotate(0.22); }
+    else if (p.state === 'jump'){ ctx.rotate(clamp(p.vy/2600, -0.18, 0.26)); }
+    else if (p.state === 'stumble'){ ctx.rotate(Math.sin(this.t*40)*0.10); }
+
+    this.courier(ctx, p, g);
+    ctx.restore();
+  }
+
+  /** Silhouette courier with neon rim light. Poses: run/jump/dash/stumble/crash */
+  courier(ctx, p, g){
+    const phase = p.runPhase;
+    const dark = '#070a14';
+    const rim  = p.state === 'dash' ? C.magenta : (p.state === 'crash' ? C.red : C.cyan);
+
+    // pose parameters
+    let lean = 0.0, armF = 0, armB = 0, legF = 0, legB = 0, kneeF = 0, kneeB = 0, headY = 0, scarf = 0;
+    if (p.state === 'run'){
+      lean = 0.16;
+      legF = Math.sin(phase)*0.95; legB = Math.sin(phase+Math.PI)*0.95;
+      kneeF = Math.max(0, Math.cos(phase))*0.9; kneeB = Math.max(0, Math.cos(phase+Math.PI))*0.9;
+      armF = Math.sin(phase+Math.PI)*0.8; armB = Math.sin(phase)*0.8;
+      headY = Math.abs(Math.sin(phase))*1.6;
+      scarf = 1;
+    } else if (p.state === 'jump'){
+      lean = 0.10;
+      const up = p.vy < 0;
+      legF = up ? -0.9 : 0.5; legB = up ? -0.2 : 1.0;
+      kneeF = up ? 1.2 : 0.3; kneeB = up ? 0.5 : 0.2;
+      armF = up ? -1.1 : 0.9; armB = up ? -0.5 : 0.4;
+      scarf = 1.3;
+    } else if (p.state === 'dash'){
+      // streamlined lunge: arms pinned back, legs trailing — reads as one arrow
+      lean = 0.48;
+      legF = -0.75; legB = -1.05; kneeF = 0.15; kneeB = 0.55;
+      armF = -1.45; armB = -1.25;
+      scarf = 2.1;
+    } else if (p.state === 'stumble'){
+      lean = 0.34;
+      legF = 1.2; legB = -0.6; kneeF = 1.1; kneeB = 0.2;
+      armF = 1.5; armB = -0.9; scarf = 1.4;
+    } else if (p.state === 'crash'){
+      lean = 0.0;
+      legF = 1.4; legB = -1.3; kneeF = 1.2; kneeB = 1.2;
+      armF = -1.7; armB = 1.7; scarf = 1.6;
+    }
+
+    ctx.save();
+    ctx.rotate(lean*0.35);
+    ctx.scale(1.34, 1.34);      // art is authored ~62px tall; the box is PLAYER_H
+
+    // A rim-lit silhouette: everything is drawn in near-black, then a bright
+    // accent pass traces the leading edges so the pose reads against the city.
+    const limb = (x1,y1,x2,y2,x3,y3,wid, col) => {
+      ctx.strokeStyle = col; ctx.lineWidth = wid; ctx.lineCap='round'; ctx.lineJoin='round';
+      ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.lineTo(x3,y3); ctx.stroke();
+    };
+
+    // --- scarf / data ribbon (behind everything) ---
+    if (!g.reduced || p.state === 'dash'){
+      const wob = Math.sin(this.t*14)*4;
+      ctx.save();
+      ctx.shadowColor = C.magenta; ctx.shadowBlur = g.reduced ? 0 : 12;
+      ctx.strokeStyle = C.magenta; ctx.lineWidth = 5; ctx.lineCap='round';
+      ctx.beginPath();
+      ctx.moveTo(-3, -15);
+      ctx.quadraticCurveTo(-22 - 11*scarf, -22 + wob, -38 - 17*scarf, -6 + wob*1.7);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // --- back limbs (dimmer, reads as depth) ---
+    limb(-3, 5, -3 + legB*14, 18 - kneeB*5, -3 + legB*22, 32 - kneeB*12, 10, '#131c34');
+    limb(-2,-13, -2 + armB*14, -2, -2 + armB*22, 6 - Math.abs(armB)*4, 8, '#131c34');
+
+    // --- torso ---
+    ctx.fillStyle = dark;
+    ctx.beginPath();
+    ctx.moveTo(-10,-20); ctx.lineTo(10,-17); ctx.lineTo(8,9); ctx.lineTo(-8,8); ctx.closePath();
+    ctx.fill();
+
+    // satchel holding the stolen data
+    ctx.save();
+    ctx.shadowColor = C.cyan; ctx.shadowBlur = g.reduced ? 4 : 16;
+    ctx.fillStyle = '#0d1526';
+    ctx.beginPath(); ctx.moveTo(-18,-12); ctx.lineTo(-6,-11); ctx.lineTo(-7,5); ctx.lineTo(-17,4); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = C.cyan;
+    ctx.fillRect(-16, -7 + Math.sin(this.t*8)*0.8, 8, 3.4);
+    ctx.restore();
+
+    // --- head, hood and visor ---
+    const hy = -29 - headY*0.4;
+    ctx.fillStyle = dark;
+    ctx.beginPath(); ctx.arc(3, hy, 10.5, 0, 6.2832); ctx.fill();
+    ctx.beginPath();                                   // hood peak
+    ctx.moveTo(-8, hy+2); ctx.lineTo(-1, hy-12); ctx.lineTo(8, hy-6); ctx.closePath(); ctx.fill();
+    ctx.save();
+    ctx.shadowColor = C.amber; ctx.shadowBlur = g.reduced ? 3 : 14;
+    ctx.fillStyle = C.amber;
+    ctx.beginPath(); ctx.moveTo(5, hy-4); ctx.lineTo(14, hy-2); ctx.lineTo(13, hy+2.5); ctx.lineTo(5, hy+1); ctx.closePath(); ctx.fill();
+    ctx.restore();
+
+    // --- front limbs ---
+    limb(1, 5, legF*16, 19 - kneeF*4, legF*25, 33 - kneeF*13, 11, dark);
+    limb(2,-14, 2 + armF*15, -2, 2 + armF*25, 5 - Math.abs(armF)*5, 9, dark);
+
+    // --- rim light pass: traces the leading silhouette edges ---
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.strokeStyle = rim; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.globalAlpha = 0.95; ctx.lineWidth = 2.6;
+    ctx.beginPath();                                   // torso front + shoulders
+    ctx.moveTo(-10,-20); ctx.lineTo(10,-17); ctx.lineTo(8,9);
+    ctx.stroke();
+    ctx.beginPath(); ctx.arc(3, hy, 10.5, -1.35, 1.05); ctx.stroke();
+    ctx.lineWidth = 3;
+    ctx.beginPath();                                   // front leg
+    ctx.moveTo(1,5); ctx.lineTo(legF*16, 19-kneeF*4); ctx.lineTo(legF*25, 33-kneeF*13);
+    ctx.stroke();
+    ctx.beginPath();                                   // front arm
+    ctx.moveTo(2,-14); ctx.lineTo(2 + armF*15, -2); ctx.lineTo(2 + armF*25, 5 - Math.abs(armF)*5);
+    ctx.stroke();
+    ctx.restore();
+
+    ctx.restore();
+  }
+
+  /* ----------------------------- screen fx -------------------------------- */
+  speedLines(ctx){
+    const g = this.g;
+    if (g.reduced) return;
+    const p = g.player;
+    const intensity = (p.dashT > 0 ? 1 : 0) * 1 + clamp((g.speed - 560)/320, 0, 1)*0.5;
+    if (intensity <= 0.02) return;
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    const n = Math.floor(10 + intensity*26);
+    for (let i=0;i<n;i++){
+      const seed = (i*97 + Math.floor(this.t*90)) % 1000;
+      const y = (seed*13) % VH;
+      const len = 90 + (seed % 220) * intensity;
+      const a = 0.05 + 0.14*intensity;
+      ctx.strokeStyle = i % 4 === 0 ? `rgba(255,62,165,${a})` : `rgba(63,242,255,${a})`;
+      ctx.lineWidth = 1 + (i%3);
+      ctx.beginPath();
+      const x = (this.t*1400 + i*211) % (VW+400) - 200;
+      ctx.moveTo(x, y); ctx.lineTo(x - len, y);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  weatherFx(ctx){
+    const g = this.g;
+    if (g.lightning > 0.01){
+      ctx.fillStyle = `rgba(190,225,255,${g.lightning*(g.reduced?0.10:0.30)})`;
+      ctx.fillRect(0,0,VW,VH);
+    }
+    if (g.flash > 0.01){
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.fillStyle = `rgba(120,200,255,${g.flash*0.30})`;
+      ctx.fillRect(0,0,VW,VH);
+      ctx.restore();
+    }
+    // slow-motion chromatic bars
+    if (g.timeScale < 0.9 && !g.reduced){
+      const k = (1-g.timeScale);
+      ctx.save();
+      ctx.globalCompositeOperation='lighter';
+      ctx.fillStyle = `rgba(255,62,165,${0.05*k})`; ctx.fillRect(0,0,VW,VH);
+      ctx.restore();
+    }
+  }
+
+  vignette(ctx){
+    const gr = ctx.createRadialGradient(VW/2, VH/2, VH*0.42, VW/2, VH/2, VH*0.95);
+    gr.addColorStop(0,'rgba(0,0,0,0)');
+    gr.addColorStop(1,'rgba(0,0,0,0.66)');
+    ctx.fillStyle = gr; ctx.fillRect(0,0,VW,VH);
+  }
+
+  /* -------------------------------- HUD ---------------------------------- */
+  hud(ctx){
+    const g = this.g;
+    ctx.save();
+    ctx.textBaseline = 'alphabetic';
+
+    /* --- title treatment (attract + first moments of a run) --- */
+    const titleAlpha = g.mode === MODE.ATTRACT ? 1 : clamp(1.6 - g.time*0.8, 0, 1);
+    if (titleAlpha > 0.01) this.title(ctx, titleAlpha);
+
+    /* --- top-left stat block --- */
+    const panelW = 372, panelH = 120;
+    this.panel(ctx, 22, 20, panelW, panelH);
+
+    ctx.fillStyle = C.cyan; ctx.font = '600 13px ui-monospace, monospace'; ctx.textAlign='left';
+    ctx.fillText('SCORE', 40, 46);
+    ctx.fillStyle = '#eaf7ff'; ctx.font = '700 40px ui-monospace, monospace';
+    ctx.fillText(String(Math.floor(g.score)).padStart(6,'0'), 40, 84);
+
+    ctx.font = '600 12px ui-monospace, monospace';
+    ctx.fillStyle = 'rgba(160,205,235,.85)';
+    ctx.fillText('BEST ' + String(Math.floor(g.best)).padStart(6,'0'), 40, 108);
+    ctx.fillStyle = C.amber;
+    ctx.fillText('DIST ' + Math.floor(g.dist) + ' m', 210, 108);
+    ctx.fillStyle = 'rgba(160,205,235,.85)';
+    ctx.fillText('SPD ' + Math.round(g.speed + g.player.vxBoost) + ' px/s', 210, 84);
+
+    /* --- combo meter --- */
+    if (g.combo > 1){
+      this.panel(ctx, 22, 150, 260, 54);
+      ctx.fillStyle = C.magenta; ctx.font='700 22px ui-monospace, monospace';
+      ctx.fillText('COMBO x' + g.combo, 40, 184);
+      const f = clamp(g.comboT / COMBO_HOLD, 0, 1);
+      ctx.fillStyle = 'rgba(255,62,165,.25)'; ctx.fillRect(40, 190, 200, 4);
+      ctx.fillStyle = C.magenta; ctx.fillRect(40, 190, 200*f, 4);
+    }
+
+    /* --- top-right: seed + objective --- */
+    this.panel(ctx, VW-402, 20, 380, 96);
+    ctx.textAlign = 'right';
+    ctx.fillStyle = 'rgba(160,205,235,.8)'; ctx.font='600 12px ui-monospace, monospace';
+    ctx.fillText('DAILY SEED', VW-40, 46);
+    ctx.fillStyle = C.cyan; ctx.font='700 20px ui-monospace, monospace';
+    ctx.fillText(g.seedLabel + ' · ' + g.seedBase.toString(36).toUpperCase().slice(0,6), VW-40, 70);
+    ctx.fillStyle = C.amber; ctx.font='600 13px ui-monospace, monospace';
+    const remain = Math.max(0, Math.ceil(g.checkpoint - g.dist));
+    ctx.fillText('OBJECTIVE: NEXT DATA DROP IN ' + remain + ' m', VW-40, 96);
+
+    /* --- difficulty ribbon --- */
+    const d = g.difficulty();
+    ctx.textAlign='left';
+    ctx.fillStyle='rgba(63,242,255,.18)'; ctx.fillRect(VW-402, 124, 380, 5);
+    ctx.fillStyle = d>0.66?C.red:(d>0.33?C.amber:C.cyan);
+    ctx.fillRect(VW-402, 124, 380*d, 5);
+    ctx.fillStyle='rgba(160,205,235,.65)'; ctx.font='600 10px ui-monospace, monospace';
+    ctx.fillText('HEAT', VW-402, 145);
+
+    /* --- centre toast --- */
+    if (g.toast){
+      const a = clamp(g.toast.t*1.6, 0, 1);
+      ctx.textAlign='center';
+      ctx.globalAlpha = a;
+      ctx.fillStyle = C.amber; ctx.font='700 30px ui-monospace, monospace';
+      ctx.shadowColor='rgba(255,194,71,.8)'; ctx.shadowBlur = g.reduced?3:18;
+      ctx.fillText(g.toast.text, VW/2, 250);
+      ctx.shadowBlur = 0; ctx.globalAlpha = 1;
+    }
+
+    /* --- attract banner --- */
+    if (g.mode === MODE.ATTRACT){
+      ctx.textAlign='center';
+      const pulse = 0.55 + 0.45*Math.sin(this.t*3);
+      ctx.fillStyle = `rgba(63,242,255,${pulse})`;
+      ctx.font='700 26px ui-monospace, monospace';
+      ctx.fillText('DEMO RUN — PRESS SPACE / TAP TO PLAY', VW/2, VH-120);
+      ctx.fillStyle='rgba(190,225,245,.7)'; ctx.font='600 15px ui-monospace, monospace';
+      ctx.fillText('TAP = JUMP   ·   HOLD = CHARGE JUMP   ·   TAP IN AIR = DASH THROUGH SIGNS', VW/2, VH-88);
+    }
+
+    /* --- paused --- */
+    if (g.paused){
+      ctx.fillStyle='rgba(3,4,10,.72)'; ctx.fillRect(0,0,VW,VH);
+      ctx.textAlign='center'; ctx.fillStyle=C.cyan; ctx.font='700 66px ui-monospace, monospace';
+      ctx.fillText('PAUSED', VW/2, VH/2);
+      ctx.fillStyle='rgba(190,225,245,.8)'; ctx.font='600 18px ui-monospace, monospace';
+      ctx.fillText('PRESS P TO RESUME', VW/2, VH/2+44);
+    }
+
+    /* --- game over --- */
+    if (g.mode === MODE.DEAD && g.deathT > 0.25){
+      const a = clamp((g.deathT-0.25)*2.2, 0, 1);
+      ctx.globalAlpha = a;
+      ctx.fillStyle='rgba(3,4,10,.62)'; ctx.fillRect(0,0,VW,VH);
+      ctx.textAlign='center';
+      ctx.shadowColor='rgba(255,77,77,.85)'; ctx.shadowBlur = g.reduced?4:26;
+      ctx.fillStyle=C.red; ctx.font='800 78px ui-monospace, monospace';
+      ctx.fillText('RUN TERMINATED', VW/2, VH/2 - 70);
+      ctx.shadowBlur = 0;
+      ctx.fillStyle='rgba(230,245,255,.9)'; ctx.font='600 20px ui-monospace, monospace';
+      ctx.fillText(g.deathReason.toUpperCase(), VW/2, VH/2 - 28);
+
+      ctx.font='700 30px ui-monospace, monospace';
+      ctx.fillStyle='#eaf7ff';
+      ctx.fillText('SCORE ' + Math.floor(g.score) + '   ·   ' + Math.floor(g.dist) + ' m   ·   ' + g.nearMisses + ' NEAR MISSES', VW/2, VH/2 + 24);
+      ctx.font='600 18px ui-monospace, monospace';
+      ctx.fillStyle = g.newBest ? C.amber : 'rgba(160,205,235,.85)';
+      ctx.fillText(g.newBest ? '★ NEW PERSONAL BEST ★' : ('BEST ' + Math.floor(g.best)), VW/2, VH/2 + 58);
+
+      const pulse = 0.5 + 0.5*Math.sin(this.t*4.4);
+      ctx.fillStyle=`rgba(63,242,255,${0.45+0.55*pulse})`; ctx.font='700 24px ui-monospace, monospace';
+      ctx.fillText('TAP / SPACE TO RUN AGAIN     ·     R TO RESTART', VW/2, VH/2 + 118);
+      ctx.globalAlpha = 1;
+    }
+
+    ctx.restore();
+  }
+
+  panel(ctx, x, y, w, h){
+    ctx.fillStyle = 'rgba(6,9,20,0.58)';
+    ctx.fillRect(x, y, w, h);
+    ctx.strokeStyle = 'rgba(63,242,255,0.22)'; ctx.lineWidth = 1;
+    ctx.strokeRect(x+0.5, y+0.5, w-1, h-1);
+    ctx.fillStyle = 'rgba(63,242,255,0.8)';
+    ctx.fillRect(x, y, 3, h);
+  }
+
+  title(ctx, a){
+    const g = this.g;
+    ctx.save();
+    ctx.globalAlpha = a;
+    ctx.textAlign = 'center';
+    const y = 236;
+    // glow slab
+    ctx.save();
+    ctx.shadowColor = 'rgba(255,62,165,.85)'; ctx.shadowBlur = g.reduced ? 6 : 34;
+    ctx.fillStyle = '#ff3ea5';
+    ctx.font = '800 96px ui-monospace, monospace';
+    ctx.fillText('NEON COURIER', VW/2 + 3, y + 3);
+    ctx.restore();
+    ctx.save();
+    ctx.shadowColor = 'rgba(63,242,255,.9)'; ctx.shadowBlur = g.reduced ? 6 : 30;
+    ctx.fillStyle = '#eafcff';
+    ctx.font = '800 96px ui-monospace, monospace';
+    ctx.fillText('NEON COURIER', VW/2 - 2, y - 2);
+    ctx.restore();
+
+    ctx.fillStyle = C.amber;
+    ctx.font = '700 22px ui-monospace, monospace';
+    ctx.fillText('O N E   B U T T O N   ·   R O O F T O P   H E I S T', VW/2, y + 44);
+
+    // underline
+    ctx.strokeStyle = 'rgba(63,242,255,.55)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(VW/2-330, y+62); ctx.lineTo(VW/2+330, y+62); ctx.stroke();
+    ctx.restore();
+  }
+}
+
+/* ============================================================================
+   BOOTSTRAP — canvas sizing, input wiring, main loop
+   ========================================================================== */
+const canvas = document.getElementById('game');
+const game = new Game(canvas);
+const renderer = new Renderer(game);
+const ctx = game.ctx;
+
+let view = { scale:1, ox:0, oy:0, dpr:1 };
+function resize(){
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const cw = canvas.clientWidth || window.innerWidth;
+  const ch = canvas.clientHeight || window.innerHeight;
+  canvas.width  = Math.max(1, Math.round(cw * dpr));
+  canvas.height = Math.max(1, Math.round(ch * dpr));
+  const scale = Math.min(cw / VW, ch / VH);
+  view = { scale, ox:(cw - VW*scale)/2, oy:(ch - VH*scale)/2, dpr };
+}
+window.addEventListener('resize', resize);
+resize();
+
+/* ------------------------------- input ----------------------------------- */
+function isUIControl(el){ return !!(el && el.closest && el.closest('#tools')); }
+
+window.addEventListener('keydown', (e) => {
+  if (e.repeat) return;
+  const k = e.key;
+  if (k === ' ' || k === 'Spacebar' || k === 'ArrowUp' || k === 'w' || k === 'W'){
+    if (isUIControl(document.activeElement)) return;   // let buttons handle Space
+    e.preventDefault();
+    game.press();
+  } else if (k === 'p' || k === 'P'){ e.preventDefault(); game.togglePause(); }
+  else if (k === 'r' || k === 'R'){ e.preventDefault(); game.startPlay(); }
+  else if (k === 'm' || k === 'M'){ e.preventDefault(); toggleSound(); }
+  else if (k === 'Enter' && game.mode !== MODE.PLAY){ e.preventDefault(); game.press(); }
+}, { passive:false });
+
+window.addEventListener('keyup', (e) => {
+  const k = e.key;
+  if (k === ' ' || k === 'Spacebar' || k === 'ArrowUp' || k === 'w' || k === 'W'){
+    if (isUIControl(document.activeElement)) return;
+    e.preventDefault();
+    game.release();
+  }
+}, { passive:false });
+
+canvas.addEventListener('pointerdown', (e) => {
+  e.preventDefault();
+  canvas.focus({ preventScroll:true });
+  try{ canvas.setPointerCapture(e.pointerId); }catch(_){}
+  game.press();
+});
+canvas.addEventListener('pointerup',     (e) => { e.preventDefault(); game.release(); });
+canvas.addEventListener('pointercancel', ()  => game.release());
+canvas.addEventListener('pointerleave',  ()  => game.release());
+canvas.addEventListener('contextmenu', e => e.preventDefault());
+window.addEventListener('blur', () => game.release());
+document.addEventListener('visibilitychange', () => { game.release(); last = performance.now(); });
+
+/* ------------------------------ UI buttons ------------------------------- */
+function toggleSound(){
+  game.sound = !game.sound;
+  document.getElementById('btnSound').setAttribute('aria-pressed', String(game.sound));
+  if (game.sound){ game.ensureAudio(); game.beep('near'); }
+  else if (game.audio){ try{ game.audio.ctx.suspend(); }catch(_){} }
+  game.announce(game.sound ? 'Sound on.' : 'Sound off.');
+}
+document.getElementById('btnPause').addEventListener('click', () => { game.togglePause(); canvas.focus(); });
+document.getElementById('btnRestart').addEventListener('click', () => { game.startPlay(); canvas.focus(); });
+document.getElementById('btnSound').addEventListener('click', toggleSound);
+document.getElementById('btnMotion').addEventListener('click', () => {
+  game.reducedForced = true;
+  game.setReduced(!game.reduced);
+  game.announce(game.reduced ? 'Reduced motion on.' : 'Reduced motion off.');
+});
+
+/* ------------------------------ main loop -------------------------------- */
+let last = performance.now();
+let acc = 0;
+
+function frame(now){
+  let dt = (now - last) / 1000;
+  last = now;
+  if (!isFinite(dt) || dt < 0) dt = 0;
+  dt = Math.min(dt, MAX_FRAME);            // bounded delta: no spiral of death
+
+  acc += dt;
+  let steps = 0;
+  while (acc >= DT && steps < 40){ game.update(DT); acc -= DT; steps++; }
+  if (steps >= 40) acc = 0;
+
+  // attract mode restarts itself after its demo courier wipes out
+  if (game.mode === MODE.DEAD && game.attractRestart !== undefined){
+    game.attractRestart -= dt;
+    if (game.attractRestart <= 0){ game.attractRestart = undefined; game.startAttract(); }
+  }
+
+  // ---- render ----
+  ctx.setTransform(view.dpr, 0, 0, view.dpr, 0, 0);
+  ctx.fillStyle = '#03040a';
+  ctx.fillRect(0, 0, canvas.width/view.dpr, canvas.height/view.dpr);
+  ctx.save();
+  ctx.translate(view.ox, view.oy);
+  ctx.scale(view.scale, view.scale);
+  ctx.beginPath(); ctx.rect(0,0,VW,VH); ctx.clip();
+  renderer.draw(ctx, dt);
+  ctx.restore();
+
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+canvas.focus({ preventScroll:true });
+
+/* expose a tiny surface for local smoke tests (see check.mjs) */
+window.__neon = { game, renderer, resize, Bot, World, Game, MODE, DT, VW, VH };
+</script>
+</body>
+</html>

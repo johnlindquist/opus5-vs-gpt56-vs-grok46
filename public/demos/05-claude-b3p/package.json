@@ -1,0 +1,7 @@
+{
+  "name": "lightweaver",
+  "private": true,
+  "type": "commonjs",
+  "description": "Local-only manifest so the Node test scripts load engine.js and levels.js as CommonJS. No dependencies.",
+  "scripts": { "test": "node test-geometry.js" }
+}

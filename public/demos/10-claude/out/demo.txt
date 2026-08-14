@@ -1,0 +1,72 @@
+The Haunted Queue — deterministic demonstration
+concurrency=2, retry timers on a virtual clock, work measured in ticks
+
+── phase 1 · mixed priority admission ────────────────────────────
+001  t=   0ms  queued     send-email     priority=10 retries=0
+002  t=   0ms  started    send-email     attempt 1
+003  t=   0ms  queued     index-docs     priority=0 retries=0
+004  t=   0ms  started    index-docs     attempt 1
+005  t=   0ms  queued     warm-cache     priority=5 retries=0
+006  t=   0ms  queued     thumbnail      priority=5 retries=0
+007  t=   0ms  queued     stale-scan     priority=0 retries=0
+      stats @ after 5 adds           pending=3 running=2 retryWaiting=0 liveIds=5 closed=false
+
+── phase 2 · rejected additions ──────────────────────────────────
+008  t=   0ms  refused    send-email     DuplicateJobIdError
+
+── phase 3 · cancel a job still waiting for a slot ───────────────
+009  t=   0ms  cancelled  stale-scan     from pending
+      cancel("stale-scan") -> true
+      cancel("not-a-job")  -> false
+      stats @ after cancellation     pending=2 running=2 retryWaiting=0 liveIds=4 closed=false
+010  t=   0ms  fulfilled  send-email     => "sent" after 1 attempt(s)
+011  t=   0ms  started    warm-cache     attempt 1
+012  t=   0ms  fulfilled  index-docs     => "indexed" after 1 attempt(s)
+013  t=   0ms  started    thumbnail      attempt 1
+014  t=   0ms  fulfilled  warm-cache     => "warm" after 1 attempt(s)
+015  t=   0ms  fulfilled  thumbnail      => "resized" after 1 attempt(s)
+      stats @ phase 1 complete       pending=0 running=0 retryWaiting=0 liveIds=0 closed=false
+
+── phase 4 · retry with exponential backoff ──────────────────────
+016  t=   0ms  queued     flaky-upload   priority=5 retries=3
+017  t=   0ms  started    flaky-upload   attempt 1
+018  t=   0ms  queued     bad-report     priority=1 retries=1
+019  t=   0ms  started    bad-report     attempt 1
+020  t=   0ms  retrying   flaky-upload   retry 1 in 25ms (network reset #1)
+021  t=   0ms  retrying   bad-report     retry 1 in 25ms (malformed template)
+      stats @ both in backoff        pending=0 running=0 retryWaiting=2 liveIds=2 closed=false
+022  t=  25ms  started    flaky-upload   attempt 2
+023  t=  25ms  started    bad-report     attempt 2
+024  t=  25ms  retrying   flaky-upload   retry 2 in 50ms (network reset #2)
+025  t=  25ms  rejected   bad-report     !! malformed template after 2 attempt(s)
+026  t=  75ms  started    flaky-upload   attempt 3
+027  t= 100ms  fulfilled  flaky-upload   => "uploaded" after 3 attempt(s)
+      stats @ retries resolved       pending=0 running=0 retryWaiting=0 liveIds=0 closed=false
+
+── phase 5 · cancel a running job ────────────────────────────────
+028  t= 100ms  queued     stuck-crawler  priority=9 retries=5
+029  t= 100ms  started    stuck-crawler  attempt 1
+      stats @ crawler running        pending=0 running=1 retryWaiting=0 liveIds=1 closed=false
+030  t= 100ms  cancelled  stuck-crawler  from running
+      cancel("stuck-crawler") -> true
+      retry timers armed after cancelling a running job: 0
+
+── phase 6 · close, then drain ───────────────────────────────────
+031  t= 100ms  refused    after-close    QueueClosedError
+
+── settled promises ──────────────────────────────────────────────
+      bad-report     rejected   Error: malformed template
+      flaky-upload   fulfilled  "uploaded"
+      index-docs     fulfilled  "indexed"
+      send-email     fulfilled  "sent"
+      stale-scan     cancelled  AbortError: Job "stale-scan" was cancelled.
+      stuck-crawler  cancelled  AbortError: Job "stuck-crawler" was cancelled.
+      thumbnail      fulfilled  "resized"
+      warm-cache     fulfilled  "warm"
+
+── final state ───────────────────────────────────────────────────
+      stats @ after drain            pending=0 running=0 retryWaiting=0 liveIds=0 closed=true
+      retry timers still armed:      0
+      virtual time elapsed:          100ms
+      every tracked promise settled: true
+      listener failures contained:   10

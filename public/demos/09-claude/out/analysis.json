@@ -1,0 +1,604 @@
+{
+  "schema_version": 1,
+  "source": "data/requests.csv",
+  "row_count": 80,
+  "quantile_convention": "Quantiles use linear interpolation between the two nearest order statistics of the ascending-sorted sample (h = (n-1)q; the 'type 7' convention used by R's default quantile() and numpy.percentile). Median is the q=0.5 quantile, p95 is q=0.95. With small n, p95 is close to the sample maximum and should be read as a tail indicator, not a stable population estimate.",
+  "validation": {
+    "row_count_is_80": true,
+    "control_rows": 40,
+    "candidate_rows": 40,
+    "control_non_200_is_zero": true,
+    "candidate_non_200_is_four": true,
+    "all_checks_passed": true
+  },
+  "variants": {
+    "control": {
+      "variant": "control",
+      "count": 40,
+      "all_rows": {
+        "n": 40,
+        "mean": 316.8,
+        "median": 235.5,
+        "p95": 787.2,
+        "min": 169,
+        "max": 854
+      },
+      "status_200_only": {
+        "n": 40,
+        "mean": 316.8,
+        "median": 235.5,
+        "p95": 787.2,
+        "min": 169,
+        "max": 854
+      },
+      "non_200_count": 0,
+      "non_200_rate": 0
+    },
+    "candidate": {
+      "variant": "candidate",
+      "count": 40,
+      "all_rows": {
+        "n": 40,
+        "mean": 604.7,
+        "median": 416.5,
+        "p95": 1457.9,
+        "min": 146,
+        "max": 1584
+      },
+      "status_200_only": {
+        "n": 36,
+        "mean": 513.9,
+        "median": 403.5,
+        "p95": 1278.5,
+        "min": 146,
+        "max": 1455
+      },
+      "non_200_count": 4,
+      "non_200_rate": 0.1
+    }
+  },
+  "aggregate_comparison": {
+    "mean_delta_ms": 287.9,
+    "mean_delta_pct": 90.9,
+    "median_delta_ms": 181,
+    "median_delta_pct": 76.9,
+    "p95_delta_ms": 670.7,
+    "p95_delta_pct": 85.2,
+    "naive_verdict": "Aggregate latency is worse for candidate. This comparison is confounded by traffic mix and is not a valid effect estimate."
+  },
+  "traffic_mix": {
+    "region": [
+      {
+        "key": "eu",
+        "control_n": 16,
+        "candidate_n": 22,
+        "control_share": 0.4,
+        "candidate_share": 0.55,
+        "share_delta": 0.15
+      },
+      {
+        "key": "us",
+        "control_n": 24,
+        "candidate_n": 18,
+        "control_share": 0.6,
+        "candidate_share": 0.45,
+        "share_delta": -0.15
+      }
+    ],
+    "device": [
+      {
+        "key": "desktop",
+        "control_n": 28,
+        "candidate_n": 16,
+        "control_share": 0.7,
+        "candidate_share": 0.4,
+        "share_delta": -0.3
+      },
+      {
+        "key": "mobile",
+        "control_n": 12,
+        "candidate_n": 24,
+        "control_share": 0.3,
+        "candidate_share": 0.6,
+        "share_delta": 0.3
+      }
+    ],
+    "cache": [
+      {
+        "key": "cold",
+        "control_n": 12,
+        "candidate_n": 24,
+        "control_share": 0.3,
+        "candidate_share": 0.6,
+        "share_delta": 0.3
+      },
+      {
+        "key": "warm",
+        "control_n": 28,
+        "candidate_n": 16,
+        "control_share": 0.7,
+        "candidate_share": 0.4,
+        "share_delta": -0.3
+      }
+    ],
+    "payload_range": [
+      {
+        "key": "0-128 KB",
+        "control_n": 16,
+        "candidate_n": 8,
+        "control_share": 0.4,
+        "candidate_share": 0.2,
+        "share_delta": -0.2
+      },
+      {
+        "key": "129-256 KB",
+        "control_n": 14,
+        "candidate_n": 10,
+        "control_share": 0.35,
+        "candidate_share": 0.25,
+        "share_delta": -0.1
+      },
+      {
+        "key": "257-512 KB",
+        "control_n": 6,
+        "candidate_n": 6,
+        "control_share": 0.15,
+        "candidate_share": 0.15,
+        "share_delta": 0
+      },
+      {
+        "key": "513-1024 KB",
+        "control_n": 4,
+        "candidate_n": 12,
+        "control_share": 0.1,
+        "candidate_share": 0.3,
+        "share_delta": 0.2
+      },
+      {
+        "key": "1025+ KB",
+        "control_n": 0,
+        "candidate_n": 4,
+        "control_share": 0,
+        "candidate_share": 0.1,
+        "share_delta": 0.1
+      }
+    ],
+    "heavy_stratum_share": {
+      "stratum": "eu / mobile / cold",
+      "control_share": 0.1,
+      "candidate_share": 0.35,
+      "share_ratio": 3.5
+    }
+  },
+  "strata": [
+    {
+      "stratum": "eu / desktop / warm",
+      "region": "eu",
+      "device": "desktop",
+      "cache": "warm",
+      "control": {
+        "n": 12,
+        "mean": 238.5,
+        "median": 239.5,
+        "p95": 249,
+        "min": 226,
+        "max": 249
+      },
+      "candidate": {
+        "n": 8,
+        "mean": 211.4,
+        "median": 211.5,
+        "p95": 223.6,
+        "min": 198,
+        "max": 225
+      },
+      "control_non_200": 0,
+      "candidate_non_200": 0,
+      "mean_delta_ms": -27.1,
+      "mean_delta_pct": -11.4,
+      "median_delta_ms": -28,
+      "direction": "candidate_faster"
+    },
+    {
+      "stratum": "eu / mobile / cold",
+      "region": "eu",
+      "device": "mobile",
+      "cache": "cold",
+      "control": {
+        "n": 4,
+        "mean": 798.3,
+        "median": 798.5,
+        "p95": 847.6,
+        "min": 742,
+        "max": 854
+      },
+      "candidate": {
+        "n": 14,
+        "mean": 1216.9,
+        "median": 1219,
+        "p95": 1537.2,
+        "min": 902,
+        "max": 1584
+      },
+      "control_non_200": 0,
+      "candidate_non_200": 4,
+      "mean_delta_ms": 418.6,
+      "mean_delta_pct": 52.4,
+      "median_delta_ms": 420.5,
+      "direction": "candidate_slower"
+    },
+    {
+      "stratum": "us / desktop / warm",
+      "region": "us",
+      "device": "desktop",
+      "cache": "warm",
+      "control": {
+        "n": 16,
+        "mean": 180,
+        "median": 180,
+        "p95": 191,
+        "min": 169,
+        "max": 191
+      },
+      "candidate": {
+        "n": 8,
+        "mean": 155.4,
+        "median": 155,
+        "p95": 165,
+        "min": 146,
+        "max": 166
+      },
+      "control_non_200": 0,
+      "candidate_non_200": 0,
+      "mean_delta_ms": -24.6,
+      "mean_delta_pct": -13.7,
+      "median_delta_ms": -25,
+      "direction": "candidate_faster"
+    },
+    {
+      "stratum": "us / mobile / cold",
+      "region": "us",
+      "device": "mobile",
+      "cache": "cold",
+      "control": {
+        "n": 8,
+        "mean": 466.9,
+        "median": 466,
+        "p95": 496.8,
+        "min": 438,
+        "max": 501
+      },
+      "candidate": {
+        "n": 10,
+        "mean": 421.7,
+        "median": 420,
+        "p95": 445.2,
+        "min": 397,
+        "max": 447
+      },
+      "control_non_200": 0,
+      "candidate_non_200": 0,
+      "mean_delta_ms": -45.2,
+      "mean_delta_pct": -9.7,
+      "median_delta_ms": -46,
+      "direction": "candidate_faster"
+    }
+  ],
+  "simpsons_paradox": {
+    "detected": true,
+    "aggregate_direction": "candidate slower",
+    "strata_with_both_variants": 4,
+    "strata_candidate_faster": 3,
+    "strata_candidate_slower": 1,
+    "mix_adjusted_candidate_mean_ms": 331.6,
+    "mix_adjusted_note": "Direct standardisation: candidate per-stratum means reweighted to the control traffic mix. Compare against the control all-rows mean, not against the observed candidate mean.",
+    "explanation": "Aggregate says candidate is 90.9% slower, but candidate is faster in 3 of 4 comparable strata. The candidate arm carries a much larger share of the slowest stratum (eu / mobile / cold: 35% of candidate rows vs 10% of control rows), so the aggregate is dominated by mix, not by a broad slowdown. This is a Simpson's-paradox-shaped reversal: mix-adjusting removes most but not all of the gap, because one stratum has a genuine regression."
+  },
+  "payload_analysis": {
+    "buckets": [
+      {
+        "bucket": "0-128 KB",
+        "lower_kb": 0,
+        "upper_kb": 128,
+        "control_n": 16,
+        "candidate_n": 8,
+        "control_mean_ms": 180,
+        "candidate_mean_ms": 155.4,
+        "mean_delta_pct": -13.7
+      },
+      {
+        "bucket": "129-256 KB",
+        "lower_kb": 129,
+        "upper_kb": 256,
+        "control_n": 14,
+        "candidate_n": 10,
+        "control_mean_ms": 268.6,
+        "candidate_mean_ms": 253.5,
+        "mean_delta_pct": -5.6
+      },
+      {
+        "bucket": "257-512 KB",
+        "lower_kb": 257,
+        "upper_kb": 512,
+        "control_n": 6,
+        "candidate_n": 6,
+        "control_mean_ms": 472.8,
+        "candidate_mean_ms": 419.3,
+        "mean_delta_pct": -11.3
+      },
+      {
+        "bucket": "513-1024 KB",
+        "lower_kb": 513,
+        "upper_kb": 1024,
+        "control_n": 4,
+        "candidate_n": 12,
+        "control_mean_ms": 798.3,
+        "candidate_mean_ms": 1035.3,
+        "mean_delta_pct": 29.7
+      },
+      {
+        "bucket": "1025+ KB",
+        "lower_kb": 1025,
+        "upper_kb": null,
+        "control_n": 0,
+        "candidate_n": 4,
+        "control_mean_ms": null,
+        "candidate_mean_ms": 1367.5,
+        "mean_delta_pct": null
+      }
+    ],
+    "eu_mobile_cold_overlap": {
+      "overlap_lower_kb": 720,
+      "overlap_upper_kb": 960,
+      "control_n": 4,
+      "candidate_n": 10,
+      "control_mean_ms": 798.3,
+      "candidate_mean_ms": 1156.7,
+      "mean_delta_ms": 358.5,
+      "mean_delta_pct": 44.9,
+      "note": "Both arms restricted to payloads present in both (720-960 KB) inside eu / mobile / cold. The gap survives payload matching, so larger candidate payloads alone do not explain it."
+    },
+    "slopes": [
+      {
+        "series": "eu / mobile / cold — control",
+        "x": "payload_kb",
+        "n": 4,
+        "slope": 0.389,
+        "intercept": 471.7,
+        "r": 0.857,
+        "note": "Latency change per additional KB within eu / mobile / cold for control."
+      },
+      {
+        "series": "eu / mobile / cold — control",
+        "x": "minute",
+        "n": 4,
+        "slope": 31.1,
+        "intercept": 378.4,
+        "r": 0.857,
+        "note": "Latency change per elapsed minute within eu / mobile / cold for control. A strong positive slope here means payload is not the only moving variable."
+      },
+      {
+        "series": "eu / mobile / cold — candidate",
+        "x": "payload_kb",
+        "n": 14,
+        "slope": 0.909,
+        "intercept": 401.1,
+        "r": 0.6,
+        "note": "Latency change per additional KB within eu / mobile / cold for candidate."
+      },
+      {
+        "series": "eu / mobile / cold — candidate",
+        "x": "minute",
+        "n": 14,
+        "slope": 18.301,
+        "intercept": 658.7,
+        "r": 0.352,
+        "note": "Latency change per elapsed minute within eu / mobile / cold for candidate. A strong positive slope here means payload is not the only moving variable."
+      }
+    ],
+    "bootstrap": {
+      "method": "percentile bootstrap of the difference in means (candidate minus control), resampled with replacement",
+      "seed": 20240917,
+      "iterations": 5000,
+      "metric": "mean latency difference within eu / mobile / cold, payload-matched to 720-960 KB",
+      "point_estimate_ms": 358.5,
+      "ci_low_ms": 245.5,
+      "ci_high_ms": 471.4,
+      "note": "Deterministic: seeded LCG, fixed iteration count, fixed input order. With n=4 control rows the interval is wide and reflects sampling variability only — it does not account for the fact that the two arms ran in different time windows."
+    }
+  },
+  "error_rows": [
+    {
+      "request_id": "r070",
+      "variant": "candidate",
+      "minute": 27,
+      "stratum": "eu / mobile / cold",
+      "payload_kb": 960,
+      "latency_ms": 1264,
+      "status": 504
+    },
+    {
+      "request_id": "r072",
+      "variant": "candidate",
+      "minute": 29,
+      "stratum": "eu / mobile / cold",
+      "payload_kb": 1120,
+      "latency_ms": 1512,
+      "status": 504
+    },
+    {
+      "request_id": "r076",
+      "variant": "candidate",
+      "minute": 33,
+      "stratum": "eu / mobile / cold",
+      "payload_kb": 880,
+      "latency_ms": 1328,
+      "status": 504
+    },
+    {
+      "request_id": "r078",
+      "variant": "candidate",
+      "minute": 35,
+      "stratum": "eu / mobile / cold",
+      "payload_kb": 1040,
+      "latency_ms": 1584,
+      "status": 504
+    }
+  ],
+  "findings": [
+    {
+      "id": "F1",
+      "kind": "computed_fact",
+      "confidence": "high",
+      "title": "Aggregate latency is 90.9% higher for candidate, but the arms are not comparable in aggregate",
+      "detail": "Control mean 316.8 ms (n=40); candidate mean 604.7 ms (n=40). Median 235.5 -> 416.5 ms; p95 787.2 -> 1457.9 ms. The two arms draw from very different traffic mixes, so this difference is not an effect estimate.",
+      "evidence": [
+        "control all-rows mean=316.8 ms, n=40",
+        "candidate all-rows mean=604.7 ms, n=40",
+        "mean delta=287.9 ms (90.9%)"
+      ]
+    },
+    {
+      "id": "F2",
+      "kind": "computed_fact",
+      "confidence": "high",
+      "title": "Traffic mix differs sharply between arms",
+      "detail": "The slowest stratum (eu / mobile / cold) is 35% of candidate traffic but only 10% of control traffic — a 3.5x over-representation. Region, device, cache state, and payload distribution all shift in the same direction.",
+      "evidence": [
+        "region eu: control 16 (40%) vs candidate 22 (55%)",
+        "region us: control 24 (60%) vs candidate 18 (45%)",
+        "cache cold: control 12 vs candidate 24",
+        "cache warm: control 28 vs candidate 16"
+      ]
+    },
+    {
+      "id": "F3",
+      "kind": "computed_fact",
+      "confidence": "high",
+      "title": "Candidate is faster in 3 of 4 comparable strata",
+      "detail": "eu / desktop / warm: control 238.5 ms (n=12) vs candidate 211.4 ms (n=8), -11.4%; eu / mobile / cold: control 798.3 ms (n=4) vs candidate 1216.9 ms (n=14), +52.4%; us / desktop / warm: control 180 ms (n=16) vs candidate 155.4 ms (n=8), -13.7%; us / mobile / cold: control 466.9 ms (n=8) vs candidate 421.7 ms (n=10), -9.7%",
+      "evidence": [
+        "eu / desktop / warm: candidate_faster, delta -27.1 ms, n=12/8",
+        "eu / mobile / cold: candidate_slower, delta 418.6 ms, n=4/14",
+        "us / desktop / warm: candidate_faster, delta -24.6 ms, n=16/8",
+        "us / mobile / cold: candidate_faster, delta -45.2 ms, n=8/10"
+      ]
+    },
+    {
+      "id": "F4",
+      "kind": "interpretation",
+      "confidence": "high",
+      "title": "The aggregate comparison conceals a mix effect (Simpson's-paradox-shaped reversal)",
+      "detail": "Aggregate says candidate is 90.9% slower, but candidate is faster in 3 of 4 comparable strata. The candidate arm carries a much larger share of the slowest stratum (eu / mobile / cold: 35% of candidate rows vs 10% of control rows), so the aggregate is dominated by mix, not by a broad slowdown. This is a Simpson's-paradox-shaped reversal: mix-adjusting removes most but not all of the gap, because one stratum has a genuine regression.",
+      "evidence": [
+        "strata where candidate is faster: 3/4",
+        "candidate mean standardised to the control mix: 331.6 ms vs control 316.8 ms",
+        "observed (unstandardised) candidate mean: 604.7 ms"
+      ]
+    },
+    {
+      "id": "F5",
+      "kind": "computed_fact",
+      "confidence": "high",
+      "title": "A single interaction is responsible: eu / mobile / cold",
+      "detail": "In eu / mobile / cold, control mean is 798.3 ms (n=4) and candidate mean is 1216.9 ms (n=14), 52.4% higher. Candidate p95 in this stratum is 1537.2 ms. Every other stratum improves. All 4 non-200 rows fall in this stratum.",
+      "evidence": [
+        "eu / mobile / cold control mean=798.3 ms (n=4)",
+        "eu / mobile / cold candidate mean=1216.9 ms (n=14)",
+        "delta=418.6 ms (52.4%)",
+        "candidate p95 in stratum=1537.2 ms"
+      ]
+    },
+    {
+      "id": "F6",
+      "kind": "computed_fact",
+      "confidence": "high",
+      "title": "All 4 non-200 rows are candidate rows inside the regressed stratum",
+      "detail": "Control error rate is 0% (0 of 40). Candidate error rate is 10% (4 of 40), and every error is a status 504 in eu / mobile / cold. Error-row latencies (1264, 1512, 1328, 1584 ms) sit in the upper tail, consistent with a timeout ceiling being approached.",
+      "evidence": [
+        "r070: candidate, minute 27, eu / mobile / cold, 960 KB, 1264 ms, status 504",
+        "r072: candidate, minute 29, eu / mobile / cold, 1120 KB, 1512 ms, status 504",
+        "r076: candidate, minute 33, eu / mobile / cold, 880 KB, 1328 ms, status 504",
+        "r078: candidate, minute 35, eu / mobile / cold, 1040 KB, 1584 ms, status 504"
+      ]
+    },
+    {
+      "id": "F7",
+      "kind": "interpretation",
+      "confidence": "moderate",
+      "title": "Payload size alone does not explain the regression",
+      "detail": "Restricting both arms to the overlapping payload range (720-960 KB) inside eu / mobile / cold still leaves candidate 358.5 ms higher (44.9%), on n=4 control and n=10 candidate rows. Bootstrap 95% interval for that payload-matched difference: 245.5 to 471.4 ms. So candidate carrying larger payloads is a contributing factor, not the whole story — something in the candidate path is worse at equal payload.",
+      "evidence": [
+        "payload-matched control mean=798.3 ms (n=4)",
+        "payload-matched candidate mean=1156.7 ms (n=10)",
+        "bootstrap 95% CI: [245.5, 471.4] ms, seed=20240917, iterations=5000"
+      ]
+    },
+    {
+      "id": "F8",
+      "kind": "interpretation",
+      "confidence": "low",
+      "title": "Payload is the strongest single correlate in the regressed stratum, but it explains only a minority of the variance",
+      "detail": "Within candidate eu / mobile / cold, latency rises 0.909 ms per KB (r=0.6, n=14) — roughly 2.3x control's 0.389 ms per KB, which is real support for a per-byte cost. But r=0.6 means payload accounts for only about 36% of the variance in this stratum; elapsed minute is a weaker but non-zero correlate (18.301 ms per minute, r=0.352), and the two are partly collinear so neither slope is cleanly identified. A strictly monotone per-byte model is also directly contradicted by the data: r078 (1040 KB, minute 35) took 1584 ms while r079 (1120 KB, minute 36) took 986 ms — a larger payload that was substantially faster. Control's slopes in this stratum rest on only 4 rows, where payload and minute are perfectly collinear (identical r=0.857), so the control baseline slope is barely estimable. Conclusion: payload marks the affected traffic well, but the mechanism is not established and something else is moving too.",
+      "evidence": [
+        "eu / mobile / cold — control vs payload_kb: slope=0.389, r=0.857, n=4",
+        "eu / mobile / cold — control vs minute: slope=31.1, r=0.857, n=4",
+        "eu / mobile / cold — candidate vs payload_kb: slope=0.909, r=0.6, n=14",
+        "eu / mobile / cold — candidate vs minute: slope=18.301, r=0.352, n=14"
+      ]
+    },
+    {
+      "id": "F9",
+      "kind": "computed_fact",
+      "confidence": "high",
+      "title": "Excluding non-200 rows would understate candidate latency by a large margin",
+      "detail": "Candidate all-rows mean is 604.7 ms; status-200-only mean is 513.9 ms — a 90.8 ms gap, because the four 504s are among the slowest observations. Control is unaffected (316.8 ms either way, zero non-200 rows). A pipeline that silently filtered to status 200 would shrink the apparent candidate regression while removing evidence that only the candidate arm produced failures. Both views are reported here for that reason.",
+      "evidence": [
+        "candidate all-rows mean=604.7 ms (n=40), p95=1457.9 ms",
+        "candidate status-200-only mean=513.9 ms (n=36), p95=1278.5 ms",
+        "control identical under both views: mean=316.8 ms (n=40)"
+      ]
+    }
+  ],
+  "limitations": [
+    "Not a randomised experiment. The arms ran in disjoint time windows (control minutes 0-15, candidate minutes 20-37), so any change in load, upstream health, or network conditions between windows is fully confounded with the variant.",
+    "Traffic was not balanced across arms. Region, device, cache state, and payload distribution all differ, so the aggregate comparison is not interpretable as a treatment effect without standardisation.",
+    "Sample sizes are tiny. The regressed stratum has only 4 control rows against 14 candidate rows; the payload-matched comparison rests on 4 control observations. Interval estimates are correspondingly wide.",
+    "p95 on samples this small is barely distinguishable from the maximum. Treat every p95 in this report as a tail indicator, not an estimate of a population 95th percentile.",
+    "Payload ranges do not fully overlap. Candidate reaches 1120 KB in the regressed stratum while control stops at 960 KB, so part of the raw candidate tail is extrapolation beyond anything control ever exercised.",
+    "Cache state is observed, not assigned. 'cold' is plausibly downstream of the variant itself (a new path may miss cache more often), which would make it a mediator rather than a confounder; controlling for it could mask a real effect.",
+    "Non-200 rows carry a latency value, but a 504 latency is a timeout artefact rather than a completed-request measurement. They are retained in the all-rows statistics and also reported separately, because dropping them would systematically remove the slowest observations.",
+    "No per-request context: no upstream service attribution, connection reuse flag, retry indicator, or concurrency measure. The mechanism behind the regression cannot be identified from these nine columns.",
+    "One dataset, one run. There is no replication and no pre-registered hypothesis, so the specific interaction identified here was found by searching the data and deserves confirmatory testing."
+  ],
+  "recommendations": [
+    {
+      "id": "R1",
+      "kind": "rollout_action",
+      "priority": 1,
+      "title": "Hold the rollout for eu / mobile / cold; continue elsewhere behind a guarded ramp",
+      "detail": "The data justify a targeted hold, not a full rollback. Exclude eu / mobile / cold (and specifically large cold-cache payloads) from the candidate path until the regression is understood, while allowing the candidate to continue in the three strata where it is measurably faster (eu / desktop / warm; us / desktop / warm; us / mobile / cold). This is the strongest action supported by observational data with confounded time windows: it stops the observed harm without discarding a change that looks beneficial everywhere else. A full rollback would be over-reading a stratum holding just 4 control and 14 candidate rows; a full ramp would ignore a 100% error concentration."
+    },
+    {
+      "id": "R2",
+      "kind": "rollout_action",
+      "priority": 2,
+      "title": "Add a stratum-level guardrail before any further ramp",
+      "detail": "Aggregate dashboards produced exactly the wrong headline here: they said \"candidate is broadly slower\" when it is faster for 3 of 4 strata. Gate the ramp on per-stratum latency and error rate with sample sizes shown, not on a single pooled mean."
+    },
+    {
+      "id": "R3",
+      "kind": "follow_up",
+      "priority": 3,
+      "title": "Run a properly randomised, concurrent A/B restricted to the suspect stratum",
+      "detail": "Assign eu / mobile / cold traffic randomly to control and candidate in the same time window, with matched payload strata and a pre-registered primary metric (mean and p95 latency, plus 504 rate). This is the single highest-value follow-up: it removes the time-window confound and the mix imbalance simultaneously, which no amount of post-hoc adjustment on this dataset can do. Target enough rows per payload band to detect a 20% difference, which is far more than the 4 control rows available here."
+    },
+    {
+      "id": "R4",
+      "kind": "follow_up",
+      "priority": 4,
+      "title": "Instrument the candidate path to separate per-byte cost from time-dependent degradation",
+      "detail": "Emit a server-side latency breakdown (connection setup, TLS, upstream wait, transfer, retries) plus cache-miss reason and connection-reuse flag for the regressed stratum. The current data show latency climbing with elapsed minute as well as payload, which distinguishes two very different root causes — a fixed per-byte penalty versus a resource that degrades under sustained load (pool exhaustion, cache fill, memory pressure). A controlled payload sweep at constant load, and a constant-payload soak over time, would separate them directly."
+    }
+  ]
+}

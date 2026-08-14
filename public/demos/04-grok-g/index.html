@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Weather Dial — Tiny City Climate Toy</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app">
+    <header class="mast">
+      <div class="mast-mark" aria-hidden="true"></div>
+      <div class="mast-copy">
+        <p class="kicker">Tabletop climate instrument</p>
+        <h1>Weather Dial</h1>
+      </div>
+      <p class="mast-seed">Seed <span id="seedLabel">48291</span></p>
+    </header>
+
+    <main class="stage">
+      <canvas id="city" width="1600" height="780" role="img" aria-label="Animated miniature city diorama" tabindex="0"></canvas>
+      <aside id="card" class="info-card" hidden>
+        <p class="card-kicker" id="cardKind">Building</p>
+        <h2 id="cardTitle">—</h2>
+        <p id="cardBody"></p>
+        <button type="button" id="cardClose">Close</button>
+      </aside>
+      <p id="live" class="sr-only" role="status" aria-live="polite"></p>
+    </main>
+
+    <section class="console" aria-label="Weather console">
+      <div class="dial-wrap">
+        <div class="dial" id="dial">
+          <svg viewBox="0 0 160 160" aria-hidden="true">
+            <circle cx="80" cy="80" r="72" class="dial-ring"/>
+            <g id="dialTicks"></g>
+            <circle cx="80" cy="80" r="46" class="dial-face"/>
+            <line id="dialNeedle" x1="80" y1="80" x2="80" y2="22" />
+            <circle cx="80" cy="80" r="6" class="dial-hub"/>
+          </svg>
+          <button type="button" id="dialBtn" class="dial-hit" aria-label="Weather dial. Drag or use arrow keys."></button>
+        </div>
+        <p class="dial-readout"><span id="weatherName">Clear</span></p>
+      </div>
+
+      <div class="gauges">
+        <label class="gauge">
+          <span>Temperature</span>
+          <input id="temp" type="range" min="-12" max="36" step="0.5" value="12">
+          <b id="tempVal">12°C</b>
+        </label>
+        <label class="gauge">
+          <span>Wind strength</span>
+          <input id="windStr" type="range" min="0" max="1" step="0.01" value="0.18">
+          <b id="windStrVal">Light</b>
+        </label>
+        <label class="gauge">
+          <span>Wind direction</span>
+          <input id="windDir" type="range" min="0" max="360" step="1" value="48">
+          <b id="windDirVal">NE</b>
+        </label>
+        <label class="gauge">
+          <span>Time of day</span>
+          <input id="clock" type="range" min="0" max="24" step="0.05" value="6.2">
+          <b id="clockVal">06:12</b>
+        </label>
+        <label class="gauge">
+          <span>Season</span>
+          <input id="season" type="range" min="0" max="3" step="1" value="0">
+          <b id="seasonVal">Spring</b>
+        </label>
+        <label class="gauge">
+          <span>Simulation speed</span>
+          <input id="speed" type="range" min="0.25" max="3" step="0.05" value="1">
+          <b id="speedVal">1.00×</b>
+        </label>
+      </div>
+
+      <div class="actions">
+        <div class="presets" role="group" aria-label="Curated climates">
+          <button type="button" data-preset="0" title="Key 1">Summer shower</button>
+          <button type="button" data-preset="1" title="Key 2">Autumn gale</button>
+          <button type="button" data-preset="2" title="Key 3">Winter night</button>
+          <button type="button" data-preset="3" title="Key 4">Spring sunrise</button>
+        </div>
+        <div class="toggles">
+          <button type="button" id="pauseBtn" aria-pressed="false">Pause</button>
+          <button type="button" id="resetBtn">Reset</button>
+        </div>
+        <p class="hint">Drag the city for a gust · click a cloud to seed rain · click a building for a card · 1–4 presets · Space pause · R reset</p>
+      </div>
+    </section>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>

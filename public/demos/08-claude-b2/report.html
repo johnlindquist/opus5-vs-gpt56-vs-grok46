@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trace Sheriff — fixtures/sample.jsonl</title>
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #0e1117;
+  --panel: #151b24;
+  --panel-2: #1b2330;
+  --line: #26303f;
+  --text: #e6edf3;
+  --muted: #8b98a9;
+  --tool: #4c9be8;
+  --tool-open: #f0883e;
+  --phase: #a371f7;
+  --error: #f85149;
+  --warning: #e3b341;
+  --info: #58a6ff;
+  --ok: #3fb950;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 13px/1.45 ui-sans-serif, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+header {
+  padding: 14px 20px 12px;
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(180deg, #131a24, #0e1117);
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+h1 { font-size: 17px; margin: 0; letter-spacing: .2px; }
+h1 span { color: var(--muted); font-weight: 400; }
+.src { color: var(--muted); font-size: 12px; }
+main { padding: 14px 20px 40px; max-width: 1560px; }
+.kpis { display: grid; grid-template-columns: repeat(8, 1fr); gap: 8px; margin-bottom: 14px; }
+.kpi {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px;
+}
+.kpi b { display: block; font-size: 20px; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.kpi span { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .5px; }
+.kpi.error b { color: var(--error); }
+.kpi.warning b { color: var(--warning); }
+.kpi.info b { color: var(--info); }
+section {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+  padding: 12px 14px; margin-bottom: 14px;
+}
+section > h2 {
+  font-size: 12px; text-transform: uppercase; letter-spacing: .8px; color: var(--muted);
+  margin: 0 0 10px;
+}
+.controls { display: flex; gap: 18px; flex-wrap: wrap; align-items: center; }
+.controls fieldset { border: 0; margin: 0; padding: 0; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.controls legend, .controls .lbl { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .6px; }
+label.chk { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; user-select: none; }
+input[type=search] {
+  background: var(--panel-2); border: 1px solid var(--line); color: var(--text);
+  border-radius: 6px; padding: 4px 8px; min-width: 220px;
+}
+button {
+  background: var(--panel-2); border: 1px solid var(--line); color: var(--text);
+  border-radius: 6px; padding: 4px 9px; cursor: pointer;
+}
+button.on { border-color: var(--tool); color: #cfe6ff; }
+.lane { border-top: 1px solid var(--line); padding: 8px 0 10px; }
+.lane:first-of-type { border-top: 0; }
+.lane-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 6px; flex-wrap: wrap; }
+.lane-head .name { font-weight: 600; font-size: 14px; }
+.pill { border-radius: 999px; padding: 1px 8px; font-size: 11px; border: 1px solid var(--line); color: var(--muted); }
+.pill.ok { color: var(--ok); border-color: #1d4429; background: #11291a; }
+.pill.error { color: var(--error); border-color: #58201d; background: #2a1413; }
+.pill.incomplete { color: var(--warning); border-color: #4d3d15; background: #26200d; }
+.meta { color: var(--muted); font-size: 11.5px; font-variant-numeric: tabular-nums; }
+.track { position: relative; background: var(--panel-2); border: 1px solid var(--line); border-radius: 6px; }
+.row { position: relative; height: 22px; }
+.row + .row { border-top: 1px dashed #202a37; }
+.bar {
+  position: absolute; top: 3px; height: 16px; border-radius: 4px; overflow: hidden;
+  font-size: 10.5px; line-height: 16px; padding: 0 5px; white-space: nowrap; color: #061018;
+  min-width: 3px;
+}
+.bar.tool { background: var(--tool); }
+.bar.phase { background: var(--phase); }
+.bar.open { background: repeating-linear-gradient(45deg, var(--tool-open), var(--tool-open) 5px, #b4611f 5px, #b4611f 10px); color: #1a0d02; }
+.bar.excl { box-shadow: inset 0 0 0 2px #10202e; }
+.ticks { position: relative; height: 14px; color: var(--muted); font-size: 10px; }
+.tick { position: absolute; top: 0; transform: translateX(-50%); white-space: nowrap; }
+.mark { position: absolute; top: 0; bottom: 0; width: 1px; background: rgba(248,81,73,.65); }
+table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+th { text-align: left; color: var(--muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .5px; padding: 4px 8px; border-bottom: 1px solid var(--line); }
+td { padding: 4px 8px; border-bottom: 1px solid #1b222c; vertical-align: top; }
+tr:hover td { background: #182030; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.sev { font-weight: 700; font-size: 11px; letter-spacing: .4px; }
+.sev.error { color: var(--error); }
+.sev.warning { color: var(--warning); }
+.sev.info { color: var(--info); }
+.codes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.code-card { background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
+.code-card h3 { margin: 0 0 3px; font-size: 12px; font-family: ui-monospace, monospace; }
+.code-card p { margin: 0; color: var(--muted); font-size: 11.5px; }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; color: var(--muted); font-size: 11.5px; align-items: center; }
+.swatch { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+.empty { color: var(--muted); padding: 8px; }
+.count { color: var(--muted); font-weight: 400; }
+@media (max-width: 1200px) { .kpis { grid-template-columns: repeat(4, 1fr); } .codes { grid-template-columns: repeat(2, 1fr); } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Trace Sheriff <span>· agent timeline forensics</span></h1>
+  <span class="src mono">fixtures/sample.jsonl</span>
+  <span class="src">trace-sheriff/1.0.0 · schema v1 · 11 distinct anomaly codes</span>
+</header>
+<main>
+  <div class="kpis">
+    <div class="kpi "><b>4</b><span>sessions</span></div>
+    <div class="kpi "><b>24</b><span>lines read</span></div>
+    <div class="kpi "><b>23</b><span>valid events</span></div>
+    <div class="kpi warning"><b>1</b><span>malformed</span></div>
+    <div class="kpi "><b>11</b><span>findings</span></div>
+    <div class="kpi error"><b>6</b><span>errors</span></div>
+    <div class="kpi warning"><b>5</b><span>warnings</span></div>
+    <div class="kpi warning"><b>2</b><span>open spans</span></div>
+  </div>
+
+  <section>
+    <h2>Filters</h2>
+    <div class="controls">
+      <fieldset><span class="lbl">Sessions</span><label class="chk"><input type="checkbox" data-session="alpha" checked> alpha</label><label class="chk"><input type="checkbox" data-session="beta" checked> beta</label><label class="chk"><input type="checkbox" data-session="gamma" checked> gamma</label><label class="chk"><input type="checkbox" data-session="delta" checked> delta</label>
+        <button id="all-sessions">all</button><button id="no-sessions">none</button></fieldset>
+      <fieldset><span class="lbl">Severity</span><label class="chk"><input type="checkbox" data-severity="error" checked> <span class="sev error">ERROR</span> (6)</label><label class="chk"><input type="checkbox" data-severity="warning" checked> <span class="sev warning">WARNING</span> (5)</label><label class="chk"><input type="checkbox" data-severity="info" checked> <span class="sev info">INFO</span> (0)</label></fieldset>
+      <fieldset><span class="lbl">Timeline</span>
+        <button id="align-rel" class="on">aligned to session start</button>
+        <button id="align-abs">absolute clock</button></fieldset>
+      <fieldset><span class="lbl">Search</span><input id="q" type="search" placeholder="code, message, span…"></fieldset>
+    </div>
+  </section>
+
+  <section>
+    <h2>Timeline</h2>
+    <div class="legend">
+      <span><span class="swatch" style="background:var(--phase)"></span>phase span</span>
+      <span><span class="swatch" style="background:var(--tool)"></span>tool span</span>
+      <span><span class="swatch" style="background:var(--tool-open)"></span>never closed</span>
+      <span><span class="swatch" style="background:rgba(248,81,73,.65);width:2px"></span>error finding</span>
+      <span>hover any bar for span id, name, duration and source lines</span>
+    </div>
+    <div id="timeline"></div>
+  </section>
+
+  <section>
+    <h2>Findings <span class="count" id="finding-count"></span></h2>
+    <table>
+      <thead><tr><th class="num">line</th><th>severity</th><th>code</th><th>session</th><th>span / event</th><th>explanation</th></tr></thead>
+      <tbody id="findings-body"></tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Malformed lines (1)</h2>
+    <table>
+      <thead><tr><th class="num">line</th><th>reason</th><th>raw text</th></tr></thead>
+      <tbody id="malformed-body"></tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Anomaly codes</h2>
+    <div class="codes"><div class="code-card"><h3><span class="sev error">ERROR</span> MALFORMED_JSON <span class="count">· 1 in this run</span></h3><p><b>Malformed JSON line.</b> The line could not be parsed as JSON. It is reported with its original line number and a snippet, never silently dropped.</p></div><div class="code-card"><h3><span class="sev error">ERROR</span> NOT_AN_OBJECT <span class="count">· 0 in this run</span></h3><p><b>Line is not a JSON object.</b> The line parsed as valid JSON but is a scalar or array, so it cannot be interpreted as an event record.</p></div><div class="code-card"><h3><span class="sev error">ERROR</span> MISSING_FIELD <span class="count">· 0 in this run</span></h3><p><b>Missing required field.</b> An event record is missing one or more of the required fields ts, session or type, so it cannot be placed on a timeline.</p></div><div class="code-card"><h3><span class="sev error">ERROR</span> INVALID_TIMESTAMP <span class="count">· 0 in this run</span></h3><p><b>Unparseable timestamp.</b> The ts field is present but is not a parseable ISO-8601 timestamp.</p></div><div class="code-card"><h3><span class="sev warning">WARNING</span> UNKNOWN_EVENT_TYPE <span class="count">· 0 in this run</span></h3><p><b>Unknown event type.</b> The type field is not one of the seven known event types. The event is counted but contributes no span structure.</p></div><div class="code-card"><h3><span class="sev warning">WARNING</span> MISSING_EVENT_ID <span class="count">· 0 in this run</span></h3><p><b>Missing event_id.</b> Event IDs are intended to be globally unique. An event without one cannot be cross-referenced or de-duplicated.</p></div><div class="code-card"><h3><span class="sev error">ERROR</span> DUPLICATE_EVENT_ID <span class="count">· 1 in this run</span></h3><p><b>Duplicate event_id.</b> Two events share an event_id that is supposed to be globally unique. Reported on the second and later occurrences, naming the first line that used the ID.</p></div><div class="code-card"><h3><span class="sev warning">WARNING</span> CLOCK_REVERSAL <span class="count">· 1 in this run</span></h3><p><b>Timestamp moved backwards.</b> Within a single session, an event appears later in file order but carries an earlier timestamp than the event before it. Usually a clock skew or an out-of-order write.</p></div><div class="code-card"><h3><span class="sev error">ERROR</span> ORPHAN_TOOL_END <span class="count">· 1 in this run</span></h3><p><b>tool_end without tool_start.</b> A tool span was closed that was never opened in this session, so its duration and concurrency contribution are unknown.</p></div><div class="code-card"><h3><span class="sev error">ERROR</span> ORPHAN_PHASE_END <span class="count">· 1 in this run</span></h3><p><b>phase_end without phase_start.</b> A phase span was closed that was never opened in this session.</p></div><div class="code-card"><h3><span class="sev warning">WARNING</span> DUPLICATE_SPAN_START <span class="count">· 0 in this run</span></h3><p><b>Span started twice.</b> A span_id was opened while an identical span_id was still open in the same session. The later start replaces the earlier one, which is reported as incomplete.</p></div><div class="code-card"><h3><span class="sev warning">WARNING</span> OPEN_TOOL_SPAN <span class="count">· 1 in this run</span></h3><p><b>Tool span never closed.</b> A tool_start had no matching tool_end before the end of input. Its duration is treated as unknown and excluded from summed tool time.</p></div><div class="code-card"><h3><span class="sev warning">WARNING</span> OPEN_PHASE_SPAN <span class="count">· 1 in this run</span></h3><p><b>Phase span never closed.</b> A phase_start had no matching phase_end before the end of input.</p></div><div class="code-card"><h3><span class="sev warning">WARNING</span> MISSING_SESSION_END <span class="count">· 1 in this run</span></h3><p><b>Missing session_end.</b> The session produced events but never emitted a session_end, so its outcome is recorded as incomplete.</p></div><div class="code-card"><h3><span class="sev warning">WARNING</span> MISSING_SESSION_START <span class="count">· 0 in this run</span></h3><p><b>Missing session_start.</b> Events were seen for a session that never emitted a session_start, so the true session origin is unknown.</p></div><div class="code-card"><h3><span class="sev error">ERROR</span> DUPLICATE_SESSION_START <span class="count">· 1 in this run</span></h3><p><b>Multiple session_start events.</b> A session emitted more than one session_start. Reported on every start after the first.</p></div><div class="code-card"><h3><span class="sev error">ERROR</span> EXCLUSIVE_OVERLAP <span class="count">· 1 in this run</span></h3><p><b>Overlapping exclusive tool spans.</b> Two tool spans whose names begin with the prefix 'exclusive:' were open at the same time in the same session. Exclusive tools are expected to be mutually serialized.</p></div><div class="code-card"><h3><span class="sev warning">WARNING</span> SESSION_ENDED_NON_OK <span class="count">· 1 in this run</span></h3><p><b>Session ended with a non-ok status.</b> The session_end event carried a status other than 'ok'.</p></div><div class="code-card"><h3><span class="sev info">INFO</span> IDLE_GAP <span class="count">· 0 in this run</span></h3><p><b>Idle gap between events.</b> The session had no recorded activity for longer than the idle threshold (configurable with --idle-gap-ms).</p></div></div>
+  </section>
+</main>
+<script>window.__TRACE__ = {"schema_version":1,"source":"fixtures/sample.jsonl","generated_with":"trace-sheriff/1.0.0","line_count":24,"valid_event_count":23,"malformed_line_count":1,"session_count":4,"finding_count":11,"severity_counts":{"info":0,"warning":5,"error":6},"idle_gap_threshold_ms":30000,"sessions":[{"session":"alpha","outcome":"ok","status":"ok","first_line":1,"last_line":7,"start_ts":"2026-07-26T01:00:00.000Z","end_ts":"2026-07-26T01:00:07.000Z","wall_clock_ms":7000,"tool_time_ms":1500,"tool_utilization_pct":21.4,"peak_concurrent_tools":1,"event_count":7,"event_counts":{"message":1,"phase_end":1,"phase_start":1,"session_end":1,"session_start":1,"tool_end":1,"tool_start":1},"span_count":2,"tool_span_count":1,"phase_span_count":1,"incomplete_span_count":0,"idle_gap_count":0,"total_idle_ms":0,"max_idle_gap_ms":0,"finding_count":0,"severity_counts":{"info":0,"warning":0,"error":0},"idle_gaps":[],"spans":[{"span_id":"phase-plan","kind":"phase","name":"planning","exclusive":false,"start_ts":"2026-07-26T01:00:01.000Z","end_ts":"2026-07-26T01:00:05.000Z","start_line":2,"end_line":6,"duration_ms":4000,"status":"ok","complete":true},{"span_id":"tool-read","kind":"tool","name":"read_file","exclusive":false,"start_ts":"2026-07-26T01:00:02.000Z","end_ts":"2026-07-26T01:00:03.500Z","start_line":3,"end_line":4,"duration_ms":1500,"status":"ok","complete":true}]},{"session":"beta","outcome":"error","status":"error","first_line":8,"last_line":15,"start_ts":"2026-07-26T01:59:59.000Z","end_ts":"2026-07-26T02:00:07.000Z","wall_clock_ms":8000,"tool_time_ms":5000,"tool_utilization_pct":62.5,"peak_concurrent_tools":2,"event_count":8,"event_counts":{"message":2,"session_end":1,"session_start":1,"tool_end":2,"tool_start":2},"span_count":2,"tool_span_count":2,"phase_span_count":0,"incomplete_span_count":1,"idle_gap_count":0,"total_idle_ms":0,"max_idle_gap_ms":0,"finding_count":6,"severity_counts":{"info":0,"warning":3,"error":3},"idle_gaps":[],"spans":[{"span_id":"tool-build","kind":"tool","name":"exclusive:build","exclusive":true,"start_ts":"2026-07-26T02:00:01.000Z","end_ts":"2026-07-26T02:00:06.000Z","start_line":9,"end_line":14,"duration_ms":5000,"status":"ok","complete":true},{"span_id":"tool-test","kind":"tool","name":"exclusive:test","exclusive":true,"start_ts":"2026-07-26T02:00:02.000Z","end_ts":null,"start_line":10,"end_line":null,"duration_ms":null,"status":null,"complete":false}]},{"session":"gamma","outcome":"incomplete","status":null,"first_line":16,"last_line":20,"start_ts":"2026-07-26T03:00:00.000Z","end_ts":"2026-07-26T03:00:05.000Z","wall_clock_ms":5000,"tool_time_ms":3000,"tool_utilization_pct":60,"peak_concurrent_tools":1,"event_count":4,"event_counts":{"phase_end":1,"session_start":1,"tool_end":1,"tool_start":1},"span_count":1,"tool_span_count":1,"phase_span_count":0,"incomplete_span_count":0,"idle_gap_count":0,"total_idle_ms":0,"max_idle_gap_ms":0,"finding_count":2,"severity_counts":{"info":0,"warning":1,"error":1},"idle_gaps":[],"spans":[{"span_id":"tool-write","kind":"tool","name":"write_file","exclusive":false,"start_ts":"2026-07-26T03:00:02.000Z","end_ts":"2026-07-26T03:00:05.000Z","start_line":18,"end_line":20,"duration_ms":3000,"status":"ok","complete":true}]},{"session":"delta","outcome":"ok","status":"ok","first_line":21,"last_line":24,"start_ts":"2026-07-26T04:00:00.000Z","end_ts":"2026-07-26T04:00:04.000Z","wall_clock_ms":4000,"tool_time_ms":0,"tool_utilization_pct":0,"peak_concurrent_tools":0,"event_count":4,"event_counts":{"phase_start":1,"session_end":1,"session_start":2},"span_count":1,"tool_span_count":0,"phase_span_count":1,"incomplete_span_count":1,"idle_gap_count":0,"total_idle_ms":0,"max_idle_gap_ms":0,"finding_count":2,"severity_counts":{"info":0,"warning":1,"error":1},"idle_gaps":[],"spans":[{"span_id":"phase-open","kind":"phase","name":"unfinished","exclusive":false,"start_ts":"2026-07-26T04:00:02.000Z","end_ts":null,"start_line":23,"end_line":null,"duration_ms":null,"status":null,"complete":false}]}],"malformed_lines":[{"line":19,"reason":"JSON Parse error: Unexpected identifier \"this\"","snippet":"this is not json"}],"findings":[{"code":"EXCLUSIVE_OVERLAP","severity":"error","session":"beta","line":10,"message":"Exclusive tool spans \"exclusive:build\" (tool-build) and \"exclusive:test\" (tool-test) overlapped in session \"beta\".","event_id":null,"span_id":"tool-test"},{"code":"OPEN_TOOL_SPAN","severity":"warning","session":"beta","line":10,"message":"Tool span \"tool-test\" (exclusive:test) was still open at end of input.","event_id":null,"span_id":"tool-test"},{"code":"ORPHAN_TOOL_END","severity":"error","session":"beta","line":11,"message":"tool_end for span \"tool-ghost\" (ghost) has no matching tool_start in session \"beta\".","event_id":"b4","span_id":"tool-ghost"},{"code":"DUPLICATE_EVENT_ID","severity":"error","session":"beta","line":12,"message":"event_id \"b3\" was already used on line 10; event IDs must be globally unique.","event_id":"b3","span_id":null},{"code":"CLOCK_REVERSAL","severity":"warning","session":"beta","line":13,"message":"Timestamp 2026-07-26T01:59:59.000Z is earlier than the previous event of session \"beta\" at 2026-07-26T02:00:04.000Z (line order says it came later).","event_id":"b6","span_id":null},{"code":"SESSION_ENDED_NON_OK","severity":"warning","session":"beta","line":15,"message":"Session \"beta\" ended with status \"error\".","event_id":null,"span_id":null},{"code":"ORPHAN_PHASE_END","severity":"error","session":"gamma","line":17,"message":"phase_end for span \"phase-missing\" (implementation) has no matching phase_start in session \"gamma\".","event_id":"g2","span_id":"phase-missing"},{"code":"MALFORMED_JSON","severity":"error","session":null,"line":19,"message":"Line is not valid JSON: JSON Parse error: Unexpected identifier \"this\"","event_id":null,"span_id":null},{"code":"MISSING_SESSION_END","severity":"warning","session":"gamma","line":20,"message":"Session \"gamma\" never emitted session_end.","event_id":null,"span_id":null},{"code":"DUPLICATE_SESSION_START","severity":"error","session":"delta","line":22,"message":"Session \"delta\" already emitted session_start on line 21; a session must start exactly once.","event_id":"d2","span_id":null},{"code":"OPEN_PHASE_SPAN","severity":"warning","session":"delta","line":23,"message":"Phase span \"phase-open\" (unfinished) was still open at end of input.","event_id":null,"span_id":"phase-open"}]};</script>
+<script>
+const R = window.__TRACE__;
+const $ = (s) => document.querySelector(s);
+const fmtMs = (v) => v == null ? "\u2014" : v < 1000 ? v + "ms" : (v / 1000).toFixed(v % 1000 === 0 ? 0 : 1) + "s";
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+const state = {
+  sessions: new Set(R.sessions.map((s) => s.session)),
+  severities: new Set(["error", "warning", "info"]),
+  align: "relative",
+  q: "",
+};
+
+const parse = (ts) => Date.parse(ts);
+const spanEnd = (span, sessionEnd) => (span.end_ts ? parse(span.end_ts) : sessionEnd);
+
+/** Greedy packing so overlapping spans of one kind get their own row. */
+function packRows(spans, sessionEnd) {
+  const rows = [];
+  for (const span of spans) {
+    const start = parse(span.start_ts);
+    const end = spanEnd(span, sessionEnd);
+    let placed = false;
+    for (const row of rows) {
+      if (row[row.length - 1].end <= start) { row.push({ span, start, end }); placed = true; break; }
+    }
+    if (!placed) rows.push([{ span, start, end }]);
+  }
+  return rows;
+}
+
+function renderTimeline() {
+  const timed = R.sessions.filter((s) => s.start_ts && s.end_ts);
+  const shown = timed.filter((s) => state.sessions.has(s.session));
+  const globalMin = Math.min(...timed.map((s) => parse(s.start_ts)));
+  const globalMax = Math.max(...timed.map((s) => parse(s.end_ts)));
+  const maxWall = Math.max(1, ...timed.map((s) => s.wall_clock_ms));
+  const html = shown.map((s) => {
+    const sStart = parse(s.start_ts);
+    const sEnd = parse(s.end_ts);
+    const win = state.align === "relative"
+      ? { base: sStart, span: maxWall }
+      : { base: globalMin, span: Math.max(1, globalMax - globalMin) };
+    const pct = (t) => ((t - win.base) / win.span) * 100;
+    const rows = [
+      ...packRows(s.spans.filter((x) => x.kind === "phase"), sEnd),
+      ...packRows(s.spans.filter((x) => x.kind === "tool"), sEnd),
+    ];
+    const body = (rows.length ? rows : [[]]).map((row) => {
+      const bars = row.map(({ span, start, end }) => {
+        const left = Math.max(0, pct(start));
+        const width = Math.max(0.35, pct(end) - pct(start));
+        const cls = ["bar", span.kind, span.complete ? "" : "open", span.exclusive ? "excl" : ""].filter(Boolean).join(" ");
+        const dur = span.complete ? fmtMs(span.duration_ms) : "open";
+        const title = span.kind + " " + span.span_id + " \u00B7 " + (span.name || "(unnamed)") + " \u00B7 " + dur +
+          " \u00B7 lines " + span.start_line + "\u2192" + (span.end_line ?? "\u2014");
+        return '<div class="' + cls + '" style="left:' + left.toFixed(3) + '%;width:' + width.toFixed(3) + '%" title="' + esc(title) + '">' +
+          esc((span.name || span.span_id) + " \u00B7 " + dur) + "</div>";
+      }).join("");
+      return '<div class="row">' + bars + "</div>";
+    }).join("");
+    // Error markers are only placed when the finding resolves to a known span,
+    // so a mark always points at real time rather than at the session origin.
+    const marks = R.findings
+      .filter((f) => f.session === s.session && f.severity === "error")
+      .map((f) => {
+        const span = f.span_id ? s.spans.find((x) => x.span_id === f.span_id) : null;
+        if (!span) return "";
+        return '<div class="mark" style="left:' + Math.max(0, Math.min(100, pct(parse(span.start_ts)))).toFixed(3) +
+          '%" title="' + esc(f.code + ": " + f.message) + '"></div>';
+      }).join("");
+    const ticks = [0, 0.25, 0.5, 0.75, 1].map((f) => {
+      const rel = state.align === "relative" ? f * maxWall : win.base + f * win.span - sStart;
+      const label = state.align === "relative" ? "+" + fmtMs(Math.round(f * maxWall)) : new Date(win.base + f * win.span).toISOString().slice(11, 19) + "Z";
+      return '<div class="tick" style="left:' + (f * 100) + '%">' + esc(label) + "</div>";
+    }).join("");
+    return '<div class="lane" data-session="' + esc(s.session) + '">' +
+      '<div class="lane-head"><span class="name">' + esc(s.session) + '</span>' +
+      '<span class="pill ' + s.outcome + '">' + esc(s.outcome) + "</span>" +
+      '<span class="meta">start ' + esc(s.start_ts) + " \u00B7 wall " + fmtMs(s.wall_clock_ms) +
+      " \u00B7 tool time " + fmtMs(s.tool_time_ms) + " (" + s.tool_utilization_pct + "%) \u00B7 peak " + s.peak_concurrent_tools +
+      " \u00B7 events " + s.event_count + " \u00B7 spans " + s.span_count + " (" + s.incomplete_span_count + " open)" +
+      " \u00B7 lines " + s.first_line + "\u2013" + s.last_line + "</span>" +
+      '<span class="meta">' + s.severity_counts.error + " err / " + s.severity_counts.warning + " warn / " + s.severity_counts.info + " info</span>" +
+      "</div>" +
+      '<div class="track">' + body + marks + "</div>" +
+      '<div class="ticks">' + ticks + "</div></div>";
+  }).join("");
+  $("#timeline").innerHTML = html || '<div class="empty">No sessions selected.</div>';
+}
+
+function renderFindings() {
+  const q = state.q.toLowerCase();
+  const rows = R.findings.filter((f) =>
+    state.severities.has(f.severity) &&
+    (f.session === null || state.sessions.has(f.session)) &&
+    (q === "" || (f.code + " " + f.message + " " + (f.session || "") + " " + (f.span_id || "") + " " + (f.event_id || "")).toLowerCase().includes(q))
+  );
+  $("#finding-count").textContent = rows.length + " of " + R.findings.length;
+  $("#findings-body").innerHTML = rows.length === 0
+    ? '<tr><td colspan="6" class="empty">No findings match the current filters.</td></tr>'
+    : rows.map((f) =>
+        "<tr>" +
+        '<td class="num mono">' + f.line + "</td>" +
+        '<td class="sev ' + f.severity + '">' + f.severity.toUpperCase() + "</td>" +
+        '<td class="mono">' + esc(f.code) + "</td>" +
+        "<td>" + esc(f.session || "\u2014") + "</td>" +
+        '<td class="mono">' + esc(f.span_id || f.event_id || "\u2014") + "</td>" +
+        "<td>" + esc(f.message) + "</td></tr>"
+      ).join("");
+}
+
+function renderMalformed() {
+  const el = $("#malformed-body");
+  if (!el) return;
+  el.innerHTML = R.malformed_lines.length === 0
+    ? '<tr><td colspan="3" class="empty">No malformed lines.</td></tr>'
+    : R.malformed_lines.map((m) =>
+        '<tr><td class="num mono">' + m.line + "</td><td>" + esc(m.reason) + '</td><td class="mono">' + esc(m.snippet) + "</td></tr>"
+      ).join("");
+}
+
+function render() { renderTimeline(); renderFindings(); }
+
+document.addEventListener("change", (e) => {
+  const t = e.target;
+  if (t.dataset.session) {
+    t.checked ? state.sessions.add(t.dataset.session) : state.sessions.delete(t.dataset.session);
+    render();
+  } else if (t.dataset.severity) {
+    t.checked ? state.severities.add(t.dataset.severity) : state.severities.delete(t.dataset.severity);
+    renderFindings();
+  }
+});
+document.addEventListener("input", (e) => {
+  if (e.target.id === "q") { state.q = e.target.value; renderFindings(); }
+});
+document.addEventListener("click", (e) => {
+  const t = e.target;
+  if (t.id === "align-rel" || t.id === "align-abs") {
+    state.align = t.id === "align-rel" ? "relative" : "absolute";
+    $("#align-rel").classList.toggle("on", state.align === "relative");
+    $("#align-abs").classList.toggle("on", state.align === "absolute");
+    renderTimeline();
+  }
+  if (t.id === "all-sessions" || t.id === "no-sessions") {
+    const on = t.id === "all-sessions";
+    document.querySelectorAll("[data-session]").forEach((el) => { el.checked = on; });
+    state.sessions = new Set(on ? R.sessions.map((s) => s.session) : []);
+    render();
+  }
+});
+
+renderMalformed();
+render();
+</script>
+</body>
+</html>

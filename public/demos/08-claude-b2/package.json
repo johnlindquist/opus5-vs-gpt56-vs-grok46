@@ -1,0 +1,12 @@
+{
+  "name": "trace-sheriff",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Forensic analyzer for concurrent AI-agent JSONL session logs.",
+  "scripts": {
+    "analyze": "bun run src/cli.ts analyze",
+    "demo": "bun run src/cli.ts analyze fixtures/sample.jsonl --json out/summary.json --html report.html",
+    "test": "bun test"
+  }
+}

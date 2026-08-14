@@ -1,26 +1,292 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 
+@custom-variant dark (&:is(.dark *));
+
+/* MEGA.dev-derived tokens: pure-black scale, electric blue, tracked labels. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --mega-black: #000;
+  --mega-black-0: #050505;
+  --mega-black-1: #1b1b1b;
+  --mega-black-2: #2f2f2f;
+  --mega-blue: #00f;
+  --mega-blue-text: #7a7aff;
+  --mega-green: #4ade80;
+  --mega-red: #ff3b30;
+  --mega-offwhite: #fafafa;
+  --mega-muted: #a6a6af;
+
+  --radius: 0rem;
+  --background: var(--mega-black);
+  --foreground: var(--mega-offwhite);
+  --card: var(--mega-black-0);
+  --card-foreground: var(--mega-offwhite);
+  --popover: var(--mega-black-0);
+  --popover-foreground: var(--mega-offwhite);
+  --primary: var(--mega-blue-text);
+  --primary-foreground: #000;
+  --secondary: var(--mega-black-1);
+  --secondary-foreground: var(--mega-offwhite);
+  --muted: var(--mega-black-1);
+  --muted-foreground: var(--mega-muted);
+  --accent: var(--mega-black-1);
+  --accent-foreground: var(--mega-offwhite);
+  --destructive: var(--mega-red);
+  --border: var(--mega-black-2);
+  --input: var(--mega-black-2);
+  --ring: var(--mega-blue-text);
+  --chart-1: #7a7aff; /* claude */
+  --chart-2: #4ade80; /* grok */
+  --chart-3: #fafafa; /* codex / sol */
+  --chart-4: #00f;
+  --chart-5: #a6a6af;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-mega-blue: var(--mega-blue);
+  --color-mega-blue-text: var(--mega-blue-text);
+  --color-mega-green: var(--mega-green);
+  --color-mega-offwhite: var(--mega-offwhite);
+  --color-surface-1: var(--mega-black-1);
+  --color-surface-2: var(--mega-black-2);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-pixel: var(--font-pixel-display);
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-xl: 0;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  line-height: 1.6;
+}
+
+/* Blue engineering-grid backdrop, straight from the mega.dev landing. */
+.mega-grid {
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--mega-blue) 7%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--mega-blue) 7%, transparent) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Tracked terminal label, e.g. "CONDITION G · 20 CELLS". */
+.mega-label {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mega-muted);
+}
+
+.pixel-heading {
+  font-family: var(--font-pixel-display), var(--font-geist-mono), monospace;
+  letter-spacing: 0.01em;
+  line-height: 1.05;
+}
+/* Corner marks on framed sections (mega's corner-mark.svg motif). */
+.corner-marks {
+  position: relative;
+}
+.corner-marks::before,
+.corner-marks::after,
+.corner-marks > .cm::before,
+.corner-marks > .cm::after {
+  content: "";
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-color: var(--mega-blue-text);
+  border-style: solid;
+}
+.corner-marks::before {
+  top: -1px;
+  left: -1px;
+  border-width: 2px 0 0 2px;
+}
+.corner-marks::after {
+  top: -1px;
+  right: -1px;
+  border-width: 2px 2px 0 0;
+}
+.corner-marks > .cm::before {
+  bottom: -1px;
+  left: -1px;
+  border-width: 0 0 2px 2px;
+}
+.corner-marks > .cm::after {
+  bottom: -1px;
+  right: -1px;
+  border-width: 0 2px 2px 0;
+}
+
+/* Diff-style rows for the methodology page. */
+.diff-add {
+  color: var(--mega-green);
+}
+.diff-del {
+  color: var(--mega-red);
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+
+::selection {
+  background: var(--mega-blue);
+  color: #fff;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+:where(a, button, input, summary):focus-visible {
+  outline: 2px solid var(--mega-blue-text);
+  outline-offset: 3px;
+}
+
+/* Accessible, squared decision-lab range controls. */
+.decision-range {
+  --decision-progress: 0%;
+  appearance: none;
+  height: 1.25rem;
+  cursor: pointer;
+  background: transparent;
+}
+
+.decision-range:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.decision-range::-webkit-slider-runnable-track {
+  height: 4px;
+  border: 1px solid var(--mega-black-2);
+  background: linear-gradient(
+    to right,
+    var(--mega-blue-text) 0,
+    var(--mega-blue-text) var(--decision-progress),
+    var(--mega-black-1) var(--decision-progress),
+    var(--mega-black-1) 100%
+  );
+}
+
+.decision-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  margin-top: -7px;
+  border: 2px solid var(--mega-offwhite);
+  border-radius: 0;
+  background: var(--mega-blue);
+  box-shadow: 0 0 0 3px #000;
+}
+
+.decision-range::-moz-range-track {
+  height: 4px;
+  border: 1px solid var(--mega-black-2);
+  border-radius: 0;
+  background: var(--mega-black-1);
+}
+
+.decision-range::-moz-range-progress {
+  height: 4px;
+  border-radius: 0;
+  background: var(--mega-blue-text);
+}
+
+.decision-range::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--mega-offwhite);
+  border-radius: 0;
+  background: var(--mega-blue);
+  box-shadow: 0 0 0 3px #000;
+}
+
+.decision-range:focus-visible {
+  outline: none;
+}
+
+.decision-range:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 3px #000, 0 0 0 5px var(--mega-blue-text);
+}
+
+.decision-range:focus-visible::-moz-range-thumb {
+  box-shadow: 0 0 0 3px #000, 0 0 0 5px var(--mega-blue-text);
+}
+
+/* Static artifact captures: visual depth without executing submitted code. */
+.showcase-frame {
+  isolation: isolate;
+}
+
+.showcase-frame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mega-offwhite) 8%, transparent);
+}
+
+.showcase-scanline {
+  z-index: 2;
+  opacity: 0.14;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 3px,
+    color-mix(in srgb, var(--mega-blue-text) 20%, transparent) 4px
+  );
+  mix-blend-mode: screen;
+}
+
+.showcase-fallback {
+  background-color: #050505;
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--mega-blue) 10%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--mega-blue) 10%, transparent) 1px, transparent 1px),
+    radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--mega-blue) 12%, transparent), transparent 52%);
+  background-size: 28px 28px, 28px 28px, 100% 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
 }

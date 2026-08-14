@@ -1,0 +1,234 @@
+:root {
+  --ink: #1c2430;
+  --paper: #efe4cf;
+  --brass: #c4a36a;
+  --brass-deep: #8a6a3a;
+  --navy: #243044;
+  --panel: #d9cbb0;
+  --shadow: rgba(28, 36, 48, 0.28);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: #1a1f28;
+  color: var(--ink);
+  font-family: Palatino, "Palatino Linotype", "Book Antiqua", Georgia, serif;
+}
+
+#app {
+  min-height: 100%;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  background:
+    radial-gradient(1200px 500px at 50% 0%, #2a3342, #151920 70%);
+}
+
+.mast {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 18px 6px;
+  color: #f3e6cc;
+}
+
+.mast-mark {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--brass);
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 3px #1a1f28, 0 0 0 1px #8a6a3a;
+}
+
+.kicker {
+  margin: 0;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-size: 10px;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  opacity: 0.7;
+}
+
+h1 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.mast-seed {
+  margin-left: auto;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 11px;
+  opacity: 0.65;
+}
+
+.stage {
+  position: relative;
+  min-height: 0;
+  margin: 0 14px;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 18px 50px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(196,163,106,0.25);
+  background: #87a4c4;
+}
+
+#city {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: crosshair;
+  outline: none;
+}
+
+#city:focus-visible {
+  box-shadow: inset 0 0 0 3px var(--brass);
+}
+
+.info-card {
+  position: absolute;
+  left: 18px;
+  top: 18px;
+  width: min(280px, calc(100% - 36px));
+  padding: 12px 14px 10px;
+  background: rgba(247, 238, 220, 0.94);
+  border: 1px solid var(--brass-deep);
+  border-radius: 8px;
+  box-shadow: 0 10px 28px var(--shadow);
+  z-index: 3;
+}
+
+.card-kicker {
+  margin: 0;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #6a5430;
+}
+
+.info-card h2 {
+  margin: 2px 0 6px;
+  font-size: 18px;
+}
+
+.info-card p {
+  margin: 0 0 10px;
+  font-size: 13px;
+  line-height: 1.35;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+}
+
+.info-card button {
+  font: 12px ui-sans-serif, system-ui, sans-serif;
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--brass-deep);
+  background: #f4ead4;
+  cursor: pointer;
+}
+
+.console {
+  display: grid;
+  grid-template-columns: 150px 1fr auto;
+  gap: 12px 18px;
+  align-items: center;
+  margin: 10px 14px 14px;
+  padding: 10px 14px 12px;
+  background:
+    linear-gradient(180deg, #e8d9bb, #d2c19a);
+  border: 1px solid #a88850;
+  border-radius: 12px;
+  box-shadow: inset 0 1px 0 #f6edd8, 0 8px 20px rgba(0,0,0,0.28);
+  font-family: ui-sans-serif, system-ui, sans-serif;
+}
+
+.dial-wrap { text-align: center; }
+.dial { position: relative; width: 132px; height: 132px; margin: 0 auto; }
+.dial svg { width: 100%; height: 100%; display: block; }
+.dial-ring { fill: #c9b48a; stroke: #7a5c2e; stroke-width: 3; }
+.dial-face { fill: #f4ead3; stroke: #8a6a3a; stroke-width: 1.5; }
+#dialNeedle { stroke: #8b2a22; stroke-width: 3; stroke-linecap: round; }
+.dial-hub { fill: #3a2a18; }
+.dial-hit {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: transparent;
+  border-radius: 50%;
+  cursor: grab;
+}
+.dial-hit:active { cursor: grabbing; }
+.dial-readout { margin: 2px 0 0; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #4a3a22; }
+
+.gauges {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(140px, 1fr));
+  gap: 8px 16px;
+}
+
+.gauge {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+  gap: 2px 8px;
+  font-size: 11px;
+  color: #3d3324;
+}
+
+.gauge span { grid-column: 1 / -1; letter-spacing: 0.08em; text-transform: uppercase; }
+.gauge input { width: 100%; accent-color: #8b2a22; }
+.gauge b { font-size: 11px; font-weight: 650; min-width: 52px; text-align: right; }
+
+.actions { max-width: 280px; }
+.presets, .toggles { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
+
+button {
+  font: 11px ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: 0.04em;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid #7a5c2e;
+  background: linear-gradient(#f6edd8, #e2d0a8);
+  color: #2a2216;
+  cursor: pointer;
+}
+
+button[aria-pressed="true"] {
+  background: #3d3324;
+  color: #f4ead3;
+}
+
+.hint {
+  margin: 4px 0 0;
+  font-size: 10px;
+  line-height: 1.35;
+  color: #5a4a32;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  border: 0;
+}
+
+@media (max-width: 1100px) {
+  .console {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+  .gauges { width: 100%; }
+  .actions { max-width: none; text-align: center; }
+}
+
+@media (max-width: 720px) {
+  .gauges { grid-template-columns: 1fr 1fr; }
+  h1 { font-size: 18px; }
+}

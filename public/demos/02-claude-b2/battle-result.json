@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "status": "complete",
+  "title": "Gravity Atelier — Build a Solar System",
+  "kind": "visual",
+  "entrypoint": "index.html",
+  "artifacts": [
+    "index.html",
+    "README.md",
+    "screenshot.png",
+    "tools/check-physics.mjs",
+    "tools/check-render.mjs"
+  ],
+  "checks": [
+    {
+      "name": "Headless simulation-core suite (15 checks)",
+      "command": "node tools/check-physics.mjs",
+      "status": "passed",
+      "details": "Extracts the inline script from index.html and evaluates the shipped code in a node:vm context with no DOM, so nothing is stubbed or duplicated. All 15 passed: seeded mulberry32 determinism; all three presets bit-identical after 10 s of stepping; stable preset keeps all 8 major bodies for 60 s with 10.1% max orbital-radius drift; a circular two-body orbit closes to 0.159% after one full period; gravity-only momentum drift 2.9e-15 over 3600 steps; merge conserves mass exactly and momentum to 2.3e-13; fragmentation conserves momentum to 3.5e-16; the post-collision Verlet hand-off leaks under 1e-9 per step; a zero-impact-parameter flyby through a star peaks at 1329 and stays finite; body cap enforced at 260 and clear-debris preserves majors; binary pair separation holds 229.9-232.1 from 230.0 over 60 s; chaos preset decays 16 -> 8 @30s -> 6 @60s over 10 collisions; trail ring buffers never reallocate."
+    },
+    {
+      "name": "Real-browser render and interaction suite (21 checks)",
+      "command": "node tools/check-render.mjs",
+      "status": "passed",
+      "details": "Drives index.html in a locally-launched headless Chrome over the DevTools protocol using Node's built-in WebSocket and fetch (nothing installed; the only connection is loopback to the browser the script itself spawns; Chrome uses a throwaway profile inside this directory and is killed before exit). All 21 passed with real trusted input events at 1600x900: boots in 55 ms and animates with no input; canvas backing store is uniformly scaled so orbits are never sheared; trails established and a body preselected on first paint; drag on empty space previews then launches (spawned a 100.8 M-earth body at 117 Mm/s); click selects and the panel values update live; wheel zoom anchors the world point under the cursor with 0.0 slip; shift-drag pans without spawning; Space pauses, '.' advances exactly 1/120 s, Space resumes; drag repositions a body 114.6 Mm while paused; '[' and ']' change time scale and 4x really advances ~4.10 s per wall-clock second; R zeroes the clock and reproduces 100 bodies in identical positions; presets 1/2/3 all load and move (binary confirmed to have 2 stars); a live in-page collision conserves mass exactly and momentum to 1.3e-15; clear-debris removed 92 fragments leaving all 8 major bodies; a 320 ms main-thread stall advances the sim by only 0.092 s; prefers-reduced-motion shortens trails to 0.35 while all 100 bodies keep orbiting; canvas is focusable with a :focus-visible outline, role, aria-label, a 408-character description and a populated polite live region."
+    },
+    {
+      "name": "No console errors during unattended play",
+      "command": "node tools/check-render.mjs",
+      "status": "passed",
+      "details": "Part of the render suite. Runtime.exceptionThrown, Runtime.consoleAPICalled (error and warning) and Log.entryAdded (error) were collected over 12 seconds of continuous unattended play spanning the stable, chaos and binary presets, including the collision-heavy chaos run. Zero errors and zero warnings."
+    },
+    {
+      "name": "No remote runtime references",
+      "command": "grep -nEo '(https?:)?//[a-zA-Z0-9.-]+\\.[a-z]{2,}[^ \"'\"'\"'<>)]*' index.html; grep -cE '<link|<script[^>]+src=|@import|url\\(' index.html",
+      "status": "passed",
+      "details": "No URLs, no <link> tags, no external <script src>, no @import and no CSS url() in index.html (grep count 0). Cross-checked at runtime inside the render suite: performance.getEntriesByType('resource') contains no non-file: entries, so the page loads over file:// with zero network fetches. Fonts are system-ui and monospace stacks; all imagery is procedural Canvas 2D."
+    },
+    {
+      "name": "Visual review of the rendered output",
+      "command": "GALLERY=/tmp/ga-gallery node tools/check-render.mjs",
+      "status": "passed",
+      "details": "Captured and inspected screenshots of the default scene, the binary and chaos presets, a held launch drag, and the help overlay. Confirmed visually: coherent star-plus-planets system, multiple luminous velocity-coloured trails, a readable asteroid ring, selection ring with velocity arrow and name label, populated instrument panel, scale legend and time-scale indicator, and the launch preview showing a ghost body, gradient velocity arrow, speed/mass read-out and a dashed predicted trajectory curving around the star. screenshot.png in this directory is the default-scene capture."
+    },
+    {
+      "name": "Tool script syntax check",
+      "command": "node --check tools/check-physics.mjs && node --check tools/check-render.mjs",
+      "status": "passed",
+      "details": "Both verification scripts parse cleanly under Node 25.2.1."
+    }
+  ],
+  "summary": "A single-file, dependency-free Canvas 2D orbital sandbox that opens directly from disk. A seeded star system animates immediately, with velocity Verlet integration at a fixed 1/120 s step, all-pairs softened gravity, momentum-conserving merge and fragmentation, ring-buffer trails whose colour encodes speed relative to the local circular orbit, and procedural starfield, nebula and body materials. Drag empty space to launch a body with a live velocity arrow and a predicted trajectory; click to inspect live telemetry; wheel-zoom anchors on the pointer; shift-drag pans. Space, '.', '[' / ']', R and 1/2/3 drive pause, single-step, time scale, reset and the stable / binary / chaos presets, and a clear-debris control removes fragments without touching major bodies. Softening is tied to the smaller of each pair's radii and documented, with acceleration, speed and escape-distance fences behind it. Reduced motion, keyboard focus visibility and an ARIA live region are supported. Verified by 36 automated checks across a headless run of the shipped simulation core and a real-browser interaction suite.",
+  "known_issues": [
+    "The trajectory preview integrates a test particle through the current field with the other bodies held fixed. It is accurate for the dominant stellar term over a short horizon, but diverges from the real path if you aim directly at a fast-moving planet. This is a deliberate cost trade-off so the preview can be recomputed inside a pointermove handler.",
+    "Debris does not collide with other debris — a documented modelling choice, since grain-on-grain contact in a flattened 2D belt is an artifact of the projection. Debris still collides with and is accreted by planets and stars.",
+    "tools/check-render.mjs requires a locally installed Chrome or Chromium; it exits with code 2 if none is found. index.html itself has no such dependency.",
+    "The chaos preset is intentionally unstable and will lose most of its bodies over several minutes of play. The default stable preset is the one held to the long-term-coherence requirement."
+  ]
+}

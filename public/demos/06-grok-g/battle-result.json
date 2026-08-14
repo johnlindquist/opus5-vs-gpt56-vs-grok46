@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "status": "complete",
+  "title": "Sand Alchemist — Elemental Cellular Automata",
+  "kind": "visual",
+  "entrypoint": "index.html",
+  "artifacts": [
+    "index.html",
+    "styles.css",
+    "engine.js",
+    "app.js",
+    "README.md"
+  ],
+  "checks": [
+    {
+      "name": "JavaScript syntax",
+      "command": "node --check engine.js && node --check app.js",
+      "status": "passed",
+      "details": "engine.js and app.js parse with no syntax errors."
+    },
+    {
+      "name": "Reaction and preset self-test",
+      "command": "node engine.js",
+      "status": "passed",
+      "details": "Deterministic tests passed for sand fall, water flow, fire consuming wood, oil floating, lava boiling water, ice melting, steam rising, salt dissolving, plant growth, volcano materials, and attract-scene steam."
+    },
+    {
+      "name": "Local-only HTML contract, materials, and sim timing",
+      "command": "node -e \"var fs=require('fs'); var html=fs.readFileSync('index.html','utf8'); var all=html+fs.readFileSync('styles.css','utf8')+fs.readFileSync('app.js','utf8')+fs.readFileSync('engine.js','utf8'); if(/https?:\\/\\//.test(all)) process.exit(1); ['world','fps','cells','material','brush','seed','mat-search','pause-btn','step-btn','clear-btn','reset-btn','speed','preset-summary'].forEach(function(id){ if(html.indexOf('id=\\\"'+id+'\\\"')<0) process.exit(1); }); var vm=require('vm'); var ctx={console:console, process:{argv:['node','app']}, module:{exports:{}}, globalThis:null}; ctx.globalThis=ctx; vm.runInNewContext(fs.readFileSync('engine.js','utf8'), ctx); var SA=ctx.SandAlchemist; ['Empty','Sand','Water','Stone','Wood','Plant','Fire','Oil','Ice','Steam','Lava','Salt'].forEach(function(n){ if(SA.NAMES.indexOf(n)<0) process.exit(1); }); var w=new SA.World(0xA13C3); w.loadPreset('volcano'); var t0=Date.now(); for(var i=0;i<60;i++) w.step(); var ms=Date.now()-t0; var steam=0; for(var j=0;j<w.count;j++) if(w.type[j]===SA.STEAM) steam++; if(ms>4000||steam<1) process.exit(1); console.log('timing_ms', ms, 'steam', steam);\"",
+      "status": "passed",
+      "details": "No remote URLs. Required HUD ids and twelve named materials present. 60 volcano ticks ran in 382ms with 938 steam cells remaining, showing the attract scene stays reactive at default resolution."
+    },
+    {
+      "name": "Workspace hygiene",
+      "command": "python3 -c \"import pathlib; p=pathlib.Path('.');\n[exit('symlink '+str(f)) for f in p.iterdir() if f.is_symlink()]; print('no symlinks')\"",
+      "status": "passed",
+      "details": "The workspace contains only local files (index.html, styles.css, engine.js, app.js, README.md) and no symlinks."
+    }
+  ],
+  "summary": "Sand Alchemist is a disk-open Canvas 2D falling-sand laboratory: a 400×225 heat-aware grid in a 1600×900 terrarium, twelve required materials plus ash, zigzag/moved-stamp updates, four seeded presets, and full paint/pause/speed controls.",
+  "known_issues": []
+}

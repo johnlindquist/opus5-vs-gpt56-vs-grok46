@@ -1,0 +1,12 @@
+{
+  "name": "haunted-queue",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "A concurrency-limited, priority-ordered, retrying job queue — the exorcised replacement for legacy/queue.ts.",
+  "module": "src/job-queue.ts",
+  "scripts": {
+    "test": "bun test",
+    "demo": "bun run demo.ts"
+  }
+}

@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Haunted Queue — Architecture &amp; Behavior</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #f5f1e8;
+      --muted: #a9b3be;
+      --panel: #151a22;
+      --panel2: #1c2330;
+      --line: #344052;
+      --cyan: #55d6d0;
+      --amber: #ffbf69;
+      --red: #ff6b7a;
+      --green: #80dc92;
+    }
+    * { box-sizing: border-box; }
+    html { background: #090c11; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 84% 4%, #19394a 0, transparent 28rem),
+        linear-gradient(145deg, #0b1017, #090c11 46%);
+      font: 16px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    main { max-width: 1500px; margin: auto; padding: 52px 54px 90px; }
+    .hero {
+      min-height: 810px;
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+      gap: 30px;
+    }
+    .eyebrow { color: var(--cyan); letter-spacing: .16em; text-transform: uppercase; font-size: 13px; }
+    h1 { font: 700 clamp(42px, 5vw, 78px)/1.02 Georgia, serif; margin: 8px 0 14px; max-width: 980px; }
+    h2 { font: 700 31px/1.2 Georgia, serif; margin: 0 0 20px; }
+    h3 { margin: 0 0 10px; font-size: 16px; color: var(--amber); }
+    p { color: var(--muted); max-width: 78ch; }
+    .lede { font-size: 19px; margin: 0; }
+    .badges { display: flex; flex-wrap: wrap; gap: 12px; }
+    .badge {
+      padding: 10px 15px; border: 1px solid var(--line); border-radius: 99px;
+      background: #10161fbb; color: var(--muted);
+    }
+    .badge strong { color: var(--green); }
+    .architecture { display: grid; grid-template-columns: 1fr 50px 1.25fr; gap: 18px; align-items: stretch; }
+    .card {
+      background: linear-gradient(155deg, var(--panel2), var(--panel));
+      border: 1px solid var(--line); border-radius: 16px; padding: 24px;
+      box-shadow: 0 18px 50px #0005;
+    }
+    .before { border-top: 3px solid var(--red); }
+    .after { border-top: 3px solid var(--green); }
+    .arrow { display: grid; place-items: center; color: var(--cyan); font-size: 34px; }
+    .nodes { display: grid; gap: 9px; margin-top: 18px; }
+    .node { border: 1px solid var(--line); background: #0e131b; border-radius: 8px; padding: 11px 13px; }
+    .after .nodes { grid-template-columns: repeat(2, 1fr); }
+    section { margin-top: 88px; }
+    .diagram { overflow-x: auto; }
+    svg { display: block; min-width: 900px; width: 100%; height: auto; }
+    .state { fill: #151d28; stroke: #55d6d0; stroke-width: 2; }
+    .terminal { stroke: #80dc92; }
+    .cancel { stroke: #ff6b7a; }
+    .edge { fill: none; stroke: #77869a; stroke-width: 2; marker-end: url(#arrow); }
+    .edge-label { fill: #b8c2ce; font-size: 14px; }
+    .state-label { fill: #f5f1e8; font-size: 18px; font-weight: 700; text-anchor: middle; }
+    table { width: 100%; border-collapse: collapse; background: var(--panel); }
+    th, td { text-align: left; vertical-align: top; padding: 14px 16px; border: 1px solid var(--line); }
+    th { color: var(--cyan); background: #10161f; }
+    td:first-child { color: #ffc0c7; width: 34%; }
+    .test-grid { display: grid; grid-template-columns: 260px 1fr; gap: 24px; }
+    .score { display: grid; place-items: center; min-height: 180px; }
+    .score b { font: 700 58px/1 Georgia, serif; color: var(--green); }
+    .score small { color: var(--muted); }
+    .checks { columns: 2; margin: 0; padding-left: 22px; color: var(--muted); }
+    .checks li { margin: 0 0 8px; break-inside: avoid; }
+    .timeline { position: relative; margin-left: 14px; padding-left: 30px; border-left: 2px solid var(--line); }
+    .moment { position: relative; margin: 0 0 16px; color: var(--muted); }
+    .moment::before { content: ""; position: absolute; left: -37px; top: 5px; width: 12px; height: 12px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 0 5px #55d6d022; }
+    .moment strong { color: var(--ink); }
+    code { color: var(--amber); }
+    footer { margin-top: 90px; padding-top: 24px; border-top: 1px solid var(--line); color: var(--muted); }
+    @media (max-width: 850px) {
+      main { padding: 28px 20px 60px; }
+      .hero { min-height: auto; }
+      .architecture { grid-template-columns: 1fr; }
+      .arrow { transform: rotate(90deg); }
+      .test-grid { grid-template-columns: 1fr; }
+      .checks { columns: 1; }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <header>
+      <div class="eyebrow">Refactor report · Bun 1.3 TypeScript</div>
+      <h1>The Haunted Queue, made predictable.</h1>
+      <p class="lede">One live-ID registry, explicit state transitions, owned retry timers, and drain semantics tied to actual work—not an accidentally empty array.</p>
+    </header>
+    <div class="badges">
+      <span class="badge"><strong>18 / 18</strong> tests passing</span>
+      <span class="badge"><strong>0</strong> dependencies</span>
+      <span class="badge"><strong>6</strong> typed event transitions</span>
+      <span class="badge"><strong>0</strong> live jobs after demo</span>
+    </div>
+    <div class="architecture">
+      <article class="card before">
+        <h3>BEFORE · coupled callbacks</h3>
+        <p>Pending and active collections disagreed about what “alive” meant. Retry timers existed outside queue accounting.</p>
+        <div class="nodes">
+          <div class="node">pending[] · priority sort unstable by intent</div>
+          <div class="node">active Map · duplicate IDs overwrite</div>
+          <div class="node">setTimeout · unowned retry gap</div>
+          <div class="node">drain · watches pending only</div>
+        </div>
+      </article>
+      <div class="arrow" aria-hidden="true">→</div>
+      <article class="card after">
+        <h3>AFTER · explicit ownership</h3>
+        <p>The live registry is the authority. Every accepted job occupies exactly one phase, and every transition updates its counters before scheduling more work.</p>
+        <div class="nodes">
+          <div class="node">live Map&lt;id, item&gt;<br><small>uniqueness + drain truth</small></div>
+          <div class="node">stable pending queue<br><small>priority, then sequence</small></div>
+          <div class="node">running slot + controller<br><small>abort without oversubscription</small></div>
+          <div class="node">owned retry timer<br><small>counted + cancellable</small></div>
+        </div>
+      </article>
+    </div>
+  </div>
+
+  <section>
+    <h2>State-transition model</h2>
+    <p>A cancelled running function may ignore its signal. Its caller is rejected immediately, while the slot and live ID remain held until the function exits.</p>
+    <div class="card diagram">
+      <svg viewBox="0 0 1280 430" role="img" aria-label="Job queue state transition diagram">
+        <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#77869a"/></marker></defs>
+        <path class="edge" d="M215 92H425"/><text class="edge-label" x="285" y="78">capacity</text>
+        <path class="edge" d="M585 92C720 92 720 260 825 260"/><text class="edge-label" x="655" y="142">failure + retries left</text>
+        <path class="edge" d="M985 260C1110 260 1100 92 1040 92"/><text class="edge-label" x="1070" y="205">timer fires</text>
+        <path class="edge" d="M585 92H825"/><text class="edge-label" x="650" y="78">success / exhausted</text>
+        <path class="edge" d="M130 130V355H425"/><text class="edge-label" x="150" y="330">cancel</text>
+        <path class="edge" d="M505 130V355"/><text class="edge-label" x="520" y="330">cancel + eventual exit</text>
+        <path class="edge" d="M905 300V355H585"/><text class="edge-label" x="690" y="343">cancel + clear timer</text>
+        <rect class="state" x="55" y="55" rx="14" width="160" height="75"/><text class="state-label" x="135" y="99">PENDING</text>
+        <rect class="state" x="425" y="55" rx="14" width="160" height="75"/><text class="state-label" x="505" y="99">RUNNING</text>
+        <rect class="state" x="825" y="55" rx="14" width="215" height="75"/><text class="state-label" x="932" y="99">SETTLED</text>
+        <rect class="state" x="825" y="225" rx="14" width="215" height="75"/><text class="state-label" x="932" y="269">RETRY-WAITING</text>
+        <rect class="state terminal cancel" x="425" y="355" rx="14" width="160" height="60"/><text class="state-label" x="505" y="392">CANCELLED</text>
+      </svg>
+    </div>
+  </section>
+
+  <section>
+    <h2>Legacy failure modes → fixes</h2>
+    <table>
+      <thead><tr><th>Legacy failure</th><th>Refactored behavior</th></tr></thead>
+      <tbody>
+        <tr><td>Concurrency accepted fractions, zero edge cases, and values above a safe ceiling.</td><td>Constructor enforces integer 1…32.</td></tr>
+        <tr><td><code>options.priority || 0</code> and sort alone did not encode stable FIFO intent.</td><td>Nullish defaults plus a monotonic insertion sequence form a total order.</td></tr>
+        <tr><td>Duplicate IDs could overwrite active map entries.</td><td>A single live registry rejects duplicates across all three live phases.</td></tr>
+        <tr><td>Synchronous task throws escaped before Promise machinery was attached.</td><td>Task invocation occurs inside a promise continuation.</td></tr>
+        <tr><td>First retry waited 50ms, not 25ms.</td><td>One-based formula is <code>25 × 2^(retryNumber−1)</code>.</td></tr>
+        <tr><td>Retry backoff was invisible, uncancellable, and could outlive “drain.”</td><td>Each item owns one timer; retry-waiting is counted and cancellation clears it.</td></tr>
+        <tr><td>Pending cancellation removed work but never settled its promise.</td><td>Every cancellation rejects once with typed <code>AbortError</code>.</td></tr>
+        <tr><td>Running cancellation could still retry after abort.</td><td>Cancellation is sticky; late fulfillment/rejection only releases ownership.</td></tr>
+        <tr><td>Drain resolved when pending was empty—even with active work.</td><td>Drain resolves only when the authoritative live registry reaches zero.</td></tr>
+        <tr><td>Close threw synchronously from <code>add</code>.</td><td>All invalid additions uniformly return rejected promises with typed errors.</td></tr>
+        <tr><td>Observer hooks did not exist.</td><td>Frozen typed events are emitted; throwing listeners are isolated.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Test evidence</h2>
+    <div class="test-grid">
+      <div class="card score"><div><b>18</b><br><small>passing · 58 assertions · 0 failures</small></div></div>
+      <div class="card">
+        <ul class="checks">
+          <li>constructor bounds</li><li>rejected-add policy</li><li>default backoff formula</li>
+          <li>priority + FIFO</li><li>concurrency ceiling</li>
+          <li>duplicate ID in every phase</li><li>synchronous throw</li>
+          <li>successful retry</li><li>retry exhaustion</li>
+          <li>ID reuse</li><li>pending cancellation</li>
+          <li>running cancellation</li><li>backoff cancellation</li>
+          <li>multiple drain callers</li><li>drain across retry</li>
+          <li>close with existing work</li><li>event order + isolation</li>
+          <li>all promises settled / zero live work</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Deterministic demo timeline</h2>
+    <p>Concurrency is one and retry delay is injected as 0ms. The control job holds the slot while mixed-priority work is queued.</p>
+    <div class="card timeline">
+      <div class="moment"><strong>control starts</strong> · low, flaky-high, then high-fifo queue behind it</div>
+      <div class="moment"><strong>control releases</strong> · flaky-high wins on priority and FIFO position</div>
+      <div class="moment"><strong>flaky-high fails attempt 1</strong> · enters owned retry backoff</div>
+      <div class="moment"><strong>high-fifo runs</strong> · scheduler uses the newly free slot</div>
+      <div class="moment"><strong>low runs</strong> · priority 1 follows priority 5</div>
+      <div class="moment"><strong>flaky-high retry runs</strong> · attempt 2 fulfills</div>
+      <div class="moment"><strong>drain completes</strong> · pending=0, running=0, retryWaiting=0, live=0</div>
+    </div>
+  </section>
+
+  <footer>Generated as a standalone local artifact. Source of truth: <code>src/job-queue.ts</code>. Verification commands: <code>bun test</code> and <code>bun run demo.ts</code>.</footer>
+</main>
+</body>
+</html>

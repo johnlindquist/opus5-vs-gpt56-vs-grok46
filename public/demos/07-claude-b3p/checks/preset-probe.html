@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><base href="../"><style>
+body{margin:0;background:#000;display:grid;grid-template-columns:1fr 1fr;gap:4px}
+canvas{width:100%;display:block}
+</style></head><body>
+<canvas id="c0"></canvas><canvas id="c1"></canvas>
+<canvas id="c2"></canvas><canvas id="c3"></canvas>
+<script src="engine.js"></script>
+<script>
+for (var p = 0; p < 4; p++) {
+  var cv = document.getElementById('c' + p);
+  var f = KPFEngine.createFoundry({
+    stage: cv,
+    makeCanvas: function (w, h) { var c = document.createElement('canvas'); c.width = w; c.height = h; return c; },
+    reducedMotion: false,
+    viewportWidth: function () { return 1600; }
+  });
+  f.applyPreset(p);
+  for (var i = 0; i < 260; i++) {
+    if (i === 60) f.pointerDown(700, 430);
+    if (i > 60 && i < 130) f.movePointer(700 + Math.cos(i / 9) * 220, 430 + Math.sin(i / 9) * 150);
+    if (i === 130) f.pointerUp();
+    if (i === 190) f.impulse();
+    f.step(1); f.render();
+  }
+}
+</script></body></html>

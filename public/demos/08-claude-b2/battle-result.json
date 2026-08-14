@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "status": "complete",
+  "title": "Trace Sheriff — Agent Timeline Forensics",
+  "kind": "dev",
+  "entrypoint": "report.html",
+  "artifacts": [
+    "report.html",
+    "README.md",
+    "package.json",
+    "src/cli.ts",
+    "src/analyze.ts",
+    "src/lines.ts",
+    "src/types.ts",
+    "src/report-terminal.ts",
+    "src/report-html.ts",
+    "fixtures/sample.jsonl",
+    "out/summary.json",
+    "tests/analyze.test.ts",
+    "tests/cli.test.ts",
+    "tests/html.test.ts"
+  ],
+  "checks": [
+    {
+      "name": "test suite",
+      "command": "bun test",
+      "status": "passed",
+      "details": "38 tests across 3 files, 223 assertions, 0 failures."
+    },
+    {
+      "name": "fixture analysis",
+      "command": "bun run src/cli.ts analyze fixtures/sample.jsonl --json out/summary.json --html report.html",
+      "status": "passed",
+      "details": "Exit 0. Terminal summary printed; 24 lines, 23 valid events, 1 malformed line, 4 sessions, 11 findings (6 error / 5 warning / 0 info) across 11 distinct anomaly codes. out/summary.json and report.html were written."
+    },
+    {
+      "name": "html renders from disk",
+      "command": "headless Chrome screenshot of file://report.html at 1600x900",
+      "status": "passed",
+      "details": "Opened directly from disk with no server: KPI tiles, filters, all four session timelines and the findings table are visible in the initial 1600x900 overview."
+    }
+  ],
+  "summary": "Trace Sheriff is a dependency-free Bun/TypeScript CLI that streams JSONL agent session logs line by line, reconstructs per-session phase and tool spans (wall clock, summed tool time, peak concurrency, idle gaps, incomplete spans, outcome), and reports 19 anomaly codes including malformed JSON, duplicate event IDs, clock reversals, orphan span ends, open spans, missing or duplicated session boundaries, and overlapping exclusive tools. It prints a readable terminal summary, writes a deterministic JSON report, and generates a self-contained HTML timeline with client-side session/severity/text filtering and in-page documentation of every anomaly code. Exit 0 on completed analysis, exit 2 on bad usage or an unreadable path.",
+  "known_issues": [
+    "Idle gaps are measured between consecutive events rather than between tool spans, so a quiet stretch covered by an open span still counts as idle.",
+    "Span records for the timeline are kept in memory, so memory scales with span count (input lines themselves are streamed).",
+    "Exclusive-overlap detection is pairwise within a session, i.e. quadratic in the number of exclusive spans in that session."
+  ]
+}

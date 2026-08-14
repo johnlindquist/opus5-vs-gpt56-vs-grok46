@@ -1,0 +1,30 @@
+Haunted Queue demonstration
+concurrency=2 retryDelayMs=0 (deterministic)
+--- events ---
+01  queued      paint       priority=1  attempt=0
+02  started     paint       priority=1  attempt=1
+03  queued      invoice     priority=5  attempt=0
+04  started     invoice     priority=5  attempt=1
+05  queued      email       priority=5  attempt=0
+06  queued      backup      priority=0  attempt=0
+07  queued      flaky       priority=3  attempt=0
+08  fulfilled   paint       priority=1  attempt=1
+09  started     email       priority=5  attempt=1
+10  fulfilled   invoice     priority=5  attempt=1
+11  started     flaky       priority=3  attempt=1
+12  retrying    flaky       priority=3  attempt=1 delayMs=0
+13  started     backup      priority=0  attempt=1
+14  fulfilled   email       priority=5  attempt=1
+15  fulfilled   backup      priority=0  attempt=1
+16  started     flaky       priority=3  attempt=2
+17  fulfilled   flaky       priority=3  attempt=2
+--- settlements ---
+paint  fulfilled  painted
+invoice  fulfilled  invoiced
+email  fulfilled  sent
+backup  fulfilled  archived
+flaky  fulfilled  stable
+--- stats ---
+pending=0 running=0 retryWaiting=0 live=0
+eventCount=17 flakyTries=2
+drain complete; no live jobs remain.

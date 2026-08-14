@@ -1,0 +1,730 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Sand Alchemist — Elemental Cellular Automata</title>
+  <style>
+    :root {
+      --bg: #080b0f;
+      --panel: #10151b;
+      --panel-2: #151c23;
+      --line: #29333d;
+      --text: #ecf2f4;
+      --muted: #91a0aa;
+      --cyan: #65e4dc;
+      --amber: #ffc766;
+      --danger: #ff6b57;
+      --radius: 14px;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 72% -20%, #173039 0, transparent 42%),
+        linear-gradient(145deg, #0d1116, var(--bg) 65%);
+      color: var(--text);
+      font: 500 14px/1.4 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    button, input, select { font: inherit; }
+    button, select, input[type="search"] {
+      color: var(--text);
+      background: #121920;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+    button {
+      min-height: 34px;
+      padding: 7px 11px;
+      cursor: pointer;
+      transition: border-color .15s, background .15s, transform .15s;
+    }
+    button:hover { border-color: #53636f; background: #18222b; }
+    button:active { transform: translateY(1px); }
+    button:focus-visible, input:focus-visible, select:focus-visible, canvas:focus-visible {
+      outline: 2px solid var(--cyan);
+      outline-offset: 2px;
+    }
+    .app { height: 100%; display: grid; grid-template-rows: auto 1fr; }
+    header {
+      min-height: 70px;
+      display: flex;
+      align-items: center;
+      gap: 22px;
+      padding: 11px 20px;
+      border-bottom: 1px solid #24303a;
+      background: linear-gradient(180deg, rgba(20,27,34,.97), rgba(10,14,18,.94));
+      box-shadow: 0 8px 30px rgba(0,0,0,.28);
+      z-index: 2;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; min-width: 310px; }
+    .mark {
+      width: 42px; height: 42px; border-radius: 50%;
+      background:
+        radial-gradient(circle at 50% 68%, #ffc46c 0 15%, #ff704f 16% 27%, transparent 28%),
+        linear-gradient(135deg, #22434b, #11171d);
+      border: 1px solid #3f6269;
+      box-shadow: inset 0 0 18px #65e4dc22, 0 0 20px #65e4dc16;
+      position: relative;
+    }
+    .mark::after {
+      content: ""; position: absolute; left: 12px; top: 8px; width: 16px; height: 6px;
+      border: 2px solid #92fbef; border-top: 0; border-radius: 0 0 10px 10px;
+    }
+    h1 { margin: 0; font: 700 18px/1.2 Georgia, "Times New Roman", serif; letter-spacing: .08em; text-transform: uppercase; }
+    .subtitle { color: var(--muted); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; margin-top: 3px; }
+    .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; }
+    .toolbar .accent { border-color: #376b6d; color: #a8fff5; }
+    .toolbar .danger { color: #ffaca1; }
+    .speed-wrap { display: flex; align-items: center; gap: 8px; color: var(--muted); margin-left: 5px; }
+    input[type="range"] { accent-color: var(--cyan); width: 106px; }
+    .status {
+      margin-left: auto; display: grid; grid-template-columns: repeat(3, auto); gap: 5px 18px;
+      color: var(--muted); font-size: 11px; white-space: nowrap;
+    }
+    .status b { color: var(--text); font-weight: 650; }
+    .status .live::before {
+      content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+      background: var(--cyan); margin-right: 7px; box-shadow: 0 0 8px var(--cyan);
+    }
+    main { min-height: 0; display: grid; grid-template-columns: 286px 1fr; }
+    aside {
+      min-height: 0; overflow-y: auto; padding: 16px;
+      background: linear-gradient(90deg, rgba(15,20,26,.98), rgba(15,20,26,.92));
+      border-right: 1px solid #26313a;
+    }
+    .section { margin-bottom: 18px; }
+    .section-title {
+      display: flex; justify-content: space-between; align-items: baseline;
+      color: #b9c5cb; margin: 0 0 9px; font-size: 10px; letter-spacing: .17em; text-transform: uppercase;
+    }
+    .section-title span { color: #60717c; letter-spacing: 0; text-transform: none; }
+    #materialSearch { width: 100%; padding: 8px 10px; margin-bottom: 9px; }
+    .materials { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .material {
+      display: grid; grid-template-columns: 14px 1fr auto; align-items: center; gap: 8px;
+      text-align: left; padding: 7px 8px; min-height: 37px;
+    }
+    .material[aria-pressed="true"] {
+      background: #1a292d; border-color: var(--cyan);
+      box-shadow: inset 0 0 0 1px #65e4dc22;
+    }
+    .swatch { width: 12px; height: 12px; border-radius: 3px; box-shadow: inset 0 0 0 1px #ffffff30; }
+    .key { color: #6d7d87; font-size: 9px; }
+    .presets { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .preset[aria-pressed="true"] { border-color: var(--amber); color: #ffe0a4; }
+    .brush-row { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 12px; }
+    #brushRange { width: 100%; }
+    .size-readout { min-width: 43px; color: var(--cyan); text-align: right; }
+    .legend {
+      padding: 10px; border: 1px solid #27323b; border-radius: 9px; color: var(--muted);
+      background: #0c1116; font-size: 10px; line-height: 1.55;
+    }
+    .legend kbd { color: #d7e0e4; }
+    .preset-summary {
+      margin: 8px 0 0; color: #8899a4; font-size: 10px; min-height: 42px;
+    }
+    .stage { min-width: 0; min-height: 0; padding: 14px 16px 16px; display: flex; }
+    .terrarium {
+      min-width: 0; min-height: 0; width: 100%; position: relative; overflow: hidden;
+      background: #05080b; border: 1px solid #37444d; border-radius: var(--radius);
+      box-shadow: 0 24px 70px #000a, inset 0 0 0 4px #0b1014, inset 0 0 45px #000;
+    }
+    .terrarium::before {
+      content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 2;
+      background:
+        linear-gradient(105deg, transparent 0 15%, #ffffff08 15.3%, transparent 16% 74%, #ffffff05 75%, transparent 76%),
+        radial-gradient(ellipse at center, transparent 55%, #0007 100%);
+      border-radius: inherit;
+    }
+    .terrarium::after {
+      content: "ALCHEMICAL REACTION CHAMBER  ·  GRID 240×128";
+      position: absolute; z-index: 3; left: 14px; bottom: 10px; color: #b9cad248;
+      font-size: 9px; letter-spacing: .13em; pointer-events: none;
+    }
+    canvas {
+      width: 100%; height: 100%; display: block; cursor: crosshair;
+      image-rendering: pixelated; border-radius: inherit; touch-action: none;
+    }
+    .pause-badge {
+      display: none; position: absolute; z-index: 4; top: 14px; right: 14px;
+      color: #ffe3a7; border: 1px solid #ffd16b66; background: #1a1710dc;
+      border-radius: 7px; padding: 7px 10px; font-size: 10px; letter-spacing: .12em;
+    }
+    .paused .pause-badge { display: block; }
+    .sr-only {
+      position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+      overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+    }
+    @media (max-width: 1050px) {
+      header { gap: 10px; padding: 8px 12px; }
+      .brand { min-width: 220px; }
+      .status { display: none; }
+      main { grid-template-columns: 230px 1fr; }
+      aside { padding: 12px; }
+      .material { grid-template-columns: 12px 1fr; }
+      .material .key { display: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      * { transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="brand">
+        <div class="mark" aria-hidden="true"></div>
+        <div><h1>Sand Alchemist</h1><div class="subtitle">Elemental cellular automata</div></div>
+      </div>
+      <div class="toolbar" aria-label="Simulation controls">
+        <button id="pauseBtn" class="accent" type="button" aria-pressed="false">Ⅱ Pause</button>
+        <button id="stepBtn" type="button" title="Advance one tick while paused">· Step</button>
+        <button id="resetBtn" type="button" title="Restore current preset">↻ Reset</button>
+        <button id="clearBtn" class="danger" type="button">Clear</button>
+        <label class="speed-wrap">Speed
+          <input id="speedRange" type="range" min="0.25" max="4" value="1" step="0.25" aria-label="Simulation speed">
+          <output id="speedValue">1×</output>
+        </label>
+      </div>
+      <div class="status" aria-label="Simulation status">
+        <span class="live" id="runStatus">RUNNING</span>
+        <span>FPS <b id="fps">60</b></span>
+        <span>ACTIVE <b id="activeCount">0</b></span>
+        <span>ELEMENT <b id="selectedName">Sand</b></span>
+        <span>BRUSH <b id="brushStatus">5</b></span>
+        <span>SEED <b id="seedValue">A1C4E57</b></span>
+      </div>
+    </header>
+
+    <main>
+      <aside aria-label="Alchemist tools">
+        <section class="section">
+          <div class="section-title">Element library <span>1–9 select</span></div>
+          <label class="sr-only" for="materialSearch">Search materials</label>
+          <input id="materialSearch" type="search" placeholder="Search elements…" autocomplete="off">
+          <div id="materials" class="materials" role="group" aria-label="Materials"></div>
+        </section>
+        <section class="section">
+          <div class="section-title">Brush radius <span>wheel / [ ]</span></div>
+          <div class="brush-row">
+            <input id="brushRange" type="range" min="1" max="14" value="5" aria-label="Brush radius">
+            <output id="brushValue" class="size-readout">5 cells</output>
+          </div>
+        </section>
+        <section class="section">
+          <div class="section-title">Experiments <span>R resets</span></div>
+          <div id="presets" class="presets" role="group" aria-label="World presets"></div>
+          <p id="presetSummary" class="preset-summary" aria-live="polite"></p>
+        </section>
+        <section class="section">
+          <div class="section-title">Field notes</div>
+          <div class="legend">
+            <kbd>Drag</kbd> paint · <kbd>Shift</kbd> straight line<br>
+            <kbd>Right-drag</kbd> erase · <kbd>Space</kbd> pause<br>
+            <kbd>.</kbd> single tick · <kbd>R</kbd> reset<br>
+            Salt water resists freezing. Heat glows; cold deepens blue.
+          </div>
+        </section>
+      </aside>
+
+      <section class="stage" aria-label="Simulation chamber">
+        <div id="terrarium" class="terrarium">
+          <canvas id="world" tabindex="0" aria-label="Interactive falling-sand world. Paint with pointer, right-click to erase."></canvas>
+          <div class="pause-badge">SIMULATION PAUSED</div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+  (() => {
+    "use strict";
+
+    const W = 240, H = 128, N = W * H;
+    const E=0, SAND=1, WATER=2, STONE=3, WOOD=4, PLANT=5, FIRE=6, OIL=7, ICE=8, STEAM=9, LAVA=10, SALT=11;
+    const materials = [
+      {id:E, name:"Eraser", color:"#111820", key:"0"},
+      {id:SAND, name:"Sand", color:"#e5b866", key:"1"},
+      {id:WATER, name:"Water", color:"#3e9ee8", key:"2"},
+      {id:STONE, name:"Stone", color:"#68747b", key:"3"},
+      {id:WOOD, name:"Wood", color:"#995d38", key:"4"},
+      {id:PLANT, name:"Plant", color:"#57bd62", key:"5"},
+      {id:FIRE, name:"Fire", color:"#ff783e", key:"6"},
+      {id:OIL, name:"Oil", color:"#765b27", key:"7"},
+      {id:ICE, name:"Ice", color:"#a8e8fa", key:"8"},
+      {id:STEAM, name:"Steam", color:"#b6d8de", key:"9"},
+      {id:LAVA, name:"Lava", color:"#ff542e", key:""},
+      {id:SALT, name:"Salt", color:"#f1e8d8", key:""}
+    ];
+    const names = materials.map(m => m.name);
+    const burnable = new Uint8Array(12); burnable[WOOD]=1; burnable[PLANT]=1; burnable[OIL]=1;
+    const matter = new Uint8Array(N);
+    const temp = new Int16Array(N);
+    const life = new Uint16Array(N);
+    const brine = new Uint8Array(N);
+    const touched = new Uint16Array(N);
+    let tickStamp = 1, tickCount = 0, rngState = 0xA1C4E57;
+    let selected = SAND, brush = 5, paused = false, speed = 1;
+    let currentPreset = "volcano", activeCells = 0;
+    let pointerDown = false, eraseMode = false, lastPoint = null, hoverPoint = null;
+    let lastFrame = performance.now(), accumulator = 0, fpsSmooth = 60, fpsFrames = 0, fpsTime = 0;
+    const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const particles = [];
+    const MAX_PARTICLES = reduceMotion ? 90 : 420;
+
+    const canvas = document.getElementById("world");
+    const ctx = canvas.getContext("2d", {alpha:false});
+    const pixelCanvas = document.createElement("canvas");
+    pixelCanvas.width = W; pixelCanvas.height = H;
+    const pctx = pixelCanvas.getContext("2d", {alpha:false});
+    let image = pctx.createImageData(W,H);
+    const terrarium = document.getElementById("terrarium");
+    const pauseBtn = document.getElementById("pauseBtn");
+    const stepBtn = document.getElementById("stepBtn");
+    const speedRange = document.getElementById("speedRange");
+    const brushRange = document.getElementById("brushRange");
+
+    function rand() {
+      rngState ^= rngState << 13; rngState ^= rngState >>> 17; rngState ^= rngState << 5;
+      return (rngState >>> 0) / 4294967296;
+    }
+    const chance = p => rand() < p;
+    const idx = (x,y) => y*W+x;
+    const inside = (x,y) => x>=0 && x<W && y>=0 && y<H;
+
+    function clearWorld() {
+      matter.fill(E); temp.fill(20); life.fill(0); brine.fill(0); touched.fill(0);
+      particles.length = 0; activeCells = 0; tickCount = 0; tickStamp = 1;
+    }
+    function setCell(x,y,m,t) {
+      if (!inside(x,y)) return;
+      const i=idx(x,y); matter[i]=m; temp[i]=t ?? defaultTemp(m); brine[i]=0;
+      life[i] = m===FIRE ? 35+Math.floor(rand()*45) : m===STEAM ? 140+Math.floor(rand()*100) : 0;
+    }
+    function defaultTemp(m) {
+      return m===FIRE ? 850 : m===LAVA ? 1200 : m===ICE ? -18 : m===STEAM ? 125 : 20;
+    }
+    function fillRect(x0,y0,x1,y1,m,t) {
+      for(let y=Math.max(0,y0);y<Math.min(H,y1);y++) for(let x=Math.max(0,x0);x<Math.min(W,x1);x++) setCell(x,y,m,t);
+    }
+    function disk(cx,cy,r,m,t) {
+      for(let y=cy-r;y<=cy+r;y++) for(let x=cx-r;x<=cx+r;x++)
+        if((x-cx)**2+(y-cy)**2<=r*r) setCell(x,y,m,t);
+    }
+    function line(x0,y0,x1,y1,m,r=1,t) {
+      const dx=x1-x0, dy=y1-y0, steps=Math.max(Math.abs(dx),Math.abs(dy),1);
+      for(let n=0;n<=steps;n++) disk(Math.round(x0+dx*n/steps),Math.round(y0+dy*n/steps),r,m,t);
+    }
+    function floorBase() {
+      for(let x=0;x<W;x++) {
+        const top=H-7-Math.floor(2*Math.sin(x*.12));
+        for(let y=top;y<H;y++) setCell(x,y,STONE,20);
+      }
+    }
+
+    const presets = {
+      volcano: {
+        title:"Volcano", seed:0xA1C4E57,
+        summary:"An active lava vent meets a lake beside an oil-fed grove; steam, fire, growth, sand and ice are already in motion.",
+        build() {
+          floorBase();
+          for(let y=44;y<H-6;y++) {
+            const half=Math.floor((y-38)*.62);
+            for(let x=120-half;x<=120+half;x++) if(Math.abs(x-120)>5 || y>90) setCell(x,y,STONE,26);
+          }
+          for(let y=25;y<105;y++) for(let x=117;x<=123;x++) if(chance(.88)) setCell(x,y,LAVA,1200);
+          disk(120,42,10,LAVA,1200);
+          fillRect(10,91,91,H-8,WATER,18);
+          for(let x=12;x<90;x++) if(chance(.22)) setCell(x,90,SAND,20);
+          fillRect(16,80,22,91,WOOD,20); fillRect(39,75,43,91,WOOD,20);
+          line(10,79,51,79,WOOD,2);
+          for(let x=25;x<78;x+=12) {
+            setCell(x,90,SAND,20); setCell(x+1,90,STONE,20);
+            setCell(x,89,PLANT,20); setCell(x,88,PLANT,20); setCell(x+1,89,WATER,17);
+          }
+          fillRect(55,96,75,102,OIL,24); setCell(64,94,FIRE,850);
+          fillRect(176,101,225,H-7,ICE,-18); fillRect(182,94,218,101,WATER,-2);
+          line(185,91,215,91,SALT,1); disk(151,91,8,SAND,20);
+          for(let y=35;y<70;y+=6) setCell(119+(y%3),y,STEAM,130);
+        }
+      },
+      terrarium: {
+        title:"Terrarium", seed:0x71E22A1,
+        summary:"A planted wetland grows around a stream, with buried salt, a warm stone lamp, and a small sustainable water cycle.",
+        build() {
+          floorBase(); fillRect(0,103,W,H-7,SAND,18);
+          fillRect(25,87,111,103,WATER,16); fillRect(91,96,153,103,WATER,16);
+          for(let x=15;x<210;x+=5) { setCell(x,102,PLANT,18); if(chance(.65)) setCell(x,101,PLANT,18); }
+          for(let x=170;x<217;x+=8) line(x,102,x-2,88-rand()*9,PLANT,1);
+          line(169,91,220,91,WOOD,2); fillRect(184,94,191,103,WOOD);
+          disk(222,96,8,STONE); disk(222,88,3,FIRE,800);
+          fillRect(8,96,18,103,SALT); fillRect(64,75,70,86,STEAM,105);
+          fillRect(132,99,150,103,OIL);
+        }
+      },
+      oilfire: {
+        title:"Oil Fire", seed:0x01F1AE5,
+        summary:"An oil reservoir floats over water and races across wooden platforms while sand banks contain the blaze.",
+        build() {
+          floorBase(); fillRect(15,91,224,H-7,WATER,20); fillRect(30,84,190,91,OIL,25);
+          line(18,82,218,82,WOOD,2); for(let x=25;x<216;x+=24) fillRect(x,82,x+4,92,WOOD);
+          for(let x=22;x<218;x+=17) disk(x,78,3,PLANT);
+          for(let x=36;x<205;x+=35) setCell(x,80,FIRE,900);
+          fillRect(4,76,16,H-7,SAND); fillRect(224,76,237,H-7,SAND);
+          disk(118,70,7,SALT); fillRect(103,106,140,H-7,ICE,-18);
+        }
+      },
+      frozen: {
+        title:"Frozen Lake", seed:0xF202E11,
+        summary:"A layered ice lake slowly thaws around a lava intrusion; salt opens briny channels while steam condenses overhead.",
+        build() {
+          floorBase(); fillRect(10,76,230,H-7,WATER,-3); fillRect(12,74,228,84,ICE,-18);
+          for(let x=18;x<220;x+=11) if(chance(.7)) disk(x,74,2,SNOW(),-12);
+          line(32,70,88,70,SALT,1); fillRect(105,97,124,H-7,LAVA,1150);
+          fillRect(102,91,127,97,STONE,80); for(let y=49;y<91;y++) setCell(115,y,LAVA,1150);
+          fillRect(171,63,176,74,WOOD); line(163,62,184,62,WOOD,2); setCell(173,59,FIRE,850);
+          for(let x=135;x<160;x+=4) setCell(x,59-rand()*8|0,STEAM,95);
+        }
+      }
+    };
+    function SNOW(){ return ICE; }
+
+    function loadPreset(key) {
+      currentPreset=key; rngState=presets[key].seed; clearWorld(); rngState=presets[key].seed;
+      presets[key].build();
+      document.getElementById("seedValue").textContent=(presets[key].seed>>>0).toString(16).toUpperCase();
+      document.getElementById("presetSummary").textContent=presets[key].summary;
+      document.querySelectorAll(".preset").forEach(b=>b.setAttribute("aria-pressed", String(b.dataset.preset===key)));
+      announce(`${presets[key].title} preset restored`);
+    }
+
+    function swap(a,b) {
+      let v=matter[a]; matter[a]=matter[b]; matter[b]=v;
+      v=temp[a]; temp[a]=temp[b]; temp[b]=v;
+      v=life[a]; life[a]=life[b]; life[b]=v;
+      v=brine[a]; brine[a]=brine[b]; brine[b]=v;
+      touched[a]=tickStamp; touched[b]=tickStamp;
+    }
+    function moveTo(i,j) { swap(i,j); }
+    function replace(i,m,t) {
+      matter[i]=m; temp[i]=t ?? defaultTemp(m); brine[i]=0;
+      life[i]=m===FIRE?35+rand()*45|0:m===STEAM?140+rand()*100|0:0; touched[i]=tickStamp;
+    }
+    function neighborIndices(x,y) {
+      const a=[]; if(x>0)a.push(idx(x-1,y)); if(x<W-1)a.push(idx(x+1,y));
+      if(y>0)a.push(idx(x,y-1)); if(y<H-1)a.push(idx(x,y+1)); return a;
+    }
+    function isEmpty(x,y){ return inside(x,y) && matter[idx(x,y)]===E; }
+
+    function heatExchange(i,x,y) {
+      const m=matter[i];
+      if(m===FIRE) temp[i]=Math.max(temp[i],700);
+      else if(m===LAVA) temp[i]=Math.max(temp[i]-1,600);
+      else if(m===ICE) temp[i]=Math.min(temp[i]+1,-4);
+      else temp[i] += temp[i]>20 ? -1 : temp[i]<20 ? 1 : 0;
+      for(const j of neighborIndices(x,y)) {
+        const n=matter[j];
+        if(n===FIRE || n===LAVA) temp[i]+=Math.min(70,((temp[j]-temp[i])*.14)|0);
+        else if(n===ICE) temp[i]-=Math.min(8,Math.max(1,((temp[i]-temp[j])*.08)|0));
+      }
+    }
+
+    function updateFire(i,x,y) {
+      if(life[i]>0) life[i]--;
+      let fuel=false;
+      for(const j of neighborIndices(x,y)) {
+        if(burnable[matter[j]]) {
+          fuel=true;
+          const odds=matter[j]===OIL?.42:matter[j]===PLANT?.2:.075;
+          if(chance(odds)) { replace(j,FIRE,850); life[j]=matter[j]===OIL?90:55; spawn(x,y,"ember"); }
+        }
+        if(matter[j]===WATER) { if(chance(.35)){ replace(j,STEAM,120); replace(i,E,20); spawn(x,y,"steam"); return; } }
+        if(matter[j]===ICE) temp[j]+=35;
+      }
+      if(fuel) life[i]=Math.min(110,life[i]+2);
+      if(life[i]===0 || chance(.018)) { replace(i,chance(.12)?STEAM:E,70); return; }
+      const dirs=(tickCount&1)?[-1,1]:[1,-1];
+      const choices=[[x,y-1],[x+dirs[0],y-1],[x+dirs[1],y-1],[x+dirs[0],y]];
+      for(const [nx,ny] of choices) if(isEmpty(nx,ny)){ moveTo(i,idx(nx,ny)); break; }
+      if(chance(.13)) spawn(x,y,"ember");
+    }
+
+    function updateSteam(i,x,y) {
+      if(life[i]>0) life[i]--;
+      const coolNear=neighborIndices(x,y).some(j=>matter[j]===ICE || temp[j]<0);
+      if(temp[i]<68 || coolNear || life[i]===0) { replace(i,WATER,Math.max(8,temp[i]-18)); spawn(x,y,"mist"); return; }
+      const d=(tickCount+y)&1?1:-1;
+      const moves=[[x,y-1],[x+d,y-1],[x-d,y-1],[x+d,y],[x-d,y]];
+      for(const [nx,ny] of moves) if(isEmpty(nx,ny)){ moveTo(i,idx(nx,ny)); return; }
+    }
+
+    function updatePowder(i,x,y,m) {
+      if(m===SALT) {
+        for(const j of neighborIndices(x,y)) if(matter[j]===WATER && chance(.42)) {
+          brine[j]=Math.min(255,brine[j]+90); replace(i,E,20); spawn(x,y,"salt"); return;
+        }
+      }
+      if(y>=H-1) return;
+      const below=idx(x,y+1);
+      if(matter[below]===E || matter[below]===WATER || matter[below]===OIL) { moveTo(i,below); return; }
+      const d=(tickCount+x+y)&1?1:-1;
+      for(const nx of [x+d,x-d]) if(inside(nx,y+1)) {
+        const j=idx(nx,y+1); if(matter[j]===E || matter[j]===WATER || matter[j]===OIL){ moveTo(i,j); return; }
+      }
+    }
+
+    function updateLiquid(i,x,y,m) {
+      if(m===WATER) {
+        if(temp[i]>=100) { replace(i,STEAM,125); spawn(x,y,"steam"); return; }
+        const freezePoint=brine[i]>0?-18:-3;
+        if(temp[i]<=freezePoint && chance(.12)) { replace(i,ICE,temp[i]); return; }
+        if(brine[i]>0 && chance(.005)) brine[i]--;
+      }
+      if(m===LAVA) {
+        let shocked=false;
+        for(const j of neighborIndices(x,y)) {
+          if(matter[j]===WATER || matter[j]===ICE) {
+            replace(j,STEAM,145); temp[i]-=90; shocked=true; spawn(x,y,"steam");
+          } else if(burnable[matter[j]] && chance(.45)) replace(j,FIRE,900);
+        }
+        if(temp[i]<680 || (shocked && temp[i]<760)) { replace(i,STONE,120); spawn(x,y,"cool"); return; }
+        if(tickCount%3!==0) return;
+      }
+      const d=(tickCount+x)&1?1:-1;
+      if(y<H-1) {
+        const b=idx(x,y+1);
+        if(matter[b]===E || (m===OIL && matter[b]===WATER)) { moveTo(i,b); return; }
+      }
+      const spread=m===LAVA?2:m===OIL?5:7;
+      for(let s=1;s<=spread;s++) {
+        for(const nx of [x+d*s,x-d*s]) {
+          if(!inside(nx,y)) continue;
+          const j=idx(nx,y);
+          if(matter[j]===E) {
+            const diag=y<H-1?idx(nx,y+1):-1;
+            if(diag>=0 && matter[diag]===E) moveTo(i,diag); else moveTo(i,j);
+            return;
+          }
+          if(matter[j]!==m) break;
+        }
+      }
+      if(m===WATER && y>0) {
+        const up=idx(x,y-1);
+        if(matter[up]===OIL && chance(.35)) swap(i,up);
+      }
+    }
+
+    function updateIce(i,x,y) {
+      for(const j of neighborIndices(x,y)) {
+        if(matter[j]===FIRE || matter[j]===LAVA) temp[i]+=matter[j]===LAVA?80:32;
+        if(matter[j]===WATER) temp[j]-=brine[j]?2:5;
+      }
+      if(temp[i]>4 && chance(.2)) replace(i,WATER,2);
+    }
+    function updatePlant(i,x,y) {
+      let wet=false, grounded=false, hot=false;
+      for(const j of neighborIndices(x,y)) {
+        wet ||= matter[j]===WATER; grounded ||= matter[j]===SAND || matter[j]===STONE;
+        hot ||= matter[j]===FIRE || matter[j]===LAVA;
+      }
+      if(hot && chance(.38)) { replace(i,FIRE,800); return; }
+      if(wet && grounded && chance(.018)) {
+        const candidates=[[x,y-1],[x-1,y],[x+1,y],[x-1,y-1],[x+1,y-1]];
+        const [nx,ny]=candidates[rand()*candidates.length|0];
+        if(isEmpty(nx,ny)) { const j=idx(nx,ny); replace(j,PLANT,20); touched[j]=tickStamp; spawn(nx,ny,"grow"); }
+      }
+    }
+
+    function tick() {
+      tickCount++; tickStamp=(tickStamp+1)&65535; if(tickStamp===0){touched.fill(0);tickStamp=1;}
+      const flip=tickCount&1;
+      // Buoyant cells are scanned top-to-bottom; all others bottom-to-top.
+      for(let y=0;y<H;y++) {
+        for(let q=0;q<W;q++) {
+          const x=flip?W-1-q:q, i=idx(x,y), m=matter[i];
+          if(touched[i]===tickStamp || (m!==FIRE && m!==STEAM)) continue;
+          touched[i]=tickStamp; heatExchange(i,x,y);
+          if(m===FIRE) updateFire(i,x,y); else updateSteam(i,x,y);
+        }
+      }
+      for(let yy=H-1;yy>=0;yy--) {
+        for(let q=0;q<W;q++) {
+          const x=flip?q:W-1-q, i=idx(x,yy), m=matter[i];
+          if(m===E || m===FIRE || m===STEAM || touched[i]===tickStamp) continue;
+          touched[i]=tickStamp; heatExchange(i,x,yy);
+          if(m===SAND || m===SALT) updatePowder(i,x,yy,m);
+          else if(m===WATER || m===OIL || m===LAVA) updateLiquid(i,x,yy,m);
+          else if(m===ICE) updateIce(i,x,yy);
+          else if(m===PLANT) updatePlant(i,x,yy);
+          else if((m===WOOD) && neighborIndices(x,yy).some(j=>matter[j]===FIRE||matter[j]===LAVA) && chance(.16)) replace(i,FIRE,820);
+        }
+      }
+    }
+
+    function spawn(x,y,type) {
+      if(particles.length>=MAX_PARTICLES || (reduceMotion && !chance(.2))) return;
+      const color=type==="ember"?"#ffbc55":type==="steam"||type==="mist"?"#cceff1":type==="grow"?"#8cf18a":type==="salt"?"#fff4dd":"#ff7652";
+      particles.push({x:x+rand(),y:y+rand(),vx:(rand()-.5)*.25,vy:type==="cool"?.08:-.18-rand()*.24,life:18+rand()*30,size:.35+rand()*.7,color});
+    }
+    function updateParticles() {
+      for(let i=particles.length-1;i>=0;i--) {
+        const p=particles[i]; p.x+=p.vx; p.y+=p.vy; p.life--;
+        if(p.life<=0 || p.y<0) { particles[i]=particles[particles.length-1]; particles.pop(); }
+      }
+    }
+
+    const palette = [
+      [4,7,10], [226,178,94], [45,137,213], [91,102,108], [137,78,44], [62,170,77],
+      [255,103,42], [93,72,31], [155,223,243], [157,190,197], [247,62,25], [232,226,211]
+    ];
+    function render() {
+      const data=image.data; let active=0;
+      for(let i=0;i<N;i++) {
+        const m=matter[i], o=i*4; let [r,g,b]=palette[m];
+        if(m!==E) active++;
+        const variation=((i*17 + (i/W|0)*11)%13)-6;
+        r+=variation; g+=variation; b+=variation;
+        if(m===WATER && brine[i]) { r+=18; g+=8; b-=7; }
+        if(m===FIRE) { const flick=(tickCount+i)%4; r=255; g=80+flick*30; b=22; }
+        if(m===LAVA) { const hot=Math.max(0,Math.min(1,(temp[i]-650)/550)); r=242; g=45+hot*85; b=18; }
+        if(m===STONE && temp[i]>70) { r+=Math.min(65,temp[i]/10); g+=Math.min(24,temp[i]/28); }
+        if(m===STEAM) { const a=Math.max(0,Math.min(35,(temp[i]-60)/3)); r+=a;g+=a;b+=a; }
+        data[o]=Math.max(0,Math.min(255,r)); data[o+1]=Math.max(0,Math.min(255,g));
+        data[o+2]=Math.max(0,Math.min(255,b)); data[o+3]=255;
+      }
+      activeCells=active; pctx.putImageData(image,0,0);
+      ctx.imageSmoothingEnabled=false; ctx.fillStyle="#04070a"; ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.drawImage(pixelCanvas,0,0,canvas.width,canvas.height);
+      const sx=canvas.width/W, sy=canvas.height/H;
+      ctx.save(); ctx.globalCompositeOperation="screen";
+      for(const p of particles) {
+        ctx.globalAlpha=Math.min(.7,p.life/18); ctx.fillStyle=p.color;
+        ctx.fillRect(p.x*sx,p.y*sy,Math.max(1,p.size*sx),Math.max(1,p.size*sy));
+      }
+      ctx.restore();
+      if(hoverPoint) {
+        ctx.save(); ctx.strokeStyle=eraseMode?"#ff8d7f":"#ecffff"; ctx.globalAlpha=.75; ctx.lineWidth=1;
+        ctx.beginPath(); ctx.arc((hoverPoint.x+.5)*sx,(hoverPoint.y+.5)*sy,brush*Math.min(sx,sy),0,Math.PI*2); ctx.stroke(); ctx.restore();
+      }
+    }
+
+    function resizeCanvas() {
+      const r=canvas.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2);
+      canvas.width=Math.max(1,Math.round(r.width*dpr)); canvas.height=Math.max(1,Math.round(r.height*dpr));
+      render();
+    }
+    new ResizeObserver(resizeCanvas).observe(canvas);
+
+    function pointFromEvent(e) {
+      const r=canvas.getBoundingClientRect();
+      return {x:Math.max(0,Math.min(W-1,Math.floor((e.clientX-r.left)/r.width*W))),
+              y:Math.max(0,Math.min(H-1,Math.floor((e.clientY-r.top)/r.height*H)))};
+    }
+    function paintAt(p,mat=selected) {
+      for(let y=p.y-brush;y<=p.y+brush;y++) for(let x=p.x-brush;x<=p.x+brush;x++) {
+        const d=Math.hypot(x-p.x,y-p.y);
+        if(d<=brush*(.82+rand()*.28) && inside(x,y)) {
+          const i=idx(x,y); matter[i]=mat; temp[i]=defaultTemp(mat); brine[i]=0;
+          life[i]=mat===FIRE?35+rand()*50|0:mat===STEAM?150:0;
+        }
+      }
+    }
+    function paintLine(a,b,mat) {
+      const steps=Math.max(Math.abs(b.x-a.x),Math.abs(b.y-a.y),1);
+      for(let n=0;n<=steps;n++) paintAt({x:Math.round(a.x+(b.x-a.x)*n/steps),y:Math.round(a.y+(b.y-a.y)*n/steps)},mat);
+    }
+    canvas.addEventListener("pointerdown",e=>{
+      e.preventDefault(); canvas.setPointerCapture(e.pointerId); pointerDown=true; eraseMode=e.button===2;
+      const p=pointFromEvent(e); const anchor=e.shiftKey&&lastPoint?lastPoint:p;
+      paintLine(anchor,p,eraseMode?E:selected); lastPoint=p; hoverPoint=p;
+    });
+    canvas.addEventListener("pointermove",e=>{
+      const p=pointFromEvent(e); hoverPoint=p;
+      if(pointerDown) { paintLine(lastPoint||p,p,eraseMode?E:selected); lastPoint=p; }
+    });
+    canvas.addEventListener("pointerup",e=>{ pointerDown=false; eraseMode=false; lastPoint=pointFromEvent(e); });
+    canvas.addEventListener("pointercancel",()=>{pointerDown=false;eraseMode=false;});
+    canvas.addEventListener("pointerleave",()=>{hoverPoint=null;});
+    canvas.addEventListener("contextmenu",e=>e.preventDefault());
+    canvas.addEventListener("wheel",e=>{ e.preventDefault(); setBrush(brush+(e.deltaY<0?1:-1)); },{passive:false});
+
+    function setSelected(id) {
+      selected=id; document.getElementById("selectedName").textContent=names[id];
+      document.querySelectorAll(".material").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.id===id)));
+    }
+    function setBrush(v) {
+      brush=Math.max(1,Math.min(14,+v)); brushRange.value=brush;
+      document.getElementById("brushValue").textContent=`${brush} cells`;
+      document.getElementById("brushStatus").textContent=brush;
+    }
+    function setPaused(value) {
+      paused=value; pauseBtn.setAttribute("aria-pressed",String(paused));
+      pauseBtn.textContent=paused?"▶ Resume":"Ⅱ Pause";
+      terrarium.classList.toggle("paused",paused);
+      document.getElementById("runStatus").textContent=paused?"PAUSED":"RUNNING";
+    }
+    function announce(text) { document.getElementById("liveMessage").textContent=text; }
+
+    function buildUI() {
+      const host=document.getElementById("materials");
+      for(const m of materials) {
+        const b=document.createElement("button"); b.type="button"; b.className="material"; b.dataset.id=m.id;
+        b.setAttribute("aria-pressed",String(m.id===selected)); b.setAttribute("aria-label",`Select ${m.name}`);
+        b.innerHTML=`<span class="swatch" style="background:${m.color}"></span><span>${m.name}</span><span class="key">${m.key}</span>`;
+        b.addEventListener("click",()=>setSelected(m.id)); host.appendChild(b);
+      }
+      const ph=document.getElementById("presets");
+      for(const [key,p] of Object.entries(presets)) {
+        const b=document.createElement("button"); b.type="button"; b.className="preset"; b.dataset.preset=key;
+        b.textContent=p.title; b.setAttribute("aria-pressed",String(key===currentPreset));
+        b.addEventListener("click",()=>loadPreset(key)); ph.appendChild(b);
+      }
+    }
+    buildUI();
+    document.getElementById("materialSearch").addEventListener("input",e=>{
+      const q=e.target.value.trim().toLowerCase();
+      document.querySelectorAll(".material").forEach(b=>b.hidden=!names[+b.dataset.id].toLowerCase().includes(q));
+    });
+    pauseBtn.addEventListener("click",()=>setPaused(!paused));
+    stepBtn.addEventListener("click",()=>{ if(!paused)setPaused(true); tick(); render(); announce("Advanced one simulation tick"); });
+    document.getElementById("resetBtn").addEventListener("click",()=>loadPreset(currentPreset));
+    document.getElementById("clearBtn").addEventListener("click",()=>{clearWorld();announce("Chamber cleared");});
+    speedRange.addEventListener("input",()=>{speed=+speedRange.value;document.getElementById("speedValue").textContent=`${speed}×`;});
+    brushRange.addEventListener("input",()=>setBrush(brushRange.value));
+    addEventListener("keydown",e=>{
+      if(e.target.matches("input") && e.target.type!=="range") return;
+      if(e.code==="Space"){e.preventDefault();setPaused(!paused);}
+      else if(e.key==="."){e.preventDefault();if(!paused)setPaused(true);tick();render();}
+      else if(e.key.toLowerCase()==="r"){e.preventDefault();loadPreset(currentPreset);}
+      else if(e.key==="["){e.preventDefault();setBrush(brush-1);}
+      else if(e.key==="]"){e.preventDefault();setBrush(brush+1);}
+      else if(/^[1-9]$/.test(e.key)) setSelected(+e.key);
+    });
+
+    function frame(now) {
+      const dt=Math.min(100,now-lastFrame); lastFrame=now; accumulator+=dt*speed;
+      if(!paused) {
+        const stepMs=1000/60; let steps=0;
+        while(accumulator>=stepMs && steps<6){tick();accumulator-=stepMs;steps++;}
+      } else accumulator=0;
+      updateParticles(); render();
+      fpsFrames++; fpsTime+=dt;
+      if(fpsTime>=500) {
+        fpsSmooth=Math.round(fpsFrames*1000/fpsTime); fpsFrames=0; fpsTime=0;
+        document.getElementById("fps").textContent=fpsSmooth;
+        document.getElementById("activeCount").textContent=activeCells.toLocaleString();
+      }
+      requestAnimationFrame(frame);
+    }
+
+    const live=document.createElement("div"); live.id="liveMessage"; live.className="sr-only";
+    live.setAttribute("aria-live","polite"); document.body.appendChild(live);
+    loadPreset("volcano"); resizeCanvas(); requestAnimationFrame(frame);
+  })();
+  </script>
+</body>
+</html>

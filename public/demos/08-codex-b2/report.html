@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Trace Sheriff · fixtures/sample.jsonl</title>
+<style>
+:root{color-scheme:dark;--bg:#0a0d12;--panel:#111720;--line:#263243;--muted:#93a1b5;--text:#eef4ff;--cyan:#59d8ff;--purple:#a98cff;--red:#ff667a;--amber:#ffc45f;--green:#63e6a5}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 15% 0,#172234 0,transparent 34%),var(--bg);color:var(--text);font:14px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace}
+main{max-width:1540px;margin:auto;padding:28px 34px 52px}header{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1px solid var(--line);padding-bottom:20px}
+.eyebrow{color:var(--cyan);letter-spacing:.15em;text-transform:uppercase;font-size:11px}h1{font-size:30px;margin:4px 0 2px;letter-spacing:-.04em}header p{margin:0;color:var(--muted)}
+.stamp{border:1px solid var(--green);color:var(--green);padding:8px 12px;transform:rotate(-1deg);text-transform:uppercase;font-weight:800}
+.stats{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin:20px 0}.stat{background:#101620cc;border:1px solid var(--line);padding:14px;border-radius:8px}.stat b{display:block;font-size:23px}.stat span{color:var(--muted);font-size:11px;text-transform:uppercase}
+.controls{display:flex;gap:12px;align-items:center;margin:20px 0 12px}.controls label{color:var(--muted)}select{background:var(--panel);color:var(--text);border:1px solid var(--line);padding:7px 30px 7px 9px;border-radius:5px}
+.legend{margin-left:auto;color:var(--muted);display:flex;gap:14px}.dot{width:9px;height:9px;display:inline-block;border-radius:2px;margin-right:5px}.dot.tool{background:var(--cyan)}.dot.phase{background:var(--purple)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.session-card{border:1px solid var(--line);background:linear-gradient(145deg,#121a25,#0f141c);padding:16px;border-radius:9px;min-height:210px}
+.session-head{display:grid;grid-template-columns:1.5fr repeat(4,.72fr);gap:10px;align-items:start}.session-head h2{display:inline;margin:0 8px 0 0;font-size:20px}.outcome{font-size:10px;padding:3px 6px;border:1px solid var(--line);border-radius:10px;color:var(--amber)}.outcome.ok{color:var(--green)}.outcome.error,.outcome.incomplete{color:var(--red)}
+.metric b,.metric span{display:block}.metric b{font-size:14px}.metric span{font-size:9px;color:var(--muted);text-transform:uppercase}
+.axis{display:grid;grid-template-columns:32px 1fr 45px;align-items:center;color:var(--muted);font-size:9px;margin-top:18px}.axis>div{height:14px;border-bottom:1px solid var(--line);position:relative}.axis i{position:absolute;bottom:-3px;width:1px;height:6px;background:#64748b}
+.span-row{display:grid;grid-template-columns:150px 1fr;gap:8px;align-items:center;margin-top:7px}.span-label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:11px}.kind{display:inline-block;width:39px;font-size:8px;text-transform:uppercase;margin-right:6px;color:var(--purple)}.kind.tool{color:var(--cyan)}
+.track{height:10px;background:#0a0f16;border-radius:3px;position:relative}.bar{height:100%;position:absolute;border-radius:2px}.bar.tool{background:var(--cyan)}.bar.phase{background:var(--purple)}.bar.open{background:repeating-linear-gradient(90deg,var(--amber) 0 5px,transparent 5px 8px);outline:1px solid var(--amber)}
+section{margin-top:30px}h3{font-size:17px;margin:0 0 10px}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:8px}table{width:100%;border-collapse:collapse;background:#0e141d}th,td{text-align:left;padding:9px 10px;border-bottom:1px solid #1c2633;vertical-align:top}th{color:var(--muted);font-size:10px;text-transform:uppercase;position:sticky;top:0;background:#121923}td code{color:#d5e2f5}.sev{font-size:9px;text-transform:uppercase;font-weight:800}.sev.error{color:var(--red)}.sev.warning{color:var(--amber)}.sev.info{color:var(--cyan)}
+.codes{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden}.codes>div{display:grid;grid-template-columns:190px 1fr;gap:8px;background:#0e141d;padding:9px}.codes span{color:var(--muted)}.malformed code{color:var(--red);white-space:pre-wrap}.empty{color:var(--muted);padding:15px}.hidden{display:none!important}
+@media(max-width:1000px){main{padding:20px}.grid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(3,1fr)}.codes{grid-template-columns:1fr}.session-head{grid-template-columns:1fr repeat(2,1fr)}}
+</style>
+</head>
+<body><main>
+<header><div><div class="eyebrow">Agent timeline forensics</div><h1>Trace Sheriff</h1><p>fixtures/sample.jsonl · 24 source lines</p></div><div class="stamp">Analysis complete</div></header>
+<div class="stats">
+  <div class="stat"><b>4</b><span>sessions</span></div>
+  <div class="stat"><b>23</b><span>valid events</span></div>
+  <div class="stat"><b>10</b><span>findings</span></div>
+  <div class="stat"><b>6</b><span>errors</span></div>
+  <div class="stat"><b>4</b><span>warnings</span></div>
+  <div class="stat"><b>1</b><span>malformed</span></div>
+</div>
+<div class="controls"><label>Session <select id="sessionFilter"><option value="">All sessions</option><option value="alpha">alpha</option><option value="beta">beta</option><option value="gamma">gamma</option><option value="delta">delta</option></select></label><label>Severity <select id="severityFilter"><option value="">All severities</option><option>error</option><option>warning</option><option>info</option></select></label><div class="legend"><span><i class="dot tool"></i>tool</span><span><i class="dot phase"></i>phase</span></div></div>
+<div class="grid"><article class="session-card" data-session="alpha">
+    <div class="session-head">
+      <div><h2>alpha</h2><span class="outcome ok">ok</span></div>
+      <div class="metric"><b>7.0s</b><span>wall</span></div>
+      <div class="metric"><b>1.50s</b><span>tool sum</span></div>
+      <div class="metric"><b>1</b><span>peak tools</span></div>
+      <div class="metric"><b>7</b><span>events</span></div>
+    </div>
+    <div class="axis"><span>0</span><div><i style="left:0.000%" title="L1 session_start"></i><i style="left:14.286%" title="L2 phase_start"></i><i style="left:28.571%" title="L3 tool_start"></i><i style="left:50.000%" title="L4 tool_end"></i><i style="left:57.143%" title="L5 message"></i><i style="left:71.429%" title="L6 phase_end"></i><i style="left:100.000%" title="L7 session_end"></i></div><span>7.0s</span></div>
+    <div class="span-list"><div class="span-row">
+      <div class="span-label"><span class="kind phase">phase</span><span title="phase-plan">planning</span></div>
+      <div class="track"><div class="bar phase" style="left:14.286%;width:57.143%" title="phase-plan · 4.0s"></div></div>
+    </div><div class="span-row">
+      <div class="span-label"><span class="kind tool">tool</span><span title="tool-read">read_file</span></div>
+      <div class="track"><div class="bar tool" style="left:28.571%;width:21.429%" title="tool-read · 1.50s"></div></div>
+    </div></div>
+  </article><article class="session-card" data-session="beta">
+    <div class="session-head">
+      <div><h2>beta</h2><span class="outcome error">error</span></div>
+      <div class="metric"><b>7.0s</b><span>wall</span></div>
+      <div class="metric"><b>10.0s</b><span>tool sum</span></div>
+      <div class="metric"><b>2</b><span>peak tools</span></div>
+      <div class="metric"><b>8</b><span>events</span></div>
+    </div>
+    <div class="axis"><span>0</span><div><i style="left:0.000%" title="L8 session_start"></i><i style="left:14.286%" title="L9 tool_start"></i><i style="left:28.571%" title="L10 tool_start"></i><i style="left:42.857%" title="L11 tool_end"></i><i style="left:57.143%" title="L12 message"></i><i style="left:0.000%" title="L13 message"></i><i style="left:85.714%" title="L14 tool_end"></i><i style="left:100.000%" title="L15 session_end"></i></div><span>7.0s</span></div>
+    <div class="span-list"><div class="span-row">
+      <div class="span-label"><span class="kind tool">tool</span><span title="tool-build">exclusive:build</span></div>
+      <div class="track"><div class="bar tool" style="left:14.286%;width:71.429%" title="tool-build · 5.0s"></div></div>
+    </div><div class="span-row">
+      <div class="span-label"><span class="kind tool">tool</span><span title="tool-test">exclusive:test</span></div>
+      <div class="track"><div class="bar tool open" style="left:28.571%;width:71.429%" title="tool-test · —"></div></div>
+    </div></div>
+  </article><article class="session-card" data-session="gamma">
+    <div class="session-head">
+      <div><h2>gamma</h2><span class="outcome incomplete">incomplete</span></div>
+      <div class="metric"><b>5.0s</b><span>wall</span></div>
+      <div class="metric"><b>3.0s</b><span>tool sum</span></div>
+      <div class="metric"><b>1</b><span>peak tools</span></div>
+      <div class="metric"><b>4</b><span>events</span></div>
+    </div>
+    <div class="axis"><span>0</span><div><i style="left:0.000%" title="L16 session_start"></i><i style="left:20.000%" title="L17 phase_end"></i><i style="left:40.000%" title="L18 tool_start"></i><i style="left:100.000%" title="L20 tool_end"></i></div><span>5.0s</span></div>
+    <div class="span-list"><div class="span-row">
+      <div class="span-label"><span class="kind tool">tool</span><span title="tool-write">write_file</span></div>
+      <div class="track"><div class="bar tool" style="left:40.000%;width:60.000%" title="tool-write · 3.0s"></div></div>
+    </div></div>
+  </article><article class="session-card" data-session="delta">
+    <div class="session-head">
+      <div><h2>delta</h2><span class="outcome ok">ok</span></div>
+      <div class="metric"><b>4.0s</b><span>wall</span></div>
+      <div class="metric"><b>0ms</b><span>tool sum</span></div>
+      <div class="metric"><b>0</b><span>peak tools</span></div>
+      <div class="metric"><b>4</b><span>events</span></div>
+    </div>
+    <div class="axis"><span>0</span><div><i style="left:0.000%" title="L21 session_start"></i><i style="left:25.000%" title="L22 session_start"></i><i style="left:50.000%" title="L23 phase_start"></i><i style="left:100.000%" title="L24 session_end"></i></div><span>4.0s</span></div>
+    <div class="span-list"><div class="span-row">
+      <div class="span-label"><span class="kind phase">phase</span><span title="phase-open">unfinished</span></div>
+      <div class="track"><div class="bar phase open" style="left:50.000%;width:50.000%" title="phase-open · —"></div></div>
+    </div></div>
+  </article></div>
+<section><h3>Findings ledger</h3><div class="table-wrap"><table><thead><tr><th>Severity</th><th>Line</th><th>Code</th><th>Session</th><th>Explanation</th><th>Related</th></tr></thead><tbody id="findings"><tr data-session="beta" data-severity="error">
+    <td><span class="sev error">error</span></td><td>L10</td><td><code>EXCLUSIVE_TOOL_OVERLAP</code></td>
+    <td>beta</td><td>Exclusive tool &quot;exclusive:test&quot; overlaps &quot;exclusive:build&quot; opened on line 9.</td><td>tool-test</td>
+  </tr><tr data-session="beta" data-severity="warning">
+    <td><span class="sev warning">warning</span></td><td>L10</td><td><code>OPEN_TOOL_SPAN</code></td>
+    <td>beta</td><td>Tool span &quot;tool-test&quot; remains open at end of input.</td><td>tool-test</td>
+  </tr><tr data-session="beta" data-severity="error">
+    <td><span class="sev error">error</span></td><td>L11</td><td><code>ORPHAN_TOOL_END</code></td>
+    <td>beta</td><td>tool end &quot;tool-ghost&quot; has no matching start.</td><td>tool-ghost</td>
+  </tr><tr data-session="beta" data-severity="error">
+    <td><span class="sev error">error</span></td><td>L12</td><td><code>DUPLICATE_EVENT_ID</code></td>
+    <td>beta</td><td>Event ID &quot;b3&quot; duplicates line 10.</td><td>b3</td>
+  </tr><tr data-session="beta" data-severity="warning">
+    <td><span class="sev warning">warning</span></td><td>L13</td><td><code>TIMESTAMP_REVERSAL</code></td>
+    <td>beta</td><td>Timestamp moves backward within session file order (2026-07-26T01:59:59.000Z).</td><td>b6</td>
+  </tr><tr data-session="gamma" data-severity="error">
+    <td><span class="sev error">error</span></td><td>L17</td><td><code>ORPHAN_PHASE_END</code></td>
+    <td>gamma</td><td>phase end &quot;phase-missing&quot; has no matching start.</td><td>phase-missing</td>
+  </tr><tr data-session="" data-severity="error">
+    <td><span class="sev error">error</span></td><td>L19</td><td><code>MALFORMED_JSON</code></td>
+    <td>global</td><td>Malformed JSON: JSON Parse error: Unexpected identifier &quot;this&quot;</td><td>—</td>
+  </tr><tr data-session="gamma" data-severity="warning">
+    <td><span class="sev warning">warning</span></td><td>L20</td><td><code>MISSING_SESSION_END</code></td>
+    <td>gamma</td><td>Session &quot;gamma&quot; has no session_end event.</td><td>gamma</td>
+  </tr><tr data-session="delta" data-severity="error">
+    <td><span class="sev error">error</span></td><td>L22</td><td><code>MULTIPLE_SESSION_START</code></td>
+    <td>delta</td><td>Session &quot;delta&quot; has multiple session_start events.</td><td>d2</td>
+  </tr><tr data-session="delta" data-severity="warning">
+    <td><span class="sev warning">warning</span></td><td>L23</td><td><code>OPEN_PHASE_SPAN</code></td>
+    <td>delta</td><td>Phase span &quot;phase-open&quot; remains open at end of input.</td><td>phase-open</td>
+  </tr></tbody></table></div></section>
+<section class="malformed"><h3>Malformed source lines</h3><div class="table-wrap"><table><thead><tr><th>Line</th><th>Raw input</th><th>Parser detail</th></tr></thead><tbody><tr>
+    <td>L19</td><td><code>this is not json</code></td><td>JSON Parse error: Unexpected identifier &quot;this&quot;</td>
+  </tr></tbody></table></div></section>
+<section><h3>Anomaly code reference</h3><div class="codes"><div><code>MALFORMED_JSON</code><span>A source line could not be parsed as JSON.</span></div><div><code>MISSING_REQUIRED_FIELD</code><span>A record lacks a field required by its event type.</span></div><div><code>UNKNOWN_EVENT_TYPE</code><span>The event type is outside the supported event model.</span></div><div><code>INVALID_TIMESTAMP</code><span>The timestamp cannot be interpreted as an ISO date.</span></div><div><code>DUPLICATE_EVENT_ID</code><span>An event_id appears more than once in the file.</span></div><div><code>TIMESTAMP_REVERSAL</code><span>Time moved backward within one session's source order.</span></div><div><code>ORPHAN_TOOL_END</code><span>A tool_end has no earlier open tool_start with that span_id.</span></div><div><code>ORPHAN_PHASE_END</code><span>A phase_end has no earlier open phase_start with that span_id.</span></div><div><code>OPEN_TOOL_SPAN</code><span>A tool_start was not closed before the input ended.</span></div><div><code>OPEN_PHASE_SPAN</code><span>A phase_start was not closed before the input ended.</span></div><div><code>MISSING_SESSION_END</code><span>The session has no session_end record.</span></div><div><code>MULTIPLE_SESSION_START</code><span>The session declares its start more than once.</span></div><div><code>EXCLUSIVE_TOOL_OVERLAP</code><span>Two exclusive-prefixed tools were open simultaneously.</span></div></div></section>
+</main>
+<script id="trace-data" type="application/json">{"schema_version":1,"source":"fixtures/sample.jsonl","line_count":24,"valid_event_count":23,"malformed_line_count":1,"session_count":4,"finding_count":10,"severity_counts":{"info":0,"warning":4,"error":6},"sessions":[{"session":"alpha","start_ts":"2026-07-26T01:00:00.000Z","end_ts":"2026-07-26T01:00:07.000Z","wall_clock_ms":7000,"tool_time_ms":1500,"peak_concurrent_tools":1,"event_count":7,"incomplete_span_count":0,"outcome":"ok","idle_gaps":[{"start_ts":"2026-07-26T01:00:00.000Z","end_ts":"2026-07-26T01:00:02.000Z","duration_ms":2000},{"start_ts":"2026-07-26T01:00:03.500Z","end_ts":"2026-07-26T01:00:07.000Z","duration_ms":3500}],"spans":[{"kind":"phase","span_id":"phase-plan","name":"planning","start_line":2,"end_line":6,"start_ts":"2026-07-26T01:00:01.000Z","end_ts":"2026-07-26T01:00:05.000Z","duration_ms":4000,"status":"ok","incomplete":false},{"kind":"tool","span_id":"tool-read","name":"read_file","start_line":3,"end_line":4,"start_ts":"2026-07-26T01:00:02.000Z","end_ts":"2026-07-26T01:00:03.500Z","duration_ms":1500,"status":"ok","incomplete":false}],"events":[{"ts":"2026-07-26T01:00:00.000Z","timestamp_ms":1785027600000,"session":"alpha","type":"session_start","event_id":"a1","line":1},{"ts":"2026-07-26T01:00:01.000Z","timestamp_ms":1785027601000,"session":"alpha","type":"phase_start","event_id":"a2","line":2,"span_id":"phase-plan","name":"planning"},{"ts":"2026-07-26T01:00:02.000Z","timestamp_ms":1785027602000,"session":"alpha","type":"tool_start","event_id":"a3","line":3,"span_id":"tool-read","name":"read_file"},{"ts":"2026-07-26T01:00:03.500Z","timestamp_ms":1785027603500,"session":"alpha","type":"tool_end","event_id":"a4","line":4,"span_id":"tool-read","name":"read_file","status":"ok"},{"ts":"2026-07-26T01:00:04.000Z","timestamp_ms":1785027604000,"session":"alpha","type":"message","event_id":"a5","line":5,"text":"plan complete"},{"ts":"2026-07-26T01:00:05.000Z","timestamp_ms":1785027605000,"session":"alpha","type":"phase_end","event_id":"a6","line":6,"span_id":"phase-plan","name":"planning","status":"ok"},{"ts":"2026-07-26T01:00:07.000Z","timestamp_ms":1785027607000,"session":"alpha","type":"session_end","event_id":"a7","line":7,"status":"ok"}]},{"session":"beta","start_ts":"2026-07-26T02:00:00.000Z","end_ts":"2026-07-26T02:00:07.000Z","wall_clock_ms":7000,"tool_time_ms":10000,"peak_concurrent_tools":2,"event_count":8,"incomplete_span_count":1,"outcome":"error","idle_gaps":[{"start_ts":"2026-07-26T02:00:00.000Z","end_ts":"2026-07-26T02:00:01.000Z","duration_ms":1000}],"spans":[{"kind":"tool","span_id":"tool-build","name":"exclusive:build","start_line":9,"end_line":14,"start_ts":"2026-07-26T02:00:01.000Z","end_ts":"2026-07-26T02:00:06.000Z","duration_ms":5000,"status":"ok","incomplete":false},{"kind":"tool","span_id":"tool-test","name":"exclusive:test","start_line":10,"end_line":null,"start_ts":"2026-07-26T02:00:02.000Z","end_ts":null,"duration_ms":null,"status":null,"incomplete":true}],"events":[{"ts":"2026-07-26T02:00:00.000Z","timestamp_ms":1785031200000,"session":"beta","type":"session_start","event_id":"b1","line":8},{"ts":"2026-07-26T02:00:01.000Z","timestamp_ms":1785031201000,"session":"beta","type":"tool_start","event_id":"b2","line":9,"span_id":"tool-build","name":"exclusive:build"},{"ts":"2026-07-26T02:00:02.000Z","timestamp_ms":1785031202000,"session":"beta","type":"tool_start","event_id":"b3","line":10,"span_id":"tool-test","name":"exclusive:test"},{"ts":"2026-07-26T02:00:03.000Z","timestamp_ms":1785031203000,"session":"beta","type":"tool_end","event_id":"b4","line":11,"span_id":"tool-ghost","name":"ghost","status":"ok"},{"ts":"2026-07-26T02:00:04.000Z","timestamp_ms":1785031204000,"session":"beta","type":"message","event_id":"b3","line":12,"text":"duplicate event id"},{"ts":"2026-07-26T01:59:59.000Z","timestamp_ms":1785031199000,"session":"beta","type":"message","event_id":"b6","line":13,"text":"clock moved backward in file order"},{"ts":"2026-07-26T02:00:06.000Z","timestamp_ms":1785031206000,"session":"beta","type":"tool_end","event_id":"b7","line":14,"span_id":"tool-build","name":"exclusive:build","status":"ok"},{"ts":"2026-07-26T02:00:07.000Z","timestamp_ms":1785031207000,"session":"beta","type":"session_end","event_id":"b8","line":15,"status":"error"}]},{"session":"gamma","start_ts":"2026-07-26T03:00:00.000Z","end_ts":null,"wall_clock_ms":5000,"tool_time_ms":3000,"peak_concurrent_tools":1,"event_count":4,"incomplete_span_count":0,"outcome":"incomplete","idle_gaps":[{"start_ts":"2026-07-26T03:00:00.000Z","end_ts":"2026-07-26T03:00:02.000Z","duration_ms":2000}],"spans":[{"kind":"tool","span_id":"tool-write","name":"write_file","start_line":18,"end_line":20,"start_ts":"2026-07-26T03:00:02.000Z","end_ts":"2026-07-26T03:00:05.000Z","duration_ms":3000,"status":"ok","incomplete":false}],"events":[{"ts":"2026-07-26T03:00:00.000Z","timestamp_ms":1785034800000,"session":"gamma","type":"session_start","event_id":"g1","line":16},{"ts":"2026-07-26T03:00:01.000Z","timestamp_ms":1785034801000,"session":"gamma","type":"phase_end","event_id":"g2","line":17,"span_id":"phase-missing","name":"implementation","status":"ok"},{"ts":"2026-07-26T03:00:02.000Z","timestamp_ms":1785034802000,"session":"gamma","type":"tool_start","event_id":"g3","line":18,"span_id":"tool-write","name":"write_file"},{"ts":"2026-07-26T03:00:05.000Z","timestamp_ms":1785034805000,"session":"gamma","type":"tool_end","event_id":"g4","line":20,"span_id":"tool-write","name":"write_file","status":"ok"}]},{"session":"delta","start_ts":"2026-07-26T04:00:00.000Z","end_ts":"2026-07-26T04:00:04.000Z","wall_clock_ms":4000,"tool_time_ms":0,"peak_concurrent_tools":0,"event_count":4,"incomplete_span_count":1,"outcome":"ok","idle_gaps":[{"start_ts":"2026-07-26T04:00:00.000Z","end_ts":"2026-07-26T04:00:04.000Z","duration_ms":4000}],"spans":[{"kind":"phase","span_id":"phase-open","name":"unfinished","start_line":23,"end_line":null,"start_ts":"2026-07-26T04:00:02.000Z","end_ts":null,"duration_ms":null,"status":null,"incomplete":true}],"events":[{"ts":"2026-07-26T04:00:00.000Z","timestamp_ms":1785038400000,"session":"delta","type":"session_start","event_id":"d1","line":21},{"ts":"2026-07-26T04:00:01.000Z","timestamp_ms":1785038401000,"session":"delta","type":"session_start","event_id":"d2","line":22},{"ts":"2026-07-26T04:00:02.000Z","timestamp_ms":1785038402000,"session":"delta","type":"phase_start","event_id":"d3","line":23,"span_id":"phase-open","name":"unfinished"},{"ts":"2026-07-26T04:00:04.000Z","timestamp_ms":1785038404000,"session":"delta","type":"session_end","event_id":"d4","line":24,"status":"ok"}]}],"findings":[{"code":"EXCLUSIVE_TOOL_OVERLAP","severity":"error","session":"beta","line":10,"message":"Exclusive tool \"exclusive:test\" overlaps \"exclusive:build\" opened on line 9.","related_id":"tool-test"},{"code":"OPEN_TOOL_SPAN","severity":"warning","session":"beta","line":10,"message":"Tool span \"tool-test\" remains open at end of input.","related_id":"tool-test"},{"code":"ORPHAN_TOOL_END","severity":"error","session":"beta","line":11,"message":"tool end \"tool-ghost\" has no matching start.","related_id":"tool-ghost"},{"code":"DUPLICATE_EVENT_ID","severity":"error","session":"beta","line":12,"message":"Event ID \"b3\" duplicates line 10.","related_id":"b3"},{"code":"TIMESTAMP_REVERSAL","severity":"warning","session":"beta","line":13,"message":"Timestamp moves backward within session file order (2026-07-26T01:59:59.000Z).","related_id":"b6"},{"code":"ORPHAN_PHASE_END","severity":"error","session":"gamma","line":17,"message":"phase end \"phase-missing\" has no matching start.","related_id":"phase-missing"},{"code":"MALFORMED_JSON","severity":"error","session":null,"line":19,"message":"Malformed JSON: JSON Parse error: Unexpected identifier \"this\"","related_id":null},{"code":"MISSING_SESSION_END","severity":"warning","session":"gamma","line":20,"message":"Session \"gamma\" has no session_end event.","related_id":"gamma"},{"code":"MULTIPLE_SESSION_START","severity":"error","session":"delta","line":22,"message":"Session \"delta\" has multiple session_start events.","related_id":"d2"},{"code":"OPEN_PHASE_SPAN","severity":"warning","session":"delta","line":23,"message":"Phase span \"phase-open\" remains open at end of input.","related_id":"phase-open"}],"malformed_lines":[{"line":19,"text":"this is not json","error":"JSON Parse error: Unexpected identifier \"this\""}]}</script>
+<script>
+const sessionFilter=document.querySelector("#sessionFilter"),severityFilter=document.querySelector("#severityFilter");
+function apply(){
+ const s=sessionFilter.value,v=severityFilter.value;
+ document.querySelectorAll(".session-card").forEach(el=>el.classList.toggle("hidden",!!s&&el.dataset.session!==s));
+ document.querySelectorAll("#findings tr").forEach(el=>el.classList.toggle("hidden",(!!s&&el.dataset.session!==s)|| (!!v&&el.dataset.severity!==v)));
+}
+sessionFilter.addEventListener("change",apply);severityFilter.addEventListener("change",apply);
+</script></body></html>

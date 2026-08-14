@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "status": "complete",
+  "title": "Latency Forensics — Find the Real Rollout Regression",
+  "kind": "dev",
+  "entrypoint": "report.html",
+  "artifacts": [
+    "report.html",
+    "analysis.md",
+    "out/analysis.json",
+    "src/analyze.ts",
+    "src/cli.ts",
+    "src/analyze.test.ts",
+    "data/requests.csv",
+    "README.md"
+  ],
+  "checks": [
+    {
+      "name": "test suite",
+      "command": "bun test",
+      "status": "passed",
+      "details": "All analysis tests passed."
+    },
+    {
+      "name": "reproducible analysis",
+      "command": "bun run src/cli.ts data/requests.csv --json out/analysis.json --markdown analysis.md --html report.html",
+      "status": "passed",
+      "details": "The supplied dataset produced JSON, Markdown, and HTML outputs."
+    }
+  ],
+  "summary": "Candidate is not broadly slower. Control mean 316.75 ms vs candidate 604.7 ms is a mix shift plus one bad cell: EU × mobile × cold, which is slower even at overlapping 720–960 KB payloads and contains all four 504s. Warm desktop and US mobile cold are faster for candidate. Hold unguarded rollout; do not treat the aggregate gap as a global candidate regression.",
+  "known_issues": []
+}

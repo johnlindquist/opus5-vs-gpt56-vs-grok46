@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Latency Forensics — Rollout Regression</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: #0b0d12; color: #e8edf5; font: 15px/1.45 "IBM Plex Sans", "Segoe UI", sans-serif; }
+  .overview {
+    width: 1600px; height: 900px; margin: 0 auto; padding: 28px 32px;
+    background: linear-gradient(180deg, #12151c 0%, #0b0d12 100%);
+    border-bottom: 1px solid #2a3140; display: grid;
+    grid-template-columns: 1.15fr 0.85fr; grid-template-rows: auto auto 1fr;
+    gap: 16px 24px;
+  }
+  h1 { font-size: 28px; margin: 0 0 6px; letter-spacing: -0.03em; }
+  .eyebrow { text-transform: uppercase; letter-spacing: 0.14em; color: #8b95a5; font-size: 11px; font-weight: 700; }
+  .verdict { font-size: 18px; color: #f3d39a; max-width: 72ch; }
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; grid-column: 1 / -1; }
+  .kpi { background: #181c24; border: 1px solid #2a3140; padding: 12px 14px; border-radius: 8px; }
+  .k-label { color: #8b95a5; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; }
+  .k-value { font-size: 26px; font-weight: 650; margin: 4px 0 2px; }
+  .k-sub { color: #a7b0be; font-size: 12px; }
+  .panel { background: #141820; border: 1px solid #2a3140; border-radius: 8px; padding: 14px 16px; overflow: hidden; }
+  h2 { margin: 0 0 8px; font-size: 15px; color: #d5dce8; }
+  .legend span { display: inline-block; margin-right: 12px; font-size: 12px; color: #a7b0be; }
+  .sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 5px 6px; border-bottom: 1px solid #2a3140; }
+  th { color: #8b95a5; font-weight: 600; }
+  tr.bad td { color: #ff8a7a; }
+  tr.good td { color: #8ee0b3; }
+  .page { max-width: 1600px; margin: 0 auto; padding: 32px; }
+  .mixes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  figure { margin: 0; }
+  figcaption { font-size: 12px; color: #8b95a5; margin-bottom: 4px; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  ol, ul { padding-left: 1.2rem; }
+  li { margin: 0.4rem 0; }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; background: #3a2a16; color: #f3d39a; }
+</style>
+</head>
+<body>
+<section class="overview" id="overview">
+  <div>
+    <div class="eyebrow">Latency forensics · 80 requests · time-split rollout</div>
+    <h1>Find the real regression</h1>
+    <p class="verdict">Candidate is not broadly slower. The aggregate regression is a mix shift plus one bad cell: EU mobile cold (large payloads), which also holds all four 504s. Hold unguarded rollout.</p>
+  </div>
+  <div class="panel">
+    <h2>Call from this file</h2>
+    <p><span class="tag">Recommendation</span> Hold unguarded rollout. Guard off EU × mobile × cold, especially ≥720 KB. Other strata look faster, not globally safe.</p>
+    <p class="legend">
+      <span><i class="sw" style="background:#5b8def"></i>control n=40</span>
+      <span><i class="sw" style="background:#e6a23c"></i>candidate n=40</span>
+      <span><i class="sw" style="background:#e85d4c"></i>non-200 n=4</span>
+    </p>
+  </div>
+  <div class="kpis">
+    <div class="kpi"><div class="k-label">Control mean</div><div class="k-value">316.8 ms</div><div class="k-sub">median 235.5 · p95 787.3 · err 0%</div></div>
+    <div class="kpi"><div class="k-label">Candidate mean</div><div class="k-value">604.7 ms</div><div class="k-sub">median 416.5 · p95 1457.8 · err 10%</div></div>
+    <div class="kpi"><div class="k-label">EU mobile cold Δ</div><div class="k-value">419 ms</div><div class="k-sub">control n=4 · candidate n=14</div></div>
+    <div class="kpi"><div class="k-label">Simpson-like mix</div><div class="k-value">3 strata faster</div><div class="k-sub">1 stratum slower; that stratum is overweighted</div></div>
+  </div>
+  <div class="panel"><svg viewBox="0 0 760 220" width="100%" height="220" role="img">
+      <rect width="760" height="220" fill="#141820"/>
+      <g>
+          <text x="162" y="38.5" text-anchor="end" fill="#c8d0dc" font-size="12">us|desktop|warm (n 16/8)</text>
+          <rect x="170" y="16" width="83.71896264086489" height="14" fill="#5b8def"/>
+          <rect x="170" y="34" width="72.26574344624656" height="14" fill="#e6a23c"/>
+        </g><g>
+          <text x="162" y="83.5" text-anchor="end" fill="#c8d0dc" font-size="12">us|mobile|cold (n 8/10)</text>
+          <rect x="170" y="61" width="217.1460593497433" height="14" fill="#5b8def"/>
+          <rect x="170" y="79" width="196.13492525362622" height="14" fill="#e6a23c"/>
+        </g><g>
+          <text x="162" y="128.5" text-anchor="end" fill="#c8d0dc" font-size="12">eu|desktop|warm (n 12/8)</text>
+          <rect x="170" y="106" width="110.92762549914598" height="14" fill="#5b8def"/>
+          <rect x="170" y="124" width="98.31164293451563" height="14" fill="#e6a23c"/>
+        </g><g>
+          <text x="162" y="173.5" text-anchor="end" fill="#c8d0dc" font-size="12">eu|mobile|cold (n 4/14)</text>
+          <rect x="170" y="151" width="371.2703440448355" height="14" fill="#5b8def"/>
+          <rect x="170" y="169" width="566" height="14" fill="#e6a23c"/>
+        </g>
+      <text x="170" y="214" fill="#8b95a5" font-size="11">mean latency_ms (blue control, gold candidate)</text>
+    </svg></div>
+  <div class="panel"><svg viewBox="0 0 620 280" width="100%" height="280" role="img" aria-label="Payload versus latency">
+    <rect width="620" height="280" fill="#141820"/>
+    <line x1="48" y1="244" x2="604" y2="244" stroke="#3a4250"/>
+    <line x1="48" y1="16" x2="48" y2="244" stroke="#3a4250"/>
+    <text x="310" y="272" text-anchor="middle" fill="#c8d0dc" font-size="12">payload_kb</text>
+    <text x="14" y="140" fill="#c8d0dc" font-size="12" transform="rotate(-90 14 140)">latency_ms</text>
+    <text x="48" y="260" fill="#8b95a5" font-size="11">0</text>
+    <text x="604" y="260" text-anchor="end" fill="#8b95a5" font-size="11">1120</text>
+    <text x="40" y="244" text-anchor="end" fill="#8b95a5" font-size="11">0</text>
+    <text x="40" y="24" text-anchor="end" fill="#8b95a5" font-size="11">1663</text>
+    <circle cx="71.8" cy="220.4" r="5" fill="#5b8def" opacity="0.9"><title>r001 control 48KB 172ms status 200</title></circle><circle cx="79.8" cy="219.2" r="5" fill="#5b8def" opacity="0.9"><title>r002 control 64KB 181ms status 200</title></circle><circle cx="87.7" cy="219.9" r="5" fill="#5b8def" opacity="0.9"><title>r003 control 80KB 176ms status 200</title></circle><circle cx="95.7" cy="218.2" r="5" fill="#5b8def" opacity="0.9"><title>r004 control 96KB 188ms status 200</title></circle><circle cx="71.8" cy="220.8" r="5" fill="#5b8def" opacity="0.9"><title>r005 control 48KB 169ms status 200</title></circle><circle cx="79.8" cy="218.8" r="5" fill="#5b8def" opacity="0.9"><title>r006 control 64KB 184ms status 200</title></circle><circle cx="87.7" cy="219.5" r="5" fill="#5b8def" opacity="0.9"><title>r007 control 80KB 179ms status 200</title></circle><circle cx="95.7" cy="217.8" r="5" fill="#5b8def" opacity="0.9"><title>r008 control 96KB 191ms status 200</title></circle><circle cx="71.8" cy="220.4" r="5" fill="#5b8def" opacity="0.9"><title>r009 control 48KB 172ms status 200</title></circle><circle cx="79.8" cy="219.2" r="5" fill="#5b8def" opacity="0.9"><title>r010 control 64KB 181ms status 200</title></circle><circle cx="87.7" cy="219.9" r="5" fill="#5b8def" opacity="0.9"><title>r011 control 80KB 176ms status 200</title></circle><circle cx="95.7" cy="218.2" r="5" fill="#5b8def" opacity="0.9"><title>r012 control 96KB 188ms status 200</title></circle><circle cx="71.8" cy="220.8" r="5" fill="#5b8def" opacity="0.9"><title>r013 control 48KB 169ms status 200</title></circle><circle cx="79.8" cy="218.8" r="5" fill="#5b8def" opacity="0.9"><title>r014 control 64KB 184ms status 200</title></circle><circle cx="87.7" cy="219.5" r="5" fill="#5b8def" opacity="0.9"><title>r015 control 80KB 179ms status 200</title></circle><circle cx="95.7" cy="217.8" r="5" fill="#5b8def" opacity="0.9"><title>r016 control 96KB 191ms status 200</title></circle><circle cx="127.4" cy="213.0" r="5" fill="#5b8def" opacity="0.9"><title>r017 control 160KB 226ms status 200</title></circle><circle cx="143.3" cy="211.0" r="5" fill="#5b8def" opacity="0.9"><title>r018 control 192KB 241ms status 200</title></circle><circle cx="159.2" cy="212.1" r="5" fill="#5b8def" opacity="0.9"><title>r019 control 224KB 233ms status 200</title></circle><circle cx="127.4" cy="209.9" r="5" fill="#5b8def" opacity="0.9"><title>r020 control 160KB 249ms status 200</title></circle><circle cx="143.3" cy="211.4" r="5" fill="#5b8def" opacity="0.9"><title>r021 control 192KB 238ms status 200</title></circle><circle cx="159.2" cy="210.6" r="5" fill="#5b8def" opacity="0.9"><title>r022 control 224KB 244ms status 200</title></circle><circle cx="127.4" cy="213.0" r="5" fill="#5b8def" opacity="0.9"><title>r023 control 160KB 226ms status 200</title></circle><circle cx="143.3" cy="211.0" r="5" fill="#5b8def" opacity="0.9"><title>r024 control 192KB 241ms status 200</title></circle><circle cx="159.2" cy="212.1" r="5" fill="#5b8def" opacity="0.9"><title>r025 control 224KB 233ms status 200</title></circle><circle cx="127.4" cy="209.9" r="5" fill="#5b8def" opacity="0.9"><title>r026 control 160KB 249ms status 200</title></circle><circle cx="143.3" cy="211.4" r="5" fill="#5b8def" opacity="0.9"><title>r027 control 192KB 238ms status 200</title></circle><circle cx="159.2" cy="210.6" r="5" fill="#5b8def" opacity="0.9"><title>r028 control 224KB 244ms status 200</title></circle><circle cx="167.1" cy="184.0" r="5" fill="#5b8def" opacity="0.9"><title>r029 control 240KB 438ms status 200</title></circle><circle cx="206.9" cy="179.3" r="5" fill="#5b8def" opacity="0.9"><title>r030 control 320KB 472ms status 200</title></circle><circle cx="246.6" cy="182.2" r="5" fill="#5b8def" opacity="0.9"><title>r031 control 400KB 451ms status 200</title></circle><circle cx="286.3" cy="177.0" r="5" fill="#5b8def" opacity="0.9"><title>r032 control 480KB 489ms status 200</title></circle><circle cx="167.1" cy="180.9" r="5" fill="#5b8def" opacity="0.9"><title>r033 control 240KB 460ms status 200</title></circle><circle cx="206.9" cy="175.3" r="5" fill="#5b8def" opacity="0.9"><title>r034 control 320KB 501ms status 200</title></circle><circle cx="246.6" cy="182.9" r="5" fill="#5b8def" opacity="0.9"><title>r035 control 400KB 446ms status 200</title></circle><circle cx="286.3" cy="178.5" r="5" fill="#5b8def" opacity="0.9"><title>r036 control 480KB 478ms status 200</title></circle><circle cx="405.4" cy="142.3" r="5" fill="#5b8def" opacity="0.9"><title>r037 control 720KB 742ms status 200</title></circle><circle cx="445.1" cy="132.8" r="5" fill="#5b8def" opacity="0.9"><title>r038 control 800KB 811ms status 200</title></circle><circle cx="484.9" cy="136.3" r="5" fill="#5b8def" opacity="0.9"><title>r039 control 880KB 786ms status 200</title></circle><circle cx="524.6" cy="126.9" r="5" fill="#5b8def" opacity="0.9"><title>r040 control 960KB 854ms status 200</title></circle><circle cx="71.8" cy="223.7" r="5" fill="#e6a23c" opacity="0.9"><title>r041 candidate 48KB 148ms status 200</title></circle><circle cx="79.8" cy="222.2" r="5" fill="#e6a23c" opacity="0.9"><title>r042 candidate 64KB 159ms status 200</title></circle><circle cx="87.7" cy="223.3" r="5" fill="#e6a23c" opacity="0.9"><title>r043 candidate 80KB 151ms status 200</title></circle><circle cx="95.7" cy="221.7" r="5" fill="#e6a23c" opacity="0.9"><title>r044 candidate 96KB 163ms status 200</title></circle><circle cx="71.8" cy="224.0" r="5" fill="#e6a23c" opacity="0.9"><title>r045 candidate 48KB 146ms status 200</title></circle><circle cx="79.8" cy="222.6" r="5" fill="#e6a23c" opacity="0.9"><title>r046 candidate 64KB 156ms status 200</title></circle><circle cx="87.7" cy="222.9" r="5" fill="#e6a23c" opacity="0.9"><title>r047 candidate 80KB 154ms status 200</title></circle><circle cx="95.7" cy="221.2" r="5" fill="#e6a23c" opacity="0.9"><title>r048 candidate 96KB 166ms status 200</title></circle><circle cx="127.4" cy="216.9" r="5" fill="#e6a23c" opacity="0.9"><title>r049 candidate 160KB 198ms status 200</title></circle><circle cx="143.3" cy="214.7" r="5" fill="#e6a23c" opacity="0.9"><title>r050 candidate 192KB 214ms status 200</title></circle><circle cx="159.2" cy="215.9" r="5" fill="#e6a23c" opacity="0.9"><title>r051 candidate 224KB 205ms status 200</title></circle><circle cx="175.1" cy="213.7" r="5" fill="#e6a23c" opacity="0.9"><title>r052 candidate 256KB 221ms status 200</title></circle><circle cx="127.4" cy="216.3" r="5" fill="#e6a23c" opacity="0.9"><title>r053 candidate 160KB 202ms status 200</title></circle><circle cx="143.3" cy="214.3" r="5" fill="#e6a23c" opacity="0.9"><title>r054 candidate 192KB 217ms status 200</title></circle><circle cx="159.2" cy="215.3" r="5" fill="#e6a23c" opacity="0.9"><title>r055 candidate 224KB 209ms status 200</title></circle><circle cx="175.1" cy="213.2" r="5" fill="#e6a23c" opacity="0.9"><title>r056 candidate 256KB 225ms status 200</title></circle><circle cx="167.1" cy="189.6" r="5" fill="#e6a23c" opacity="0.9"><title>r057 candidate 240KB 397ms status 200</title></circle><circle cx="206.9" cy="186.3" r="5" fill="#e6a23c" opacity="0.9"><title>r058 candidate 320KB 421ms status 200</title></circle><circle cx="246.6" cy="188.5" r="5" fill="#e6a23c" opacity="0.9"><title>r059 candidate 400KB 405ms status 200</title></circle><circle cx="286.3" cy="184.0" r="5" fill="#e6a23c" opacity="0.9"><title>r060 candidate 480KB 438ms status 200</title></circle><circle cx="326.0" cy="187.2" r="5" fill="#e6a23c" opacity="0.9"><title>r061 candidate 560KB 414ms status 200</title></circle><circle cx="167.1" cy="182.7" r="5" fill="#e6a23c" opacity="0.9"><title>r062 candidate 240KB 447ms status 200</title></circle><circle cx="206.9" cy="188.9" r="5" fill="#e6a23c" opacity="0.9"><title>r063 candidate 320KB 402ms status 200</title></circle><circle cx="246.6" cy="184.9" r="5" fill="#e6a23c" opacity="0.9"><title>r064 candidate 400KB 431ms status 200</title></circle><circle cx="286.3" cy="186.6" r="5" fill="#e6a23c" opacity="0.9"><title>r065 candidate 480KB 419ms status 200</title></circle><circle cx="326.0" cy="183.3" r="5" fill="#e6a23c" opacity="0.9"><title>r066 candidate 560KB 443ms status 200</title></circle><circle cx="405.4" cy="120.3" r="5" fill="#e6a23c" opacity="0.9"><title>r067 candidate 720KB 902ms status 200</title></circle><circle cx="445.1" cy="104.4" r="5" fill="#e6a23c" opacity="0.9"><title>r068 candidate 800KB 1018ms status 200</title></circle><circle cx="484.9" cy="88.3" r="5" fill="#e6a23c" opacity="0.9"><title>r069 candidate 880KB 1136ms status 200</title></circle><circle cx="524.6" cy="70.7" r="7" fill="#e85d4c" opacity="0.9"><title>r070 candidate 960KB 1264ms status 504</title></circle><circle cx="564.3" cy="53.7" r="5" fill="#e6a23c" opacity="0.9"><title>r071 candidate 1040KB 1388ms status 200</title></circle><circle cx="604.0" cy="36.7" r="7" fill="#e85d4c" opacity="0.9"><title>r072 candidate 1120KB 1512ms status 504</title></circle><circle cx="425.3" cy="114.6" r="5" fill="#e6a23c" opacity="0.9"><title>r073 candidate 760KB 944ms status 200</title></circle><circle cx="405.4" cy="95.7" r="5" fill="#e6a23c" opacity="0.9"><title>r074 candidate 720KB 1082ms status 200</title></circle><circle cx="445.1" cy="80.0" r="5" fill="#e6a23c" opacity="0.9"><title>r075 candidate 800KB 1196ms status 200</title></circle><circle cx="484.9" cy="62.0" r="7" fill="#e85d4c" opacity="0.9"><title>r076 candidate 880KB 1328ms status 504</title></circle><circle cx="524.6" cy="44.5" r="5" fill="#e6a23c" opacity="0.9"><title>r077 candidate 960KB 1455ms status 200</title></circle><circle cx="564.3" cy="26.9" r="7" fill="#e85d4c" opacity="0.9"><title>r078 candidate 1040KB 1584ms status 504</title></circle><circle cx="604.0" cy="108.8" r="5" fill="#e6a23c" opacity="0.9"><title>r079 candidate 1120KB 986ms status 200</title></circle><circle cx="425.3" cy="73.7" r="5" fill="#e6a23c" opacity="0.9"><title>r080 candidate 760KB 1242ms status 200</title></circle>
+  </svg></div>
+</section>
+
+<main class="page">
+  <h2>Aggregate comparison</h2>
+  <p>All rows include non-200 latency. Quantiles use Hyndman-Fan type 7 (linear interpolation at p·(n−1)).</p>
+  <table>
+    <thead><tr><th>variant</th><th>n</th><th>mean</th><th>median</th><th>p95</th><th>min</th><th>max</th><th>non-200</th></tr></thead>
+    <tbody>
+      <tr><td>control</td><td>40</td><td>316.75</td><td>235.50</td><td>787.25</td><td>169</td><td>854</td><td>0 (0%)</td></tr>
+      <tr><td>candidate</td><td>40</td><td>604.70</td><td>416.50</td><td>1457.85</td><td>146</td><td>1584</td><td>4 (10%)</td></tr>
+    </tbody>
+  </table>
+  <p>Status 200 only — control n=40, mean=316.75, median=235.50, p95=787.25, min=169, max=854; candidate n=36, mean=513.89, median=403.50, p95=1278.50, min=146, max=1455.</p>
+
+  <h2>Traffic mix</h2>
+  <div class="mixes"><figure><figcaption>Region</figcaption><svg viewBox="0 0 280 140" width="280" height="140" role="img">
+    <rect width="280" height="140" fill="#141820"/>
+    <g>
+        <rect x="16" y="16" width="54" height="96" fill="#5b8def"/>
+        <rect x="76" y="40" width="54" height="72" fill="#e6a23c"/>
+        <text x="70" y="132" text-anchor="middle" fill="#c8d0dc" font-size="12">us</text>
+      </g><g>
+        <rect x="148" y="48" width="54" height="64" fill="#5b8def"/>
+        <rect x="208" y="24" width="54" height="88" fill="#e6a23c"/>
+        <text x="202" y="132" text-anchor="middle" fill="#c8d0dc" font-size="12">eu</text>
+      </g>
+  </svg></figure><figure><figcaption>Device</figcaption><svg viewBox="0 0 280 140" width="280" height="140" role="img">
+    <rect width="280" height="140" fill="#141820"/>
+    <g>
+        <rect x="16" y="16" width="54" height="96" fill="#5b8def"/>
+        <rect x="76" y="57.14285714285714" width="54" height="54.85714285714286" fill="#e6a23c"/>
+        <text x="70" y="132" text-anchor="middle" fill="#c8d0dc" font-size="12">desktop</text>
+      </g><g>
+        <rect x="148" y="70.85714285714286" width="54" height="41.142857142857146" fill="#5b8def"/>
+        <rect x="208" y="29.714285714285708" width="54" height="82.28571428571429" fill="#e6a23c"/>
+        <text x="202" y="132" text-anchor="middle" fill="#c8d0dc" font-size="12">mobile</text>
+      </g>
+  </svg></figure><figure><figcaption>Cache</figcaption><svg viewBox="0 0 280 140" width="280" height="140" role="img">
+    <rect width="280" height="140" fill="#141820"/>
+    <g>
+        <rect x="16" y="16" width="54" height="96" fill="#5b8def"/>
+        <rect x="76" y="57.14285714285714" width="54" height="54.85714285714286" fill="#e6a23c"/>
+        <text x="70" y="132" text-anchor="middle" fill="#c8d0dc" font-size="12">warm</text>
+      </g><g>
+        <rect x="148" y="70.85714285714286" width="54" height="41.142857142857146" fill="#5b8def"/>
+        <rect x="208" y="29.714285714285708" width="54" height="82.28571428571429" fill="#e6a23c"/>
+        <text x="202" y="132" text-anchor="middle" fill="#c8d0dc" font-size="12">cold</text>
+      </g>
+  </svg></figure><figure><figcaption>Payload</figcaption><svg viewBox="0 0 280 140" width="280" height="140" role="img">
+    <rect width="280" height="140" fill="#141820"/>
+    <g>
+        <rect x="16" y="16" width="14.399999999999999" height="96" fill="#5b8def"/>
+        <rect x="36.4" y="64" width="14.399999999999999" height="48" fill="#e6a23c"/>
+        <text x="30.4" y="132" text-anchor="middle" fill="#c8d0dc" font-size="12">0-99</text>
+      </g><g>
+        <rect x="68.8" y="28.000000000000014" width="14.399999999999999" height="83.99999999999999" fill="#5b8def"/>
+        <rect x="89.19999999999999" y="64" width="14.399999999999999" height="48" fill="#e6a23c"/>
+        <text x="83.19999999999999" y="132" text-anchor="middle" fill="#c8d0dc" font-size="12">100-249</text>
+      </g><g>
+        <rect x="121.6" y="76" width="14.399999999999999" height="35.99999999999999" fill="#5b8def"/>
+        <rect x="142" y="64" width="14.399999999999999" height="48" fill="#e6a23c"/>
+        <text x="136" y="132" text-anchor="middle" fill="#c8d0dc" font-size="12">250-499</text>
+      </g><g>
+        <rect x="174.39999999999998" y="106" width="14.399999999999999" height="6" fill="#5b8def"/>
+        <rect x="194.79999999999998" y="76" width="14.399999999999999" height="35.99999999999999" fill="#e6a23c"/>
+        <text x="188.79999999999998" y="132" text-anchor="middle" fill="#c8d0dc" font-size="12">500-799</text>
+      </g><g>
+        <rect x="227.2" y="94" width="14.399999999999999" height="17.999999999999996" fill="#5b8def"/>
+        <rect x="247.6" y="52" width="14.399999999999999" height="60" fill="#e6a23c"/>
+        <text x="241.6" y="132" text-anchor="middle" fill="#c8d0dc" font-size="12">800+</text>
+      </g>
+  </svg></figure></div>
+
+  <h2>Stratum comparison</h2>
+  <table>
+    <thead><tr><th>stratum</th><th>ctrl n</th><th>ctrl mean</th><th>cand n</th><th>cand mean</th><th>Δ ms</th><th>direction</th></tr></thead>
+    <tbody><tr class="good"><td>us|desktop|warm</td><td>16</td><td>180.00</td><td>8</td><td>155.38</td><td>-24.6</td><td>faster</td></tr><tr class="good"><td>us|mobile|cold</td><td>8</td><td>466.88</td><td>10</td><td>421.70</td><td>-45.2</td><td>faster</td></tr><tr class="good"><td>eu|desktop|warm</td><td>12</td><td>238.50</td><td>8</td><td>211.38</td><td>-27.1</td><td>faster</td></tr><tr class="bad"><td>eu|mobile|cold</td><td>4</td><td>798.25</td><td>14</td><td>1216.93</td><td>418.7</td><td>slower</td></tr></tbody>
+  </table>
+
+  <h2>Payload versus latency</h2>
+  <p>Blue = control, gold = candidate 200, red = candidate non-200. Large payloads cluster in EU mobile cold.</p>
+  <svg viewBox="0 0 1200 420" width="100%" height="420" role="img" aria-label="Payload versus latency">
+    <rect width="1200" height="420" fill="#141820"/>
+    <line x1="48" y1="384" x2="1184" y2="384" stroke="#3a4250"/>
+    <line x1="48" y1="16" x2="48" y2="384" stroke="#3a4250"/>
+    <text x="600" y="412" text-anchor="middle" fill="#c8d0dc" font-size="12">payload_kb</text>
+    <text x="14" y="210" fill="#c8d0dc" font-size="12" transform="rotate(-90 14 210)">latency_ms</text>
+    <text x="48" y="400" fill="#8b95a5" font-size="11">0</text>
+    <text x="1184" y="400" text-anchor="end" fill="#8b95a5" font-size="11">1120</text>
+    <text x="40" y="384" text-anchor="end" fill="#8b95a5" font-size="11">0</text>
+    <text x="40" y="24" text-anchor="end" fill="#8b95a5" font-size="11">1663</text>
+    <circle cx="96.7" cy="345.9" r="5" fill="#5b8def" opacity="0.9"><title>r001 control 48KB 172ms status 200</title></circle><circle cx="112.9" cy="344.0" r="5" fill="#5b8def" opacity="0.9"><title>r002 control 64KB 181ms status 200</title></circle><circle cx="129.1" cy="345.1" r="5" fill="#5b8def" opacity="0.9"><title>r003 control 80KB 176ms status 200</title></circle><circle cx="145.4" cy="342.4" r="5" fill="#5b8def" opacity="0.9"><title>r004 control 96KB 188ms status 200</title></circle><circle cx="96.7" cy="346.6" r="5" fill="#5b8def" opacity="0.9"><title>r005 control 48KB 169ms status 200</title></circle><circle cx="112.9" cy="343.3" r="5" fill="#5b8def" opacity="0.9"><title>r006 control 64KB 184ms status 200</title></circle><circle cx="129.1" cy="344.4" r="5" fill="#5b8def" opacity="0.9"><title>r007 control 80KB 179ms status 200</title></circle><circle cx="145.4" cy="341.7" r="5" fill="#5b8def" opacity="0.9"><title>r008 control 96KB 191ms status 200</title></circle><circle cx="96.7" cy="345.9" r="5" fill="#5b8def" opacity="0.9"><title>r009 control 48KB 172ms status 200</title></circle><circle cx="112.9" cy="344.0" r="5" fill="#5b8def" opacity="0.9"><title>r010 control 64KB 181ms status 200</title></circle><circle cx="129.1" cy="345.1" r="5" fill="#5b8def" opacity="0.9"><title>r011 control 80KB 176ms status 200</title></circle><circle cx="145.4" cy="342.4" r="5" fill="#5b8def" opacity="0.9"><title>r012 control 96KB 188ms status 200</title></circle><circle cx="96.7" cy="346.6" r="5" fill="#5b8def" opacity="0.9"><title>r013 control 48KB 169ms status 200</title></circle><circle cx="112.9" cy="343.3" r="5" fill="#5b8def" opacity="0.9"><title>r014 control 64KB 184ms status 200</title></circle><circle cx="129.1" cy="344.4" r="5" fill="#5b8def" opacity="0.9"><title>r015 control 80KB 179ms status 200</title></circle><circle cx="145.4" cy="341.7" r="5" fill="#5b8def" opacity="0.9"><title>r016 control 96KB 191ms status 200</title></circle><circle cx="210.3" cy="334.0" r="5" fill="#5b8def" opacity="0.9"><title>r017 control 160KB 226ms status 200</title></circle><circle cx="242.7" cy="330.7" r="5" fill="#5b8def" opacity="0.9"><title>r018 control 192KB 241ms status 200</title></circle><circle cx="275.2" cy="332.4" r="5" fill="#5b8def" opacity="0.9"><title>r019 control 224KB 233ms status 200</title></circle><circle cx="210.3" cy="328.9" r="5" fill="#5b8def" opacity="0.9"><title>r020 control 160KB 249ms status 200</title></circle><circle cx="242.7" cy="331.3" r="5" fill="#5b8def" opacity="0.9"><title>r021 control 192KB 238ms status 200</title></circle><circle cx="275.2" cy="330.0" r="5" fill="#5b8def" opacity="0.9"><title>r022 control 224KB 244ms status 200</title></circle><circle cx="210.3" cy="334.0" r="5" fill="#5b8def" opacity="0.9"><title>r023 control 160KB 226ms status 200</title></circle><circle cx="242.7" cy="330.7" r="5" fill="#5b8def" opacity="0.9"><title>r024 control 192KB 241ms status 200</title></circle><circle cx="275.2" cy="332.4" r="5" fill="#5b8def" opacity="0.9"><title>r025 control 224KB 233ms status 200</title></circle><circle cx="210.3" cy="328.9" r="5" fill="#5b8def" opacity="0.9"><title>r026 control 160KB 249ms status 200</title></circle><circle cx="242.7" cy="331.3" r="5" fill="#5b8def" opacity="0.9"><title>r027 control 192KB 238ms status 200</title></circle><circle cx="275.2" cy="330.0" r="5" fill="#5b8def" opacity="0.9"><title>r028 control 224KB 244ms status 200</title></circle><circle cx="291.4" cy="287.1" r="5" fill="#5b8def" opacity="0.9"><title>r029 control 240KB 438ms status 200</title></circle><circle cx="372.6" cy="279.6" r="5" fill="#5b8def" opacity="0.9"><title>r030 control 320KB 472ms status 200</title></circle><circle cx="453.7" cy="284.2" r="5" fill="#5b8def" opacity="0.9"><title>r031 control 400KB 451ms status 200</title></circle><circle cx="534.9" cy="275.8" r="5" fill="#5b8def" opacity="0.9"><title>r032 control 480KB 489ms status 200</title></circle><circle cx="291.4" cy="282.2" r="5" fill="#5b8def" opacity="0.9"><title>r033 control 240KB 460ms status 200</title></circle><circle cx="372.6" cy="273.1" r="5" fill="#5b8def" opacity="0.9"><title>r034 control 320KB 501ms status 200</title></circle><circle cx="453.7" cy="285.3" r="5" fill="#5b8def" opacity="0.9"><title>r035 control 400KB 446ms status 200</title></circle><circle cx="534.9" cy="278.2" r="5" fill="#5b8def" opacity="0.9"><title>r036 control 480KB 478ms status 200</title></circle><circle cx="778.3" cy="219.8" r="5" fill="#5b8def" opacity="0.9"><title>r037 control 720KB 742ms status 200</title></circle><circle cx="859.4" cy="204.6" r="5" fill="#5b8def" opacity="0.9"><title>r038 control 800KB 811ms status 200</title></circle><circle cx="940.6" cy="210.1" r="5" fill="#5b8def" opacity="0.9"><title>r039 control 880KB 786ms status 200</title></circle><circle cx="1021.7" cy="195.0" r="5" fill="#5b8def" opacity="0.9"><title>r040 control 960KB 854ms status 200</title></circle><circle cx="96.7" cy="351.3" r="5" fill="#e6a23c" opacity="0.9"><title>r041 candidate 48KB 148ms status 200</title></circle><circle cx="112.9" cy="348.8" r="5" fill="#e6a23c" opacity="0.9"><title>r042 candidate 64KB 159ms status 200</title></circle><circle cx="129.1" cy="350.6" r="5" fill="#e6a23c" opacity="0.9"><title>r043 candidate 80KB 151ms status 200</title></circle><circle cx="145.4" cy="347.9" r="5" fill="#e6a23c" opacity="0.9"><title>r044 candidate 96KB 163ms status 200</title></circle><circle cx="96.7" cy="351.7" r="5" fill="#e6a23c" opacity="0.9"><title>r045 candidate 48KB 146ms status 200</title></circle><circle cx="112.9" cy="349.5" r="5" fill="#e6a23c" opacity="0.9"><title>r046 candidate 64KB 156ms status 200</title></circle><circle cx="129.1" cy="349.9" r="5" fill="#e6a23c" opacity="0.9"><title>r047 candidate 80KB 154ms status 200</title></circle><circle cx="145.4" cy="347.3" r="5" fill="#e6a23c" opacity="0.9"><title>r048 candidate 96KB 166ms status 200</title></circle><circle cx="210.3" cy="340.2" r="5" fill="#e6a23c" opacity="0.9"><title>r049 candidate 160KB 198ms status 200</title></circle><circle cx="242.7" cy="336.7" r="5" fill="#e6a23c" opacity="0.9"><title>r050 candidate 192KB 214ms status 200</title></circle><circle cx="275.2" cy="338.6" r="5" fill="#e6a23c" opacity="0.9"><title>r051 candidate 224KB 205ms status 200</title></circle><circle cx="307.7" cy="335.1" r="5" fill="#e6a23c" opacity="0.9"><title>r052 candidate 256KB 221ms status 200</title></circle><circle cx="210.3" cy="339.3" r="5" fill="#e6a23c" opacity="0.9"><title>r053 candidate 160KB 202ms status 200</title></circle><circle cx="242.7" cy="336.0" r="5" fill="#e6a23c" opacity="0.9"><title>r054 candidate 192KB 217ms status 200</title></circle><circle cx="275.2" cy="337.8" r="5" fill="#e6a23c" opacity="0.9"><title>r055 candidate 224KB 209ms status 200</title></circle><circle cx="307.7" cy="334.2" r="5" fill="#e6a23c" opacity="0.9"><title>r056 candidate 256KB 225ms status 200</title></circle><circle cx="291.4" cy="296.2" r="5" fill="#e6a23c" opacity="0.9"><title>r057 candidate 240KB 397ms status 200</title></circle><circle cx="372.6" cy="290.8" r="5" fill="#e6a23c" opacity="0.9"><title>r058 candidate 320KB 421ms status 200</title></circle><circle cx="453.7" cy="294.4" r="5" fill="#e6a23c" opacity="0.9"><title>r059 candidate 400KB 405ms status 200</title></circle><circle cx="534.9" cy="287.1" r="5" fill="#e6a23c" opacity="0.9"><title>r060 candidate 480KB 438ms status 200</title></circle><circle cx="616.0" cy="292.4" r="5" fill="#e6a23c" opacity="0.9"><title>r061 candidate 560KB 414ms status 200</title></circle><circle cx="291.4" cy="285.1" r="5" fill="#e6a23c" opacity="0.9"><title>r062 candidate 240KB 447ms status 200</title></circle><circle cx="372.6" cy="295.1" r="5" fill="#e6a23c" opacity="0.9"><title>r063 candidate 320KB 402ms status 200</title></circle><circle cx="453.7" cy="288.6" r="5" fill="#e6a23c" opacity="0.9"><title>r064 candidate 400KB 431ms status 200</title></circle><circle cx="534.9" cy="291.3" r="5" fill="#e6a23c" opacity="0.9"><title>r065 candidate 480KB 419ms status 200</title></circle><circle cx="616.0" cy="286.0" r="5" fill="#e6a23c" opacity="0.9"><title>r066 candidate 560KB 443ms status 200</title></circle><circle cx="778.3" cy="184.4" r="5" fill="#e6a23c" opacity="0.9"><title>r067 candidate 720KB 902ms status 200</title></circle><circle cx="859.4" cy="158.8" r="5" fill="#e6a23c" opacity="0.9"><title>r068 candidate 800KB 1018ms status 200</title></circle><circle cx="940.6" cy="132.6" r="5" fill="#e6a23c" opacity="0.9"><title>r069 candidate 880KB 1136ms status 200</title></circle><circle cx="1021.7" cy="104.3" r="7" fill="#e85d4c" opacity="0.9"><title>r070 candidate 960KB 1264ms status 504</title></circle><circle cx="1102.9" cy="76.9" r="5" fill="#e6a23c" opacity="0.9"><title>r071 candidate 1040KB 1388ms status 200</title></circle><circle cx="1184.0" cy="49.5" r="7" fill="#e85d4c" opacity="0.9"><title>r072 candidate 1120KB 1512ms status 504</title></circle><circle cx="818.9" cy="175.1" r="5" fill="#e6a23c" opacity="0.9"><title>r073 candidate 760KB 944ms status 200</title></circle><circle cx="778.3" cy="144.6" r="5" fill="#e6a23c" opacity="0.9"><title>r074 candidate 720KB 1082ms status 200</title></circle><circle cx="859.4" cy="119.4" r="5" fill="#e6a23c" opacity="0.9"><title>r075 candidate 800KB 1196ms status 200</title></circle><circle cx="940.6" cy="90.2" r="7" fill="#e85d4c" opacity="0.9"><title>r076 candidate 880KB 1328ms status 504</title></circle><circle cx="1021.7" cy="62.1" r="5" fill="#e6a23c" opacity="0.9"><title>r077 candidate 960KB 1455ms status 200</title></circle><circle cx="1102.9" cy="33.5" r="7" fill="#e85d4c" opacity="0.9"><title>r078 candidate 1040KB 1584ms status 504</title></circle><circle cx="1184.0" cy="165.8" r="5" fill="#e6a23c" opacity="0.9"><title>r079 candidate 1120KB 986ms status 200</title></circle><circle cx="818.9" cy="109.2" r="5" fill="#e6a23c" opacity="0.9"><title>r080 candidate 760KB 1242ms status 200</title></circle>
+  </svg>
+
+  <h2>Error rows</h2>
+  <p>Exactly four non-200 rows, all candidate 504 in EU mobile cold.</p>
+  <table>
+    <thead><tr><th>id</th><th>minute</th><th>region</th><th>device</th><th>cache</th><th>payload_kb</th><th>latency_ms</th><th>status</th></tr></thead>
+    <tbody><tr><td>r070</td><td>27</td><td>eu</td><td>mobile</td><td>cold</td><td>960</td><td>1264</td><td>504</td></tr><tr><td>r072</td><td>29</td><td>eu</td><td>mobile</td><td>cold</td><td>1120</td><td>1512</td><td>504</td></tr><tr><td>r076</td><td>33</td><td>eu</td><td>mobile</td><td>cold</td><td>880</td><td>1328</td><td>504</td></tr><tr><td>r078</td><td>35</td><td>eu</td><td>mobile</td><td>cold</td><td>1040</td><td>1584</td><td>504</td></tr></tbody>
+  </table>
+
+  <div class="two">
+    <div>
+      <h2>Findings</h2>
+      <ol><li><strong>F1 · fact.</strong> All-row means: control 316.75 ms (n=40) vs candidate 604.7 ms (n=40). Candidate p95 1457.85 vs control 787.25. Candidate non-200 rate 0.1 (4/40); control 0 (0/40).</li><li><strong>F2 · fact.</strong> Traffic mix shifted toward slower cells. EU share 0.4 control vs 0.55 candidate; mobile 0.3 vs 0.6; cold cache 0.3 vs 0.6; payload 800+ 0.075 vs 0.25.</li><li><strong>F3 · fact.</strong> Within region×device×cache strata with both variants, candidate is faster in 3 stratum/strata (us|desktop|warm, us|mobile|cold, eu|desktop|warm) and slower in 1 (eu|mobile|cold).</li><li><strong>F4 · interpretation.</strong> Aggregate ranking conceals a mix-plus-interaction pattern similar to Simpson’s paradox: candidate is faster in the three non-EU-mobile-cold strata, yet slower overall because candidate traffic is heavier in EU mobile cold and that stratum itself is slower.</li><li><strong>F5 · fact.</strong> The materially worse interaction is candidate × EU × mobile × cold. Mean delta all-rows 418.6786 ms (control n=4, candidate n=14). All 4 non-200 rows are candidate 504s in that stratum: r070, r072, r076, r078.</li><li><strong>F6 · interpretation.</strong> Large cold EU mobile payloads are supported as the problem cell, not merely a mix artifact. At overlapping payloads 720–960 KB, candidate mean 1156.7 ms (n=10) vs control 798.25 ms (n=4). Candidate also extends to 1040–1120 KB with the highest latencies and the 504s. This is association in a small observational cell, not a proven payload causal mechanism.</li></ol>
+    </div>
+    <div>
+      <h2>Limitations</h2>
+      <ol><li>Variants occupy disjoint time windows (control minutes 0–15, candidate 20–37), so period effects are confounded with variant.</li><li>Assignment is not a concurrent randomized experiment; mix of region, device, cache, and payload is not balanced by design.</li><li>EU mobile cold control has only 4 rows; candidate has 14. Small n makes p95 and interaction magnitude fragile.</li><li>Cache state is collinear with device (desktop=warm, mobile=cold); region×device×cache strata cannot separate cache from device.</li><li>Payload size is collinear with region and device (US desktop smallest, EU mobile largest), so payload effects are not independently identified.</li><li>Four 504s are retained in latency statistics; failed requests may not be comparable to successful latency.</li><li>No retries, upstream dependency, or concurrency traces are present; a single-path regression cannot be isolated from correlated load.</li><li>Observational association must not be read as definitive causation of the candidate code path.</li></ol>
+      <h2>Recommendation</h2>
+      <ol><li>Do not continue an unguarded full rollout. Hold or exclude candidate on EU mobile cold (especially payloads ≥720 KB) until a concurrent stratified test reproduces or refutes the cell.</li><li>Warm desktop US/EU and US mobile cold look faster for candidate in this file; those cells may continue only behind a region/device/payload guard, not as proof of global safety.</li><li>Follow-up 1: run a concurrent randomized A/B with pre-registered strata and equalized mix, oversampling EU mobile cold large payloads.</li><li>Follow-up 2: run a payload-size sweep on EU mobile with cache warm vs cold held separately to test whether size, cache, or their interaction drives the 504s and latency slope.</li></ol>
+    </div>
+  </div>
+</main>
+</body>
+</html>

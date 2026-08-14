@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "status": "complete",
+  "title": "Weather Dial — Tiny City Climate Toy",
+  "kind": "visual",
+  "entrypoint": "index.html",
+  "artifacts": [
+    "index.html",
+    "README.md",
+    "smoke-test.mjs"
+  ],
+  "checks": [
+    {
+      "name": "headless simulation smoke test (34 assertions)",
+      "command": "node smoke-test.mjs",
+      "status": "passed",
+      "details": "Extracts the real inline script from index.html and runs it against DOM/Canvas 2D stubs, driving ~2000 frames plus synthetic input. Asserts: boots and renders without throwing; 12+ buildings, vehicles, pedestrians, trees, lamps and clouds exist; the attract story changes the weather with no input and then hands over control; all six named weather states yield distinct cloud/precip/fog/storm profiles; all four presets apply and differ; the summer-shower preset produces rain particles with zero snow flakes at 24 C; the winter-night preset falls as snow and accumulates on the ground grid; forcing 30 C on the snow state converts precipitation to rain and melts flakes already in the air; people seek cover during the storm preset while vehicles keep moving; particle count stays within the 1500 cap; pointer drag creates gusts that integrate cleanly; clicking a cloud seeds a precipitation burst; clicking a building fills the info card with floors and lit-window counts; 1-4 / Space / R keyboard shortcuts work and R restores defaults; the same seed rebuilds a byte-identical city signature; relayout does not throw and preserves the user's selected weather; sweeping every dial position across temperatures, hours and seasons stays stable."
+    },
+    {
+      "name": "inline script parses and every JS id lookup resolves to markup",
+      "command": "node -e '...extract <script id=\"app\">, compare id=\"...\" attributes against $(...) lookups...' && node --check /tmp/wd-app.js",
+      "status": "passed",
+      "details": "55 element ids declared in the markup; all 47 ids referenced from JavaScript resolve to real elements (no typo'd getElementById targets, which the stubbed test harness would otherwise mask). The extracted 2020-line inline script also passes node --check with no syntax errors."
+    },
+    {
+      "name": "no remote runtime references",
+      "command": "grep -nE \"https?://|//cdn|src=|@import|fetch\\(|XMLHttpRequest|import |require\\(|<link|@font-face\" index.html",
+      "status": "passed",
+      "details": "Zero matches: no remote URLs, no external scripts, stylesheets, fonts, images or maps, and no network APIs. index.html is fully self-contained and opens from file:// with system fonts only."
+    },
+    {
+      "name": "single self-contained entrypoint present",
+      "command": "ls -la && wc -l index.html README.md smoke-test.mjs",
+      "status": "passed",
+      "details": "index.html (2424 lines, ~98 KB) contains markup, styles, simulation and rendering; README.md documents the simulation and every control; smoke-test.mjs is the local check harness. No build step, server, package install or generated directory."
+    }
+  ],
+  "summary": "A direct-open, single-file isometric city diorama driven by a physical-feeling weather console. A circular dial sweeps continuously through clear, cloudy, rain, storm, snow and fog, with separate temperature, wind direction and strength, time-of-day, season, simulation speed, pause, reset, deterministic seed and four curated presets (summer shower, autumn gale, winter night, spring sunrise) on keys 1-4. The city holds ~20 seeded buildings with varied silhouettes and light-responsive windows, three avenues each way carrying signal-obeying traffic, ~90 trees that bend downwind and follow the season, parks, street lamps and tiny agents that break off to shelter in doorways when the weather turns. Weather is internally coherent: precipitation phase always follows the displayed temperature (flakes melt in flight if it warms up), rain darkens the tar and grows puddles, splash rings and warm reflected window light, snow accumulates per tile and on roofs and melts above freezing, storms fire capped and cooldown-limited lightning, and fog rolls in as drifting ribbons plus a depth wash. A ~30 second attract story runs clear morning to shower to squall to fog to night snowfall before yielding control on any input. Dragging paints a gust through clouds, precipitation and debris; clicking a cloud seeds a local burst; clicking a building opens a readable info card. Particles and agents are bounded, per-frame DOM work is throttled, resize preserves weather, and reduced-motion (or the Calm mode toggle) cuts particles, lightning and vehicle speed, with a live ARIA status line describing the city nonvisually.",
+  "known_issues": [
+    "No browser or screenshot automation was available in this environment, so rendering was verified through a stubbed-canvas headless harness and code review of the draw path rather than by inspecting actual pixels. Layout, colour and depth-sorting choices are unverified visually.",
+    "Vehicles obey traffic signals and follow the car ahead but do not yield to pedestrians; people and cars pass through each other at crossings.",
+    "The clock advances continuously during play, so the time-of-day slider drifts away from a value you set unless the simulation is paused or speed is set to 0."
+  ]
+}

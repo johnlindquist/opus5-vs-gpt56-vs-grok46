@@ -1,0 +1,9 @@
+{
+  "name": "trace-sheriff",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "analyze": "bun run src/cli.ts analyze",
+    "test": "bun test"
+  }
+}

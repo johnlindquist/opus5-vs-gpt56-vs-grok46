@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="bun test" tests="34" assertions="132" failures="0" skipped="0" time="0.53812">
+  <testsuite name="test/legacy-failures.test.ts" file="test/legacy-failures.test.ts" tests="10" assertions="24" failures="0" skipped="0" time="0">
+    <testsuite name="legacy failure modes" file="test/legacy-failures.test.ts" line="25" tests="10" assertions="24" failures="0" skipped="0" time="0.484">
+      <testcase name="#0 a synchronous throw escapes #pump, skipping retries and leaking the slot" classname="legacy failure modes" time="0.041369" file="test/legacy-failures.test.ts" line="26" assertions="3" />
+      <testcase name="#1/#2 drain resolves while a retry is still armed" classname="legacy failure modes" time="0.050864" file="test/legacy-failures.test.ts" line="51" assertions="2" />
+      <testcase name="#3 a retried job is re-queued without re-sorting, losing its priority" classname="legacy failure modes" time="0.081451" file="test/legacy-failures.test.ts" line="74" assertions="1" />
+      <testcase name="#4 the first retry waits 50ms instead of 25ms" classname="legacy failure modes" time="0.051802" file="test/legacy-failures.test.ts" line="104" assertions="1" />
+      <testcase name="#5 cancelling a running job retries it instead of ending it" classname="legacy failure modes" time="0.134721" file="test/legacy-failures.test.ts" line="124" assertions="3" />
+      <testcase name="#6 cancelling during retry backoff returns false and the job resurrects" classname="legacy failure modes" time="0.051203" file="test/legacy-failures.test.ts" line="152" assertions="3" />
+      <testcase name="#7 duplicate ids evict each other, making the first uncancellable" classname="legacy failure modes" time="0.036891" file="test/legacy-failures.test.ts" line="173" assertions="3" />
+      <testcase name="#8 add throws synchronously after close, with an untyped Error" classname="legacy failure modes" time="0.000135" file="test/legacy-failures.test.ts" line="201" assertions="3" />
+      <testcase name="#9 a NaN concurrency is accepted and deadlocks the queue" classname="legacy failure modes" time="0.040698" file="test/legacy-failures.test.ts" line="215" assertions="3" />
+      <testcase name="#9b a fractional concurrency is accepted" classname="legacy failure modes" time="0.000019" file="test/legacy-failures.test.ts" line="230" assertions="2" />
+    </testsuite>
+  </testsuite>
+  <testsuite name="test/job-queue.test.ts" file="test/job-queue.test.ts" tests="24" assertions="108" failures="0" skipped="0" time="0">
+    <testsuite name="construction" file="test/job-queue.test.ts" line="61" tests="1" assertions="9" failures="0" skipped="0" time="0">
+      <testcase name="concurrency must be an integer from 1 through 32" classname="construction" time="0.000107" file="test/job-queue.test.ts" line="62" assertions="9" />
+    </testsuite>
+    <testsuite name="ordering" file="test/job-queue.test.ts" line="74" tests="2" assertions="5" failures="0" skipped="0" time="0.002">
+      <testcase name="higher priority starts first and ties keep FIFO insertion order" classname="ordering" time="0.001552" file="test/job-queue.test.ts" line="75" assertions="2" />
+      <testcase name="at most `concurrency` jobs execute at once" classname="ordering" time="0.001515" file="test/job-queue.test.ts" line="102" assertions="3" />
+    </testsuite>
+    <testsuite name="duplicate ids" file="test/job-queue.test.ts" line="129" tests="2" assertions="12" failures="0" skipped="0" time="0.002">
+      <testcase name="rejected while pending, running, or retry-waiting" classname="duplicate ids" time="0.002625" file="test/job-queue.test.ts" line="130" assertions="5" />
+      <testcase name="an id becomes reusable after the job settles permanently" classname="duplicate ids" time="0" file="test/job-queue.test.ts" line="169" assertions="7" />
+    </testsuite>
+    <testsuite name="failures and retries" file="test/job-queue.test.ts" line="192" tests="4" assertions="18" failures="0" skipped="0" time="0.005">
+      <testcase name="a synchronous throw behaves exactly like a rejected promise" classname="failures and retries" time="0.001705" file="test/job-queue.test.ts" line="193" assertions="7" />
+      <testcase name="a job that eventually succeeds resolves with the later attempt" classname="failures and retries" time="0.002414" file="test/job-queue.test.ts" line="237" assertions="4" />
+      <testcase name="`retries` is additional attempts; exhaustion rejects with the last error" classname="failures and retries" time="0.002388" file="test/job-queue.test.ts" line="265" assertions="5" />
+      <testcase name="the default backoff curve is 25 * 2 ** (retry - 1)" classname="failures and retries" time="0" file="test/job-queue.test.ts" line="292" assertions="2" />
+    </testsuite>
+    <testsuite name="cancellation" file="test/job-queue.test.ts" line="300" tests="4" assertions="23" failures="0" skipped="0" time="0.006">
+      <testcase name="cancelling a pending job removes it and rejects exactly once" classname="cancellation" time="0.002453" file="test/job-queue.test.ts" line="301" assertions="7" />
+      <testcase name="cancelling a running job aborts its signal and never retries" classname="cancellation" time="0.002421" file="test/job-queue.test.ts" line="331" assertions="7" />
+      <testcase name="cancelling during retry backoff clears the timer" classname="cancellation" time="0.002768" file="test/job-queue.test.ts" line="363" assertions="7" />
+      <testcase name="cancel returns false when no live job holds the id" classname="cancellation" time="0.000096" file="test/job-queue.test.ts" line="391" assertions="2" />
+    </testsuite>
+    <testsuite name="drain" file="test/job-queue.test.ts" line="401" tests="4" assertions="12" failures="0" skipped="0" time="0.006">
+      <testcase name="waits for active and pending jobs, and all callers resolve" classname="drain" time="0.002447" file="test/job-queue.test.ts" line="402" assertions="4" />
+      <testcase name="does not resolve while a job is waiting in retry backoff" classname="drain" time="0.002468" file="test/job-queue.test.ts" line="433" assertions="4" />
+      <testcase name="jobs added before a pending drain resolves are included in it" classname="drain" time="0.00241" file="test/job-queue.test.ts" line="463" assertions="3" />
+      <testcase name="drain on an idle queue resolves immediately" classname="drain" time="0.000033" file="test/job-queue.test.ts" line="492" assertions="1" />
+    </testsuite>
+    <testsuite name="close" file="test/job-queue.test.ts" line="501" tests="2" assertions="16" failures="0" skipped="0" time="0.001">
+      <testcase name="blocks additions with QueueClosedError but lets work and retries settle" classname="close" time="0.001278" file="test/job-queue.test.ts" line="502" assertions="5" />
+      <testcase name="invalid additions reject rather than throw synchronously" classname="close" time="0.000095" file="test/job-queue.test.ts" line="531" assertions="11" />
+    </testsuite>
+    <testsuite name="events and stats" file="test/job-queue.test.ts" line="550" tests="4" assertions="10" failures="0" skipped="0" time="0.002">
+      <testcase name="transitions are emitted in a deterministic order" classname="events and stats" time="0.002394" file="test/job-queue.test.ts" line="551" assertions="3" />
+      <testcase name="a listener that throws cannot break queue execution" classname="events and stats" time="0.000128" file="test/job-queue.test.ts" line="590" assertions="3" />
+      <testcase name="a reporter that throws is also contained" classname="events and stats" time="0.000044" file="test/job-queue.test.ts" line="616" assertions="1" />
+      <testcase name="unsubscribe stops delivery and stats snapshots are frozen" classname="events and stats" time="0.00007" file="test/job-queue.test.ts" line="629" assertions="3" />
+    </testsuite>
+    <testsuite name="resource hygiene" file="test/job-queue.test.ts" line="654" tests="1" assertions="3" failures="0" skipped="0" time="0.008">
+      <testcase name="a mixed workload leaves no timers, live ids, or unsettled promises" classname="resource hygiene" time="0.008376" file="test/job-queue.test.ts" line="655" assertions="3" />
+    </testsuite>
+  </testsuite>
+</testsuites>

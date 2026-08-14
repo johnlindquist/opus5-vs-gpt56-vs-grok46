@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "status": "complete",
+  "title": "Latency Forensics — Find the Real Rollout Regression",
+  "kind": "dev",
+  "entrypoint": "report.html",
+  "artifacts": [
+    "report.html",
+    "analysis.md",
+    "out/analysis.json",
+    "src/analyze.ts",
+    "src/render.ts",
+    "src/cli.ts",
+    "tests/analyze.test.ts",
+    "data/requests.csv",
+    "README.md"
+  ],
+  "checks": [
+    {
+      "name": "test suite",
+      "command": "bun test",
+      "status": "passed",
+      "details": "83 tests, 319 assertions, 0 failures. Covers CSV parsing and required-column enforcement, row and variant counts, type-7 quantile behaviour, error-rate computation, stable grouping order under input reordering, known aggregate means against independent hand computation, identification of the four candidate 504 rows, JSON determinism, Markdown and HTML generation including escaping, and CLI exit 2 across seven invalid-input cases."
+    },
+    {
+      "name": "reproducible analysis",
+      "command": "bun run src/cli.ts data/requests.csv --json out/analysis.json --markdown analysis.md --html report.html",
+      "status": "passed",
+      "details": "Exit 0. Parsed 80 rows and wrote out/analysis.json, analysis.md, and report.html. All five validation checkpoints passed: 80 rows, 40 control, 40 candidate, 0 control non-200, 4 candidate non-200."
+    },
+    {
+      "name": "invalid usage exits 2",
+      "command": "bun run src/cli.ts",
+      "status": "passed",
+      "details": "Exit code 2 for missing arguments, and also verified in the test suite for unreadable input files, unknown options, options missing their value, duplicate positionals, a CSV missing a required column, and a non-numeric latency value."
+    },
+    {
+      "name": "visual report renders",
+      "command": "chrome --headless --window-size=1600,900 --screenshot report.html",
+      "status": "passed",
+      "details": "Rendered from disk in headless Chrome and inspected the 1600x900 overview plus the full 6600px page. Executive conclusion, aggregate comparison, traffic mix, stratum comparison, payload-vs-latency scatter, error rows, findings, limitations, and recommendations all render with readable labels and exact sample sizes. Layout was corrected twice after inspection (a flex-shrunk SVG and a clipped card). No external assets; screenshots were deleted after review."
+    },
+    {
+      "name": "chart palette validation",
+      "command": "node scripts/validate_palette.js \"#2a78d6,#eb6834\" --mode light --pairs all",
+      "status": "passed",
+      "details": "The two-series categorical palette passes lightness band, chroma floor, all-pairs CVD separation, normal-vision floor, and contrast-vs-surface in both light and dark modes."
+    }
+  ],
+  "summary": "An 80-row rollout dataset analysed with a dependency-free Bun/TypeScript library, CLI, test suite, structured JSON, written analysis, and standalone HTML report. The finding: the candidate is not broadly slower — it is faster than control in 3 of 4 comparable region/device/cache strata, and the 90.9% worse aggregate is largely a traffic-mix artefact with the shape of Simpson's paradox, since the candidate arm carries 3.5x control's share of the slowest stratum. Standardising candidate stratum means onto the control mix moves 604.7 ms to 331.6 ms against a control 316.8 ms. The residual is real: one interaction, eu/mobile/cold, is genuinely regressed (798.3 ms n=4 to 1216.9 ms n=14, +52.4%), holds all four non-200 rows (504s, versus zero in control), and stays +44.9% when restricted to the 720-960 KB payload range both arms exercised, so larger candidate payloads do not explain it away. Payload is nonetheless only a marker rather than an identified mechanism: it explains about 36% of within-stratum variance, elapsed minute is a weaker competing correlate, and the relationship is not monotone. Because the arms ran in disjoint time windows (control 0-15, candidate 20-37) the variant is perfectly confounded with time, so the analysis reports association only and recommends holding the rollout for eu/mobile/cold while continuing elsewhere behind per-stratum guardrails, plus a randomised same-window A/B and latency-breakdown instrumentation as follow-ups.",
+  "known_issues": [
+    "The dataset itself cannot support a causal claim: control and candidate ran in disjoint time windows, so the variant is fully confounded with time. This is a property of the supplied data, not of the analysis, and it is documented in the limitations section of every output.",
+    "The regressed stratum rests on 4 control rows against 14 candidate rows, and the payload-matched comparison on 4 control rows. The bootstrap interval reflects sampling variability only and is correspondingly wide; it does not account for the time-window confound.",
+    "p95 values at these sample sizes are close to the sample maximum and are labelled throughout as tail indicators rather than population estimates."
+  ]
+}

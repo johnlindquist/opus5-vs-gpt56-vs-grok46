@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Gravity Atelier is an interactive orbital sandbox. Launch, move, inspect, and collide celestial bodies in a deterministic miniature solar system.">
+  <title>Gravity Atelier — Orbital Sandbox</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #eef5ff;
+      --muted: #91a2ba;
+      --line: rgba(164, 194, 228, .17);
+      --glass: rgba(10, 18, 33, .72);
+      --cyan: #86e8ff;
+      --gold: #ffc979;
+    }
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #030711; }
+    body {
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      user-select: none;
+    }
+    canvas { position: fixed; inset: 0; width: 100%; height: 100%; touch-action: none; cursor: crosshair; }
+    canvas.panning { cursor: grabbing; }
+    canvas.body-hover { cursor: pointer; }
+    .topbar {
+      position: fixed; z-index: 2; top: 22px; left: 26px; right: 26px;
+      display: flex; align-items: flex-start; justify-content: space-between; pointer-events: none;
+    }
+    .brand { display: flex; gap: 14px; align-items: center; filter: drop-shadow(0 4px 20px #000); }
+    .mark {
+      width: 35px; height: 35px; border: 1px solid rgba(153,223,255,.5); border-radius: 50%;
+      position: relative; box-shadow: inset 0 0 16px rgba(58,196,255,.12);
+    }
+    .mark::before { content:""; position:absolute; width:7px; height:7px; border-radius:50%; background:var(--gold); left:13px; top:13px; box-shadow:0 0 12px var(--gold); }
+    .mark::after { content:""; position:absolute; inset:6px -5px; border:1px solid rgba(134,232,255,.5); border-radius:50%; transform:rotate(-24deg); }
+    h1 { margin: 0; font-size: 17px; letter-spacing: .22em; font-weight: 580; text-transform: uppercase; }
+    .kicker { margin-top: 4px; color: var(--muted); letter-spacing: .18em; font-size: 9px; text-transform: uppercase; }
+    .glass {
+      background: linear-gradient(145deg, rgba(18,30,50,.82), rgba(7,13,25,.68));
+      border: 1px solid var(--line); border-radius: 14px;
+      box-shadow: 0 18px 50px rgba(0,0,0,.32), inset 0 1px 0 rgba(255,255,255,.045);
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    }
+    .controls { pointer-events: auto; display: flex; padding: 5px; gap: 3px; }
+    button {
+      border: 1px solid transparent; border-radius: 9px; background: transparent; color: #aebdd0;
+      min-height: 34px; padding: 0 11px; font: inherit; font-size: 10px; letter-spacing: .08em;
+      text-transform: uppercase; cursor: pointer; transition: .15s ease;
+    }
+    button:hover { color: white; background: rgba(255,255,255,.06); }
+    button:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+    button.active { color: #061018; background: var(--cyan); box-shadow: 0 0 20px rgba(134,232,255,.25); }
+    button.icon { font-size: 15px; min-width: 36px; padding: 0 9px; }
+    .divider { width: 1px; background: var(--line); margin: 5px 2px; }
+    .panel {
+      position: fixed; z-index: 2; right: 26px; top: 91px; width: 260px; padding: 18px 18px 15px;
+      pointer-events: auto;
+    }
+    .eyebrow { color: var(--cyan); text-transform: uppercase; letter-spacing: .18em; font-size: 9px; margin-bottom: 9px; }
+    .body-name { font-family: Georgia, "Times New Roman", serif; font-weight: 400; font-size: 29px; margin: 0 0 4px; letter-spacing: -.02em; }
+    .body-kind { color: var(--muted); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 18px; }
+    .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+    .metric { padding: 11px 10px; background: rgba(7,14,26,.8); min-height: 58px; }
+    .label { display:block; color:#71849e; font-size:8px; letter-spacing:.12em; text-transform:uppercase; margin-bottom:7px; }
+    .value { font-variant-numeric: tabular-nums; font-size: 13px; color: #e8f1fd; }
+    .swatch { width: 7px; height: 7px; display: inline-block; border-radius: 50%; margin-right: 6px; box-shadow: 0 0 8px currentColor; }
+    .panel-note { color:#71849e; margin: 12px 2px 0; line-height:1.5; font-size:9px; }
+    .bottom {
+      position: fixed; z-index: 2; left: 26px; right: 26px; bottom: 22px;
+      display: flex; align-items: flex-end; justify-content: space-between; pointer-events: none;
+    }
+    .status { padding: 11px 13px; min-width: 204px; }
+    .status-row { display:flex; justify-content:space-between; align-items:center; gap:24px; font-size:9px; letter-spacing:.12em; color:#8395ac; text-transform:uppercase; }
+    .status-row + .status-row { border-top:1px solid var(--line); padding-top:8px; margin-top:8px; }
+    .status strong { color:#dbe9f8; font-weight:500; font-variant-numeric:tabular-nums; }
+    .live-dot { display:inline-block; width:5px; height:5px; border-radius:50%; background:#6ef3c5; margin-right:6px; box-shadow:0 0 7px #6ef3c5; }
+    .help { text-align:right; color:#71849e; font-size:9px; letter-spacing:.08em; line-height:1.85; text-transform:uppercase; text-shadow:0 2px 8px #000; }
+    .help b { color:#bdcad9; font-weight:500; }
+    .presetbar {
+      position:fixed; z-index:2; left:50%; bottom:22px; transform:translateX(-50%);
+      display:flex; gap:3px; padding:5px; pointer-events:auto;
+    }
+    .presetbar button { min-width:86px; }
+    .toast {
+      position:fixed; z-index:4; top:94px; left:50%; transform:translate(-50%,-8px);
+      padding:9px 13px; background:rgba(8,16,29,.88); border:1px solid var(--line); border-radius:20px;
+      color:#b9c9dc; font-size:9px; letter-spacing:.12em; text-transform:uppercase;
+      opacity:0; transition:.25s ease; pointer-events:none;
+    }
+    .toast.show { opacity:1; transform:translate(-50%,0); }
+    .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+    @media(max-width: 850px) {
+      .panel { top: 82px; right: 14px; width: 224px; }
+      .topbar { left:14px; right:14px; top:14px; }
+      .brand .kicker { display:none; }
+      h1 { font-size:13px; }
+      .controls button:not(.icon) { padding:0 7px; }
+      .bottom { left:14px; right:14px; bottom:14px; }
+      .presetbar { bottom:84px; }
+      .help { display:none; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="space" tabindex="0" aria-label="Interactive solar system. Drag empty space to launch a body, or use the keyboard controls."></canvas>
+  <div class="topbar">
+    <div class="brand" aria-hidden="true">
+      <div class="mark"></div>
+      <div><h1>Gravity Atelier</h1><div class="kicker">Orbital mechanics instrument · GA–01</div></div>
+    </div>
+    <div class="controls glass" role="toolbar" aria-label="Simulation controls">
+      <button class="icon active" id="pause" title="Pause or resume (Space)" aria-label="Pause simulation">Ⅱ</button>
+      <button class="icon" id="step" title="Advance one step (.)" aria-label="Single step">›</button>
+      <div class="divider"></div>
+      <button id="slower" title="Slower ([)">− time</button>
+      <button id="faster" title="Faster (])">+ time</button>
+      <div class="divider"></div>
+      <button id="debris">Clear debris</button>
+      <button id="reset" title="Reset preset (R)">Reset</button>
+    </div>
+  </div>
+
+  <aside class="panel glass" aria-live="polite">
+    <div class="eyebrow"><span class="swatch" id="swatch"></span>Tracked body</div>
+    <h2 class="body-name" id="bodyName">Aurelia</h2>
+    <div class="body-kind" id="bodyKind">Terrestrial planet · stable orbit</div>
+    <div class="metrics">
+      <div class="metric"><span class="label">Mass</span><span class="value" id="massValue">—</span></div>
+      <div class="metric"><span class="label">Radius</span><span class="value" id="radiusValue">—</span></div>
+      <div class="metric"><span class="label">Velocity</span><span class="value" id="velocityValue">—</span></div>
+      <div class="metric"><span class="label">Orbital speed</span><span class="value" id="orbitalValue">—</span></div>
+      <div class="metric"><span class="label">Star distance</span><span class="value" id="distanceValue">—</span></div>
+      <div class="metric"><span class="label">Trajectory</span><span class="value" id="trajectoryValue">Bound</span></div>
+    </div>
+    <p class="panel-note">Click any body to track it. Pause, then drag it to reshape the system.</p>
+  </aside>
+
+  <div class="presetbar glass" role="toolbar" aria-label="System presets">
+    <button class="active" data-preset="1"><b>1</b> Stable</button>
+    <button data-preset="2"><b>2</b> Binary</button>
+    <button data-preset="3"><b>3</b> Slingshot</button>
+  </div>
+
+  <div class="bottom">
+    <div class="status glass">
+      <div class="status-row"><span><i class="live-dot"></i><span id="runState">Simulating</span></span><strong id="timeScale">1.0×</strong></div>
+      <div class="status-row"><span>Scale</span><strong id="scaleValue">100 units</strong></div>
+    </div>
+    <div class="help"><b>Drag</b> launch body · <b>Shift + drag</b> pan · <b>Wheel</b> zoom<br><b>Space</b> pause · <b>.</b> step · <b>[ ]</b> time · <b>R</b> reset</div>
+  </div>
+  <div class="toast" id="toast" role="status"></div>
+  <p class="sr-only">Gravity Atelier begins with a deterministic miniature solar system. Bodies attract each other, leave trails, collide, merge, and sometimes fragment.</p>
+
+<script>
+(() => {
+  'use strict';
+  const canvas = document.getElementById('space');
+  const ctx = canvas.getContext('2d', { alpha: false });
+  const TAU = Math.PI * 2, G = 1, FIXED_DT = 1 / 60, SOFTENING2 = 36;
+  const MAX_BODIES = 90, MAX_SPEED = 65, MAX_ACC = 90;
+  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const TRAIL_MAX = reducedMotion ? 34 : 112;
+  const palette = ['#73d6ff','#f6a86b','#a8e58d','#dca7ff','#ff7d97','#f4dc7c','#7ea2ff'];
+  let dpr = 1, width = 0, height = 0, nextId = 1, preset = 1, paused = false;
+  let timeScaleIndex = 3, accumulator = 0, lastTime = performance.now(), simTime = 0;
+  const timeScales = [0.25, 0.5, 0.75, 1, 2, 4, 8];
+  let bodies = [], effects = [], stars = [], selected = null, hoverBody = null;
+  let camera = { x: 0, y: 0, zoom: 1.38 };
+  let pointer = { x:0, y:0, down:false, mode:null, startX:0, startY:0, lastX:0, lastY:0, worldX:0, worldY:0, target:null };
+  let seedState = 1, toastTimer = 0;
+
+  function rngSeed(seed) { seedState = seed >>> 0 || 1; }
+  function rand() {
+    seedState ^= seedState << 13; seedState ^= seedState >>> 17; seedState ^= seedState << 5;
+    return (seedState >>> 0) / 4294967296;
+  }
+  function randomRange(a,b) { return a + (b-a)*rand(); }
+  function makeStars() {
+    rngSeed(0xA71E1); stars.length = 0;
+    for (let i=0;i<240;i++) stars.push({x:rand(),y:rand(),r:randomRange(.25,1.15),a:randomRange(.15,.75),d:randomRange(.1,.75)});
+  }
+  function body(o) {
+    const b = {
+      id: nextId++, name:o.name||('Object '+nextId), kind:o.kind||'Artificial planet', x:o.x||0, y:o.y||0,
+      vx:o.vx||0, vy:o.vy||0, ax:0, ay:0, mass:o.mass||4, radius:o.radius||4, color:o.color||palette[nextId%palette.length],
+      fixed:!!o.fixed, star:!!o.star, debris:!!o.debris, trail:[], trailClock:0, seed: Math.floor(rand()*9999)
+    };
+    bodies.push(b); return b;
+  }
+  function circular(name, r, phase, mass, radius, color, direction=1, centerMass=12000) {
+    const x=Math.cos(phase)*r, y=Math.sin(phase)*r, speed=Math.sqrt(G*centerMass/r)*direction;
+    return body({name,kind:'Planet · gravitational orbit',x,y,vx:-Math.sin(phase)*speed,vy:Math.cos(phase)*speed,mass,radius,color});
+  }
+  function loadPreset(n) {
+    preset=n; rngSeed(1000+n*97); nextId=1; bodies.length=0; effects.length=0; simTime=0; accumulator=0;
+    camera.x=0; camera.y=0; camera.zoom = n===2 ? 1.22 : n===3 ? 1.3 : 1.38;
+    if (n===1) {
+      body({name:'Helios',kind:'G-type star · fixed anchor',mass:12000,radius:18,color:'#ffd27e',fixed:true,star:true});
+      circular('Cinder',88,.3,2.5,4.2,'#e88764');
+      selected=circular('Aurelia',139,2.15,6.4,6.7,'#72d7e7');
+      circular('Viridian',205,4.05,10,8.5,'#8bd09b');
+      circular('Serein',278,5.45,7,7.2,'#bca5eb');
+      circular('Nacre',350,1.03,4.2,5.4,'#f0d487');
+      circular('Ione',425,3.44,3.2,4.7,'#7f9eea');
+    } else if (n===2) {
+      const m=7000, sep=84, v=Math.sqrt(G*m/(2*sep));
+      body({name:'Castor',kind:'Binary star · primary',x:-sep/2,y:0,vy:-v,mass:m,radius:15,color:'#f8d28b',star:true});
+      body({name:'Pollux',kind:'Binary star · companion',x:sep/2,y:0,vy:v,mass:m,radius:14,color:'#94cfff',star:true});
+      selected=circular('Janus',220,.25,7,7,'#c9a5ed',1,m*2);
+      circular('Tethys',315,2.65,5,6,'#6fd2b0',1,m*2);
+      circular('Farpoint',410,4.6,4,5,'#eb9b78',1,m*2);
+    } else {
+      body({name:'Atlas',kind:'Heavy star · slingshot anchor',mass:13000,radius:18,color:'#ffd17c',fixed:true,star:true});
+      body({name:'Brontes',kind:'Gas giant · perturber',x:155,y:0,vx:0,vy:9.15,mass:170,radius:13,color:'#db8d6b'});
+      body({name:'Caelum',kind:'Gas giant · perturber',x:-220,y:0,vx:0,vy:-7.62,mass:120,radius:11,color:'#81a7e8'});
+      selected=body({name:'Arrow',kind:'Comet · gravity assist course',x:-365,y:-104,vx:13.7,vy:2.55,mass:1.2,radius:4,color:'#94edff'});
+      circular('Witness',300,1.35,4,5.4,'#c8e883',1,13000);
+      circular('Rook',385,3.65,5,6,'#d8a5e8',1,13000);
+    }
+    document.querySelectorAll('[data-preset]').forEach(b=>b.classList.toggle('active',+b.dataset.preset===n));
+    updatePanel(); showToast(n===1?'Stable system restored':n===2?'Binary stars loaded':'Chaotic slingshot loaded');
+  }
+
+  function primaryStar() {
+    let s=null; for(const b of bodies) if(b.star && (!s || b.mass>s.mass)) s=b; return s;
+  }
+  function calculateAcceleration() {
+    for(const b of bodies) { b.ax=0; b.ay=0; }
+    for(let i=0;i<bodies.length;i++) {
+      const a=bodies[i];
+      for(let j=i+1;j<bodies.length;j++) {
+        const b=bodies[j], dx=b.x-a.x, dy=b.y-a.y;
+        const d2=dx*dx+dy*dy+SOFTENING2, invD=1/Math.sqrt(d2), invD3=invD*invD*invD;
+        const aa=Math.min(MAX_ACC,G*b.mass*invD3), ab=Math.min(MAX_ACC,G*a.mass*invD3);
+        if(!a.fixed) { a.ax+=dx*aa; a.ay+=dy*aa; }
+        if(!b.fixed) { b.ax-=dx*ab; b.ay-=dy*ab; }
+      }
+    }
+  }
+  function physicsStep(dt=FIXED_DT) {
+    calculateAcceleration();
+    for(const b of bodies) if(!b.fixed) {
+      b.vx+=b.ax*dt*.5; b.vy+=b.ay*dt*.5;
+      const sp=Math.hypot(b.vx,b.vy); if(sp>MAX_SPEED){b.vx*=MAX_SPEED/sp;b.vy*=MAX_SPEED/sp;}
+      b.x+=b.vx*dt; b.y+=b.vy*dt;
+    }
+    calculateAcceleration();
+    for(const b of bodies) if(!b.fixed) { b.vx+=b.ax*dt*.5; b.vy+=b.ay*dt*.5; }
+    handleCollisions();
+    simTime+=dt;
+  }
+  function handleCollisions() {
+    outer: for(let i=0;i<bodies.length;i++) for(let j=i+1;j<bodies.length;j++) {
+      const a=bodies[i], b=bodies[j], dx=b.x-a.x, dy=b.y-a.y, rr=a.radius+b.radius;
+      if(dx*dx+dy*dy>rr*rr) continue;
+      const rv=Math.hypot(a.vx-b.vx,a.vy-b.vy);
+      const cx=(a.x*a.mass+b.x*b.mass)/(a.mass+b.mass), cy=(a.y*a.mass+b.y*b.mass)/(a.mass+b.mass);
+      effects.push({x:cx,y:cy,r:rr,life:1,color:rv>13?'#ffbd84':'#a9eaff'});
+      if(rv>13 && !a.star && !b.star && bodies.length<MAX_BODIES-5 && a.mass+b.mass>7) {
+        fragmentPair(i,j,a,b,cx,cy); break outer;
+      } else {
+        mergePair(i,j,a,b,cx,cy); break outer;
+      }
+    }
+  }
+  function mergePair(i,j,a,b,x,y) {
+    const heavy=a.mass>=b.mass?a:b, total=a.mass+b.mass;
+    const merged={
+      id:nextId++,name:heavy.star?heavy.name:heavy.name+' accreted',kind:heavy.star?'Star · post-collision':'Merged body · momentum conserved',
+      x,y,vx:(a.vx*a.mass+b.vx*b.mass)/total,vy:(a.vy*a.mass+b.vy*b.mass)/total,mass:total,
+      radius:Math.cbrt(a.radius**3+b.radius**3),color:heavy.color,fixed:heavy.fixed||b.fixed,star:heavy.star||b.star,
+      debris:false,trail:heavy.trail.slice(-TRAIL_MAX/2),trailClock:0,seed:heavy.seed,ax:0,ay:0
+    };
+    bodies.splice(j,1); bodies.splice(i,1,merged);
+    if(selected===a||selected===b) selected=merged;
+  }
+  function fragmentPair(i,j,a,b,x,y) {
+    const total=a.mass+b.mass, vx=(a.vx*a.mass+b.vx*b.mass)/total, vy=(a.vy*a.mass+b.vy*b.mass)/total;
+    bodies.splice(j,1); bodies.splice(i,1);
+    const count=Math.min(8,MAX_BODIES-bodies.length), base=Math.atan2(b.y-a.y,b.x-a.x);
+    for(let k=0;k<count;k++) {
+      const ang=base+(k/(count-1)-.5)*2.4+randomRange(-.15,.15), speed=randomRange(2,8);
+      body({name:'Shard '+String.fromCharCode(65+k),kind:'Collision fragment',x:x+Math.cos(ang)*5,y:y+Math.sin(ang)*5,
+        vx:vx+Math.cos(ang)*speed,vy:vy+Math.sin(ang)*speed,mass:total/count,radius:Math.max(1.6,Math.cbrt(total/count)*1.55),
+        color:k%2?a.color:b.color,debris:true});
+    }
+    if(selected===a||selected===b) selected=bodies[bodies.length-count];
+  }
+  function recordTrails(realDt) {
+    for(const b of bodies) {
+      b.trailClock+=realDt; if(b.trailClock<.042) continue; b.trailClock=0;
+      b.trail.push({x:b.x,y:b.y}); if(b.trail.length>TRAIL_MAX)b.trail.shift();
+    }
+  }
+  function resize() {
+    dpr=Math.min(devicePixelRatio||1,2); width=innerWidth; height=innerHeight;
+    canvas.width=Math.round(width*dpr); canvas.height=Math.round(height*dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  function worldToScreen(x,y){return {x:(x-camera.x)*camera.zoom+width/2,y:(y-camera.y)*camera.zoom+height/2};}
+  function screenToWorld(x,y){return {x:(x-width/2)/camera.zoom+camera.x,y:(y-height/2)/camera.zoom+camera.y};}
+  function drawBackground(t) {
+    const bg=ctx.createRadialGradient(width*.47,height*.48,0,width*.47,height*.48,Math.max(width,height)*.75);
+    bg.addColorStop(0,'#0a1425'); bg.addColorStop(.48,'#050b17'); bg.addColorStop(1,'#02050c');
+    ctx.fillStyle=bg; ctx.fillRect(0,0,width,height);
+    ctx.save();
+    for(let i=0;i<stars.length;i++){const s=stars[i],px=(s.x*width-camera.x*s.d*.025*camera.zoom)%width,py=(s.y*height-camera.y*s.d*.025*camera.zoom)%height;
+      const tw=.82+.18*Math.sin(t*.0007+i*2.7);ctx.globalAlpha=s.a*tw;ctx.fillStyle=i%11===0?'#b8dcff':'#e5edf6';ctx.beginPath();ctx.arc((px+width)%width,(py+height)%height,s.r,0,TAU);ctx.fill();}
+    ctx.restore();
+    const glow=worldToScreen(0,0); const neb=ctx.createRadialGradient(glow.x,glow.y,0,glow.x,glow.y,520*camera.zoom);
+    neb.addColorStop(0,'rgba(42,90,145,.065)');neb.addColorStop(.5,'rgba(40,32,90,.025)');neb.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=neb;ctx.fillRect(0,0,width,height);
+  }
+  function drawTrails() {
+    ctx.lineCap='round'; ctx.lineJoin='round';
+    for(const b of bodies) {
+      if(b.trail.length<2)continue;
+      for(let i=1;i<b.trail.length;i++){
+        const p=worldToScreen(b.trail[i-1].x,b.trail[i-1].y), q=worldToScreen(b.trail[i].x,b.trail[i].y);
+        ctx.globalAlpha=(i/b.trail.length)*.28;ctx.strokeStyle=b.color;ctx.lineWidth=Math.min(2,Math.max(.55,b.radius*.1*camera.zoom));
+        ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(q.x,q.y);ctx.stroke();
+      }
+    } ctx.globalAlpha=1;
+  }
+  function drawBody(b,t) {
+    const p=worldToScreen(b.x,b.y), r=Math.max(2,b.radius*camera.zoom);
+    if(p.x<-r*4||p.x>width+r*4||p.y<-r*4||p.y>height+r*4)return;
+    ctx.save();
+    if(b.star) {
+      const halo=ctx.createRadialGradient(p.x,p.y,r*.3,p.x,p.y,r*3.8);
+      halo.addColorStop(0,b.color+'80');halo.addColorStop(.28,b.color+'28');halo.addColorStop(1,b.color+'00');
+      ctx.fillStyle=halo;ctx.beginPath();ctx.arc(p.x,p.y,r*3.8,0,TAU);ctx.fill();
+    } else {
+      ctx.globalAlpha=.2;ctx.strokeStyle=b.color;ctx.lineWidth=Math.max(1,r*.13);ctx.beginPath();ctx.arc(p.x,p.y,r*1.13,0,TAU);ctx.stroke();ctx.globalAlpha=1;
+    }
+    const ox=p.x-r*.35,oy=p.y-r*.38, grad=ctx.createRadialGradient(ox,oy,r*.08,p.x,p.y,r*1.05);
+    grad.addColorStop(0,'#fff');grad.addColorStop(.12,b.color);grad.addColorStop(.62,b.color);grad.addColorStop(1,b.star?'#a84f26':'#07101e');
+    ctx.fillStyle=grad;ctx.beginPath();ctx.arc(p.x,p.y,r,0,TAU);ctx.fill();
+    if(!b.star && r>5){
+      ctx.globalAlpha=.2;ctx.strokeStyle='#fff';ctx.lineWidth=Math.max(.6,r*.08);ctx.beginPath();ctx.arc(p.x-r*.12,p.y-r*.14,r*.58,3.3,5.4);ctx.stroke();
+      ctx.globalAlpha=.16;ctx.strokeStyle='#07111f';ctx.beginPath();ctx.arc(p.x,p.y,r*.65,.2,2.4);ctx.stroke();
+    }
+    if(selected===b) {
+      ctx.globalAlpha=.65+.2*Math.sin(t*.003);ctx.strokeStyle='#d9f6ff';ctx.lineWidth=1;ctx.setLineDash([3,5]);ctx.beginPath();ctx.arc(p.x,p.y,r+7,0,TAU);ctx.stroke();ctx.setLineDash([]);
+      ctx.globalAlpha=.65;ctx.fillStyle='#d9f6ff';ctx.font='9px system-ui';ctx.fillText(b.name.toUpperCase(),p.x+r+12,p.y+3);
+    }
+    ctx.restore();
+  }
+  function drawEffects() {
+    for(let i=effects.length-1;i>=0;i--){const e=effects[i],p=worldToScreen(e.x,e.y);ctx.globalAlpha=e.life*(reducedMotion?.25:.75);ctx.strokeStyle=e.color;ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(p.x,p.y,(e.r+(1-e.life)*45)*camera.zoom,0,TAU);ctx.stroke();e.life-=reducedMotion?.09:.025;if(e.life<=0)effects.splice(i,1);}
+    ctx.globalAlpha=1;
+  }
+  function previewTrajectory(start,end) {
+    const vx=(end.x-start.x)*.055,vy=(end.y-start.y)*.055,pts=[], s={x:start.x,y:start.y,vx,vy};
+    for(let k=0;k<90;k++){let ax=0,ay=0;for(const b of bodies){const dx=b.x-s.x,dy=b.y-s.y,d2=dx*dx+dy*dy+SOFTENING2,inv=1/Math.sqrt(d2),f=G*b.mass*inv*inv*inv;ax+=dx*f;ay+=dy*f;}s.vx+=ax*.16;s.vy+=ay*.16;s.x+=s.vx*.16;s.y+=s.vy*.16;if(k%2===0)pts.push({x:s.x,y:s.y});}
+    ctx.save();ctx.strokeStyle='#9cecff';ctx.lineWidth=1.2;ctx.setLineDash([5,6]);ctx.globalAlpha=.72;ctx.beginPath();
+    pts.forEach((q,i)=>{const p=worldToScreen(q.x,q.y);i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y)});ctx.stroke();ctx.setLineDash([]);
+    const a=worldToScreen(start.x,start.y),z=worldToScreen(end.x,end.y);ctx.globalAlpha=.95;ctx.strokeStyle='#dffaff';ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(z.x,z.y);ctx.stroke();
+    const ang=Math.atan2(z.y-a.y,z.x-a.x);ctx.fillStyle='#dffaff';ctx.beginPath();ctx.moveTo(z.x,z.y);ctx.lineTo(z.x-Math.cos(ang-.45)*9,z.y-Math.sin(ang-.45)*9);ctx.lineTo(z.x-Math.cos(ang+.45)*9,z.y-Math.sin(ang+.45)*9);ctx.fill();
+    ctx.fillStyle='#9cecff';ctx.font='9px system-ui';ctx.fillText('RELEASE TO LAUNCH · '+Math.hypot(vx,vy).toFixed(1)+' u/s',z.x+12,z.y-10);
+    ctx.restore();
+  }
+  function drawScale() {
+    const target=105, units=niceNumber(target/camera.zoom), px=units*camera.zoom, x=39,y=height-72;
+    ctx.strokeStyle='rgba(190,220,248,.55)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+px,y);ctx.moveTo(x,y-3);ctx.lineTo(x,y+3);ctx.moveTo(x+px,y-3);ctx.lineTo(x+px,y+3);ctx.stroke();
+    document.getElementById('scaleValue').textContent=units+' units';
+  }
+  function niceNumber(n){const p=10**Math.floor(Math.log10(n)),v=n/p;return (v<1.5?1:v<3.5?2:v<7.5?5:10)*p;}
+  function render(t) {
+    drawBackground(t); drawTrails();
+    const ordered=bodies.slice().sort((a,b)=>b.radius-a.radius); for(const b of ordered)drawBody(b,t);
+    drawEffects();drawScale();
+    if(pointer.mode==='launch'){const a=screenToWorld(pointer.startX,pointer.startY),b=screenToWorld(pointer.x,pointer.y);previewTrajectory(a,b);}
+  }
+  function frame(t) {
+    const realDt=Math.min(.05,(t-lastTime)/1000||0);lastTime=t;
+    if(!paused){accumulator+=realDt*timeScales[timeScaleIndex]*4;let steps=0;while(accumulator>=FIXED_DT&&steps<18){physicsStep();accumulator-=FIXED_DT;steps++;}if(steps===18)accumulator=0;recordTrails(realDt);}
+    render(t);if((t|0)%8===0)updatePanel();requestAnimationFrame(frame);
+  }
+  function hitTest(sx,sy) {
+    let hit=null,best=Infinity;for(const b of bodies){const p=worldToScreen(b.x,b.y),d=Math.hypot(sx-p.x,sy-p.y),r=Math.max(8,b.radius*camera.zoom+4);if(d<r&&d<best){hit=b;best=d;}}return hit;
+  }
+  function onPointerDown(e) {
+    canvas.focus();canvas.setPointerCapture(e.pointerId);pointer.down=true;pointer.x=pointer.lastX=pointer.startX=e.clientX;pointer.y=pointer.lastY=pointer.startY=e.clientY;
+    pointer.target=hitTest(e.clientX,e.clientY);
+    if(pointer.target){selected=pointer.target;pointer.mode=paused&&!pointer.target.fixed?'move':'select';updatePanel();}
+    else if(e.shiftKey||e.button===1||e.button===2){pointer.mode='pan';canvas.classList.add('panning');}
+    else pointer.mode='launch';
+  }
+  function onPointerMove(e) {
+    pointer.x=e.clientX;pointer.y=e.clientY;const dx=pointer.x-pointer.lastX,dy=pointer.y-pointer.lastY;pointer.lastX=pointer.x;pointer.lastY=pointer.y;
+    if(pointer.down&&pointer.mode==='pan'){camera.x-=dx/camera.zoom;camera.y-=dy/camera.zoom;}
+    if(pointer.down&&pointer.mode==='move'&&pointer.target){const w=screenToWorld(pointer.x,pointer.y);pointer.target.x=w.x;pointer.target.y=w.y;pointer.target.vx=0;pointer.target.vy=0;pointer.target.trail.length=0;}
+    if(!pointer.down){hoverBody=hitTest(pointer.x,pointer.y);canvas.classList.toggle('body-hover',!!hoverBody);}
+  }
+  function onPointerUp(e) {
+    if(pointer.mode==='launch'){
+      const a=screenToWorld(pointer.startX,pointer.startY),z=screenToWorld(pointer.x,pointer.y),dist=Math.hypot(pointer.x-pointer.startX,pointer.y-pointer.startY);
+      if(dist>12&&bodies.length<MAX_BODIES){selected=body({name:'Voyager '+String(nextId).padStart(2,'0'),kind:'Launched body · user trajectory',x:a.x,y:a.y,vx:(z.x-a.x)*.055,vy:(z.y-a.y)*.055,mass:4,radius:4.8,color:palette[nextId%palette.length]});showToast('Body launched · '+Math.hypot(selected.vx,selected.vy).toFixed(1)+' u/s');}
+      else if(dist<=12){const hit=hitTest(e.clientX,e.clientY);if(hit)selected=hit;}
+    }
+    pointer.down=false;pointer.mode=null;pointer.target=null;canvas.classList.remove('panning');updatePanel();
+  }
+  function onWheel(e) {
+    e.preventDefault();const before=screenToWorld(e.clientX,e.clientY),factor=Math.exp(-e.deltaY*.0012),newZoom=Math.max(.3,Math.min(4,camera.zoom*factor));camera.zoom=newZoom;
+    const after=screenToWorld(e.clientX,e.clientY);camera.x+=before.x-after.x;camera.y+=before.y-after.y;
+  }
+  function togglePause(force) {
+    paused=typeof force==='boolean'?force:!paused;accumulator=0;
+    document.getElementById('pause').textContent=paused?'▶':'Ⅱ';document.getElementById('pause').setAttribute('aria-label',paused?'Resume simulation':'Pause simulation');
+    document.getElementById('runState').textContent=paused?'Paused':'Simulating';document.querySelector('.live-dot').style.background=paused?'#ffc979':'#6ef3c5';showToast(paused?'Simulation paused · drag a body to move it':'Simulation resumed');
+  }
+  function changeTime(dir){timeScaleIndex=Math.max(0,Math.min(timeScales.length-1,timeScaleIndex+dir));document.getElementById('timeScale').textContent=timeScales[timeScaleIndex].toFixed(timeScales[timeScaleIndex]%1?2:1)+'×';showToast('Time scale · '+timeScales[timeScaleIndex]+'×');}
+  function updatePanel(){
+    if(!selected||!bodies.includes(selected))selected=bodies.find(b=>!b.star)||bodies[0];if(!selected)return;
+    const star=primaryStar(),speed=Math.hypot(selected.vx,selected.vy),dist=star&&star!==selected?Math.hypot(selected.x-star.x,selected.y-star.y):0;
+    const orbital=star&&star!==selected?Math.sqrt(G*star.mass/Math.max(1,dist)):0;
+    document.getElementById('bodyName').textContent=selected.name;document.getElementById('bodyKind').textContent=selected.kind;
+    document.getElementById('massValue').textContent=selected.mass.toFixed(selected.mass<10?1:0)+' m⊕';
+    document.getElementById('radiusValue').textContent=selected.radius.toFixed(1)+' units';
+    document.getElementById('velocityValue').textContent=speed.toFixed(2)+' u/s';
+    document.getElementById('orbitalValue').textContent=orbital.toFixed(2)+' u/s';
+    document.getElementById('distanceValue').textContent=dist?dist.toFixed(1)+' units':'Anchor';
+    const esc=star&&dist?Math.sqrt(2*G*star.mass/dist):Infinity;document.getElementById('trajectoryValue').textContent=speed<esc*1.05?'Bound':'Escape';
+    const sw=document.getElementById('swatch');sw.style.color=selected.color;sw.style.background=selected.color;
+  }
+  function showToast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),1500);}
+  function clearDebris(){const before=bodies.length;bodies=bodies.filter(b=>!b.debris&&b.mass>=1.5);showToast((before-bodies.length)+' debris bodies cleared');updatePanel();}
+  function key(e){
+    if(e.target.tagName==='BUTTON'&&e.key==='Enter')return;
+    if(e.key===' '){e.preventDefault();togglePause();}
+    else if((e.key==='.'||e.code==='Period')&&paused){physicsStep();recordTrails(.05);updatePanel();showToast('Advanced one fixed step');}
+    else if(e.key==='[')changeTime(-1);else if(e.key===']')changeTime(1);
+    else if(e.key.toLowerCase()==='r')loadPreset(preset);
+    else {
+      const digit = /^[123]$/.test(e.key) ? e.key : /^(?:Digit|Numpad)([123])$/.exec(e.code)?.[1];
+      if(digit) loadPreset(+digit);
+    }
+  }
+  canvas.addEventListener('pointerdown',onPointerDown);canvas.addEventListener('pointermove',onPointerMove);canvas.addEventListener('pointerup',onPointerUp);canvas.addEventListener('pointercancel',onPointerUp);
+  canvas.addEventListener('wheel',onWheel,{passive:false});canvas.addEventListener('contextmenu',e=>e.preventDefault());addEventListener('keydown',key);addEventListener('resize',resize);
+  document.getElementById('pause').onclick=()=>togglePause();document.getElementById('step').onclick=()=>{if(!paused)togglePause(true);physicsStep();recordTrails(.05);updatePanel();};
+  document.getElementById('slower').onclick=()=>changeTime(-1);document.getElementById('faster').onclick=()=>changeTime(1);
+  document.getElementById('debris').onclick=clearDebris;document.getElementById('reset').onclick=()=>loadPreset(preset);
+  document.querySelectorAll('[data-preset]').forEach(el=>el.onclick=()=>loadPreset(+el.dataset.preset));
+  makeStars();resize();loadPreset(1);requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

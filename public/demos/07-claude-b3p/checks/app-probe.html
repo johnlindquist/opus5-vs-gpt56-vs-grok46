@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<base href="../" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Kinetic Poster Foundry — Type as Physics</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div class="shell">
+
+  <header class="masthead">
+    <span class="mark">KPF</span>
+    <h1>Kinetic Poster Foundry</h1>
+    <span class="sub">type as physics</span>
+    <span class="badge" id="pausedBadge" hidden>paused</span>
+    <span class="badge muted" id="rmBadge" hidden>reduced motion</span>
+  </header>
+
+  <main class="stagewrap">
+    <canvas id="view" width="1600" height="900" role="img"
+      aria-label="Kinetic poster canvas. Default phrase FRONTIER / NIGHT."
+      tabindex="0"></canvas>
+    <p class="hint" id="hint">
+      drag to twist · release to ripple · <kbd>space</kbd> impulse · <kbd>R</kbd> rest · <kbd>P</kbd> pause · <kbd>1</kbd>–<kbd>4</kbd> presets
+    </p>
+  </main>
+
+  <aside class="panel" id="panel" aria-label="Poster controls">
+    <div class="panel-head">
+      <h2>Controls</h2>
+      <button type="button" id="collapse" class="ghost" aria-expanded="true" aria-controls="panelBody">hide</button>
+    </div>
+
+    <div class="panel-body" id="panelBody">
+
+      <fieldset>
+        <legend>Presets</legend>
+        <div class="presets" role="group" aria-label="Curated poster presets">
+          <button type="button" class="preset" data-preset="0"><b>1</b> Electric ribbon</button>
+          <button type="button" class="preset" data-preset="1"><b>2</b> Chrome pulse</button>
+          <button type="button" class="preset" data-preset="2"><b>3</b> Soft ink</button>
+          <button type="button" class="preset" data-preset="3"><b>4</b> Signal grid</button>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Typography</legend>
+        <label class="row wide" for="phrase">Phrase <span class="tip">use <code>/</code> for a line break</span></label>
+        <input id="phrase" type="text" value="FRONTIER / NIGHT" maxlength="140"
+               autocomplete="off" spellcheck="false" aria-describedby="posterStatus" />
+
+        <label class="row" for="fontStack">Font stack</label>
+        <select id="fontStack">
+          <option value="grotesk">Neo-grotesk (Helvetica / Arial)</option>
+          <option value="condensed">Condensed display (Impact)</option>
+          <option value="serif">Editorial serif (Times / Georgia)</option>
+          <option value="mono">Technical mono (Menlo / Consolas)</option>
+          <option value="geometric">Geometric (Avenir / Futura)</option>
+        </select>
+
+        <label class="row" for="layout">Layout</label>
+        <select id="layout">
+          <option value="stack">Stacked (two-line)</option>
+          <option value="offset">Offset split</option>
+          <option value="justify">Justified block</option>
+          <option value="single">Single line</option>
+        </select>
+
+        <label class="row" for="align">Alignment</label>
+        <select id="align">
+          <option value="left">Left</option>
+          <option value="center">Center</option>
+          <option value="right">Right</option>
+        </select>
+
+        <label class="row" for="margin">Margins <output id="marginOut">10%</output></label>
+        <input id="margin" type="range" min="4" max="26" step="1" value="10" />
+      </fieldset>
+
+      <fieldset>
+        <legend>Physics</legend>
+        <label class="row" for="density">Density <output id="densityOut">1.00×</output></label>
+        <input id="density" type="range" min="0.35" max="1.6" step="0.05" value="1" />
+
+        <label class="row" for="stiffness">Stiffness <output id="stiffnessOut">0.090</output></label>
+        <input id="stiffness" type="range" min="0.01" max="0.30" step="0.005" value="0.09" />
+
+        <label class="row" for="damping">Damping <output id="dampingOut">0.900</output></label>
+        <input id="damping" type="range" min="0.70" max="0.98" step="0.005" value="0.9" />
+      </fieldset>
+
+      <fieldset>
+        <legend>Light</legend>
+        <label class="row" for="trail">Trail <output id="trailOut">0.82</output></label>
+        <input id="trail" type="range" min="0" max="0.95" step="0.01" value="0.82" />
+
+        <label class="row" for="glow">Glow <output id="glowOut">0.80</output></label>
+        <input id="glow" type="range" min="0" max="1" step="0.01" value="0.8" />
+
+        <label class="row" for="palette">Palette</label>
+        <select id="palette">
+          <option value="frontier">Frontier night</option>
+          <option value="chrome">Chrome</option>
+          <option value="ink">Ink on paper</option>
+          <option value="signal">Signal green</option>
+          <option value="ember">Ember</option>
+          <option value="vapor">Vapor</option>
+        </select>
+
+        <label class="check"><input id="marks" type="checkbox" checked /> Crop marks &amp; grid</label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Output</legend>
+        <div class="btnrow">
+          <button type="button" id="export">Export PNG</button>
+          <button type="button" id="reset" class="ghost">Rest (R)</button>
+          <button type="button" id="pause" class="ghost" aria-pressed="false">Pause (P)</button>
+        </div>
+      </fieldset>
+
+      <p class="status" id="posterStatus" role="status" aria-live="polite">
+        Poster ready.
+      </p>
+    </div>
+  </aside>
+
+</div>
+<script src="engine.js"></script>
+<script src="app.js"></script>
+
+<pre id="probeout" style="position:fixed;left:0;top:0;z-index:999;font:15px monospace;color:#0f0;background:#000d;margin:0;padding:10px;max-width:900px">pending</pre>
+<script>
+(function(){
+  var log=[], errors=[];
+  window.addEventListener('error',function(e){errors.push(String(e.message));});
+  function say(k,v){log.push(k+'='+v);document.getElementById('probeout').textContent=log.join('\n');}
+  var d=document, w=window;
+  setTimeout(function(){
+    var cv=d.getElementById('view');
+    say('canvasSize', cv.width+'x'+cv.height);
+    var url=cv.toDataURL('image/png');
+    var bin=atob(url.split(',')[1]);
+    var dw=(bin.charCodeAt(16)<<24)|(bin.charCodeAt(17)<<16)|(bin.charCodeAt(18)<<8)|bin.charCodeAt(19);
+    var dh=(bin.charCodeAt(20)<<24)|(bin.charCodeAt(21)<<16)|(bin.charCodeAt(22)<<8)|bin.charCodeAt(23);
+    say('pngPrefix', url.slice(0,22));
+    say('pngSize', dw+'x'+dh);
+    say('pngKB', Math.round(bin.length/1024));
+    var px=cv.getContext('2d').getImageData(0,0,1600,900).data, lit=0;
+    for(var i=0;i<px.length;i+=4*97){ if(px[i]+px[i+1]+px[i+2]>120) lit++; }
+    say('litSamples', lit);
+    w.dispatchEvent(new KeyboardEvent('keydown',{key:'3',code:'Digit3',bubbles:true}));
+    say('after_key3', d.getElementById('palette').value+'/'+d.getElementById('layout').value+'/'+d.getElementById('align').value);
+    say('presetPressed', d.querySelector('.preset[data-preset="2"]').getAttribute('aria-pressed'));
+    w.dispatchEvent(new KeyboardEvent('keydown',{key:'p',code:'KeyP',bubbles:true}));
+    say('pauseWorks', d.getElementById('pausedBadge').hidden===false);
+    w.dispatchEvent(new KeyboardEvent('keydown',{key:'p',code:'KeyP',bubbles:true}));
+    say('resumeWorks', d.getElementById('pausedBadge').hidden===true);
+    w.dispatchEvent(new KeyboardEvent('keydown',{key:'1',code:'Digit1',bubbles:true}));
+    var nodesBefore=d.body.querySelectorAll('*').length;
+    var input=d.getElementById('phrase');
+    input.focus(); input.value='DEEP / FIELD';
+    input.dispatchEvent(new Event('input',{bubbles:true}));
+    input.dispatchEvent(new KeyboardEvent('keydown',{key:' ',code:'Space',bubbles:true}));
+    setTimeout(function(){
+      say('domNodeCountStable', d.body.querySelectorAll('*').length===nodesBefore);
+      say('inputFocusKept', d.activeElement===input);
+      say('status', d.getElementById('posterStatus').textContent.slice(0,86));
+      say('aria', cv.getAttribute('aria-label').slice(0,60));
+      var r=cv.getBoundingClientRect();
+      function pev(t,x,y){return new PointerEvent(t,{clientX:r.left+x,clientY:r.top+y,bubbles:true,pointerId:1});}
+      cv.dispatchEvent(pev('pointermove',300,250));
+      cv.dispatchEvent(pev('pointerdown',400,300));
+      cv.dispatchEvent(pev('pointermove',500,380));
+      cv.dispatchEvent(pev('pointerup',500,380));
+      w.dispatchEvent(new KeyboardEvent('keydown',{key:' ',code:'Space',bubbles:true}));
+      w.dispatchEvent(new KeyboardEvent('keydown',{key:'r',code:'KeyR',bubbles:true}));
+      setTimeout(function(){
+        say('consoleErrors', errors.length?errors.join('|'):'none');
+        say('DONE',1);
+      },500);
+    },500);
+  },1500);
+})();
+</script>
+</body>
+</html>

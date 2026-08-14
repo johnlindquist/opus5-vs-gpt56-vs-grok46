@@ -1,0 +1,1320 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>The Haunted Queue — refactor report</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --plane:        #0d0d0d;
+    --surface-1:    #1a1a19;
+    --surface-2:    #211f1e;
+    --ink:          #ffffff;
+    --ink-2:        #c3c2b7;
+    --ink-muted:    #898781;
+    --grid:         #2c2c2a;
+    --axis:         #383835;
+    --hairline:     rgba(255,255,255,0.10);
+    --state-pending:#199e70;
+    --state-running:#3987e5;
+    --state-retry:  #d95926;
+    --status-good:    #0ca30c;
+    --status-critical:#d03b3b;
+    --status-warning: #fab219;
+    --status-muted:   #898781;
+    /* Dark ink reads better than white on every mark colour in both modes:
+       the categorical steps all clear 4.5:1 against #0d0d0d. */
+    --on-mark:      #0d0d0d;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    --sans: system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  :root[data-theme="light"] {
+    color-scheme: light;
+    --plane:        #f9f9f7;
+    --surface-1:    #fcfcfb;
+    --surface-2:    #f2f1ed;
+    --ink:          #0b0b0b;
+    --ink-2:        #52514e;
+    --ink-muted:    #898781;
+    --grid:         #e1e0d9;
+    --axis:         #c3c2b7;
+    --hairline:     rgba(11,11,11,0.10);
+    --state-pending:#1baf7a;
+    --state-running:#2a78d6;
+    --state-retry:  #eb6834;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--plane);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1560px; margin: 0 auto; padding: 0 20px 64px; }
+
+  /* ── top bar ─────────────────────────────────────────── */
+  header.bar {
+    display: flex; align-items: baseline; gap: 18px; flex-wrap: wrap;
+    padding: 16px 0 14px; border-bottom: 1px solid var(--hairline); margin-bottom: 16px;
+  }
+  header.bar h1 { font-size: 21px; margin: 0; letter-spacing: -0.01em; }
+  header.bar .sub { color: var(--ink-2); font-size: 13px; }
+  .chips { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+  .chip {
+    font-size: 11.5px; padding: 3px 9px; border-radius: 999px;
+    border: 1px solid var(--hairline); color: var(--ink-2); background: var(--surface-1);
+    white-space: nowrap;
+  }
+  .chip.ok { color: var(--status-good); border-color: color-mix(in srgb, var(--status-good) 45%, transparent); }
+  button.toggle {
+    font: inherit; font-size: 11.5px; cursor: pointer; padding: 3px 10px; border-radius: 999px;
+    border: 1px solid var(--hairline); background: var(--surface-1); color: var(--ink-2);
+  }
+  button.toggle:hover { color: var(--ink); }
+
+  /* ── stat strip ──────────────────────────────────────── */
+  .stats { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-bottom: 16px; }
+  .stat {
+    background: var(--surface-1); border: 1px solid var(--hairline); border-radius: 10px; padding: 11px 14px;
+  }
+  .stat-value { font-size: 25px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.1; }
+  .stat-label { font-size: 12px; color: var(--ink-2); margin-top: 3px; }
+  .stat-sub { font-size: 11px; color: var(--ink-muted); margin-top: 1px; }
+
+  /* ── panels ──────────────────────────────────────────── */
+  .grid-2 { display: grid; grid-template-columns: 1fr 660px; gap: 16px; align-items: start; }
+  .panel {
+    background: var(--surface-1); border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 18px 18px;
+  }
+  .panel > h2 {
+    font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--ink-muted); margin: 0 0 4px; font-weight: 600;
+  }
+  .panel > .lede { color: var(--ink-2); font-size: 12.5px; margin: 0 0 14px; }
+  section { margin-top: 22px; }
+  section > h2 {
+    font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--ink-muted); margin: 0 0 10px; font-weight: 600;
+  }
+
+  /* ── architecture ────────────────────────────────────── */
+  .arch { display: grid; grid-template-columns: 1fr 26px 1fr; gap: 12px; align-items: stretch; }
+  .arch-col h3 {
+    font-size: 12px; margin: 0 0 8px; color: var(--ink-2); display: flex; gap: 8px; align-items: center;
+  }
+  .arch-col h3 .tag {
+    font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;
+    padding: 2px 7px; border-radius: 5px; font-weight: 600;
+  }
+  .tag.before { background: color-mix(in srgb, var(--status-critical) 22%, transparent); color: var(--status-critical); }
+  .tag.after  { background: color-mix(in srgb, var(--status-good) 22%, transparent); color: var(--status-good); }
+  .mod {
+    border: 1px solid var(--hairline); border-radius: 8px; padding: 8px 11px; margin-bottom: 8px;
+    background: var(--surface-2);
+  }
+  .mod .name { font-family: var(--mono); font-size: 12px; }
+  .mod .name .loc { color: var(--ink-muted); font-size: 11px; margin-left: 6px; }
+  .mod .role { color: var(--ink-2); font-size: 11.5px; margin-top: 2px; }
+  .mod.bad { border-left: 3px solid var(--status-critical); }
+  .mod.good { border-left: 3px solid var(--status-good); }
+  .mod ul { margin: 6px 0 0; padding-left: 16px; color: var(--ink-2); font-size: 11.5px; }
+  .mod ul li { margin: 1px 0; }
+  .arch-arrow {
+    display: flex; align-items: center; justify-content: center;
+    color: var(--ink-muted); font-size: 20px;
+  }
+
+  /* ── chart chrome ────────────────────────────────────── */
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; margin: 0 0 6px; font-size: 12px; color: var(--ink-2); }
+  .legend .key { display: inline-flex; align-items: center; gap: 6px; }
+  .swatch { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+  .dot { width: 14px; height: 14px; border-radius: 50%; display: inline-flex;
+         align-items: center; justify-content: center; font-size: 9px; color: var(--on-mark); }
+  .swimlane .lane-label { font-family: var(--mono); font-size: 11.5px; fill: var(--ink-2); }
+  .swimlane .seg-label { font-size: 10.5px; fill: var(--on-mark); font-weight: 600; }
+  .swimlane .terminal-glyph { font-size: 11px; fill: var(--on-mark); font-weight: 700; }
+  .swimlane .terminal-label { font-size: 11px; fill: var(--ink-2); }
+  .swimlane .tick-line { stroke: var(--grid); stroke-width: 1; stroke-dasharray: 3 3; }
+  .swimlane .tick-label { font-size: 10.5px; fill: var(--ink-muted); font-variant-numeric: tabular-nums; }
+  .swimlane .axis { stroke: var(--axis); stroke-width: 1; }
+  .swimlane .axis-title { font-size: 10.5px; fill: var(--ink-muted); }
+  .swimlane .seg, .swimlane .terminal { cursor: default; outline: none; }
+  .swimlane .seg:hover rect, .swimlane .seg:focus rect,
+  .swimlane .terminal:hover circle, .swimlane .terminal:focus circle {
+    stroke: var(--ink); stroke-width: 2; paint-order: stroke;
+  }
+
+  .statechart .sd-node-label { font-size: 14px; font-weight: 600; fill: var(--on-mark); }
+  .statechart .sd-entry { font-family: var(--mono); font-size: 12px; fill: var(--ink-2); }
+  .statechart .edge { stroke: var(--ink-muted); stroke-width: 2; fill: none; }
+  .statechart .cancel-edge { stroke-dasharray: 5 4; }
+  .statechart .edge-label { font-size: 11.5px; fill: var(--ink-2); }
+  .statechart .sd-note text { font-size: 11.5px; fill: var(--ink-muted); }
+  .statechart .sd-note .sd-note-strong { fill: var(--ink-2); font-weight: 600; }
+
+  /* ── tables ──────────────────────────────────────────── */
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  th {
+    text-align: left; font-weight: 600; color: var(--ink-muted); font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.06em; padding: 6px 10px;
+    border-bottom: 1px solid var(--axis);
+  }
+  td { padding: 9px 10px; border-bottom: 1px solid var(--grid); vertical-align: top; color: var(--ink-2); }
+  td.n { color: var(--ink-muted); font-variant-numeric: tabular-nums; width: 30px; }
+  td strong { color: var(--ink); font-weight: 600; }
+  code {
+    font-family: var(--mono); font-size: 11.5px;
+    background: var(--surface-2); padding: 1px 4px; border-radius: 4px; color: var(--ink);
+  }
+  .badge {
+    display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600;
+    padding: 1px 7px 1px 5px; border-radius: 5px; white-space: nowrap;
+  }
+  .badge::before { content: ""; width: 7px; height: 7px; border-radius: 2px; background: currentColor; }
+  .b-queued    { color: var(--state-pending); }
+  .b-started   { color: var(--state-running); }
+  .b-retrying  { color: var(--state-retry); }
+  .b-fulfilled { color: var(--status-good); }
+  .b-rejected  { color: var(--status-critical); }
+  .b-cancelled { color: var(--status-muted); }
+  .b-refused   { color: var(--status-warning); }
+  .mono { font-family: var(--mono); }
+  .tnum { font-variant-numeric: tabular-nums; }
+
+  pre {
+    font-family: var(--mono); font-size: 11.5px; line-height: 1.45; color: var(--ink-2);
+    background: var(--surface-2); border: 1px solid var(--hairline); border-radius: 8px;
+    padding: 14px 16px; overflow: auto; margin: 0; max-height: 460px;
+  }
+  details > summary {
+    cursor: pointer; color: var(--ink-2); font-size: 12.5px; padding: 6px 0; user-select: none;
+  }
+  details > summary:hover { color: var(--ink); }
+
+  .test-list { list-style: none; margin: 0; padding: 0; }
+  .test-list li {
+    display: flex; gap: 9px; align-items: baseline; padding: 3px 0;
+    border-bottom: 1px solid var(--grid); font-size: 12px; color: var(--ink-2);
+  }
+  .test-list li .ok { color: var(--status-good); font-weight: 700; }
+  .test-list li .ms { margin-left: auto; color: var(--ink-muted); font-variant-numeric: tabular-nums; font-size: 11px; }
+  .suite-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 6px; }
+  .suite-head .count { color: var(--ink-muted); font-size: 12px; }
+
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(268px, 1fr)); gap: 12px; }
+  .card { background: var(--surface-1); border: 1px solid var(--hairline); border-radius: 10px; padding: 12px 14px; }
+  .card h3 { margin: 0 0 5px; font-size: 12.5px; color: var(--ink); }
+  .card p { margin: 0; font-size: 12px; color: var(--ink-2); }
+
+  #tip {
+    position: fixed; pointer-events: none; opacity: 0; transition: opacity .1s;
+    background: var(--surface-2); color: var(--ink); border: 1px solid var(--hairline);
+    border-radius: 6px; padding: 5px 9px; font-size: 11.5px; font-family: var(--mono);
+    z-index: 10; white-space: nowrap;
+  }
+  footer { margin-top: 34px; padding-top: 14px; border-top: 1px solid var(--hairline);
+           color: var(--ink-muted); font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="bar">
+  <h1>The Haunted Queue</h1>
+  <span class="sub">a tangled async scheduler, refactored — architecture &amp; behaviour report</span>
+  <div class="chips">
+    <span class="chip">Bun 1.3 · TypeScript</span>
+    <span class="chip">zero dependencies</span>
+    <span class="chip ok">34 / 34 tests passing</span>
+    <button class="toggle" id="themeToggle" type="button">light</button>
+  </div>
+</header>
+
+<div class="stats">
+  
+  <div class="stat">
+    <div class="stat-value">34</div>
+    <div class="stat-label">tests</div>
+    <div class="stat-sub">0 failing · 132 assertions</div>
+  </div>
+  
+  <div class="stat">
+    <div class="stat-value">11</div>
+    <div class="stat-label">legacy defects</div>
+    <div class="stat-sub">each pinned by a characterization test</div>
+  </div>
+  
+  <div class="stat">
+    <div class="stat-value">5</div>
+    <div class="stat-label">modules</div>
+    <div class="stat-sub">queue · types · errors · backoff · events</div>
+  </div>
+  
+  <div class="stat">
+    <div class="stat-value">6</div>
+    <div class="stat-label">named job states</div>
+    <div class="stat-sub">3 live · 3 terminal, all observable</div>
+  </div>
+  
+  <div class="stat">
+    <div class="stat-value">0</div>
+    <div class="stat-label">leaked timers</div>
+    <div class="stat-sub">asserted after every drain</div>
+  </div>
+  
+  <div class="stat">
+    <div class="stat-value">0</div>
+    <div class="stat-label">unhandled rejections</div>
+    <div class="stat-sub">reported by the suite or the demo</div>
+  </div>
+</div>
+
+<div class="grid-2">
+  <div class="panel">
+    <h2>Before / after architecture</h2>
+    <p class="lede">
+      One 120-line class where every concern shared the same mutable fields, replaced by five
+      modules with one owner per concern — and, critically, a named state for every moment in a
+      job's life.
+    </p>
+    <div class="arch">
+      <div class="arch-col">
+        <h3><span class="tag before">before</span> legacy/queue.ts · 120 lines</h3>
+        <div class="mod bad">
+          <div class="name">JobQueue <span class="loc">one file, one class</span></div>
+          <div class="role">Five private fields carry all state, and no field says what a job <em>is</em>:</div>
+          <ul>
+            <li><code>#pending</code> — array, re-sorted on every add</li>
+            <li><code>#active</code> — id → controller, no duplicate check</li>
+            <li><code>#running</code> — counter, decremented before retries</li>
+            <li><code>#drainers</code> — flushed only from <code>.finally</code></li>
+            <li><code>#closed</code> — boolean</li>
+          </ul>
+        </div>
+        <div class="mod bad">
+          <div class="name">#pump() <span class="loc">the whole state machine</span></div>
+          <div class="role">
+            Dequeue, start, resolve, retry, re-queue, drain and slot accounting all interleaved in
+            one promise chain — with <code>run()</code> called inside a <code>new Promise</code>
+            executor, and retry timers owned by nobody.
+          </div>
+        </div>
+        <div class="mod bad">
+          <div class="name">setTimeout <span class="loc">hardcoded</span></div>
+          <div class="role">No seam, so every test must sleep. Nothing reports what the queue is doing.</div>
+        </div>
+      </div>
+
+      <div class="arch-arrow">→</div>
+
+      <div class="arch-col">
+        <h3><span class="tag after">after</span> src/ · 5 modules</h3>
+        <div class="mod good">
+          <div class="name">job-queue.ts <span class="loc">the state machine</span></div>
+          <div class="role">
+            One record per live job with an explicit <code>state</code> field, a sorted-on-insert
+            pending queue, an id registry, and a reentrancy-safe pump. Each record owns its single
+            retry timer.
+          </div>
+        </div>
+        <div class="mod good">
+          <div class="name">types.ts <span class="loc">public contract</span></div>
+          <div class="role"><code>JobFunction</code>, <code>AddOptions</code>, <code>QueueStats</code>, <code>QueueEvents</code>, and the two seams.</div>
+        </div>
+        <div class="mod good">
+          <div class="name">errors.ts <span class="loc">typed failures</span></div>
+          <div class="role">One <code>QueueError</code> root: closed, duplicate, invalid, abort. Callers discriminate on a class, not a string.</div>
+        </div>
+        <div class="mod good">
+          <div class="name">backoff.ts <span class="loc">delay + timer seam</span></div>
+          <div class="role">The pure curve, the host timer wrapper, and <code>ManualScheduler</code> — virtual time plus a leak counter for tests.</div>
+        </div>
+        <div class="mod good">
+          <div class="name">events.ts <span class="loc">typed emitter</span></div>
+          <div class="role">Synchronous dispatch over a snapshot; a throwing listener is contained and reported out of band.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>State transitions</h2>
+    <p class="lede">
+      Three live states and three terminal ones. Solid edges are ordinary progress; dashed edges are
+      <code>cancel()</code>, which is terminal from every live state.
+    </p>
+    
+<svg viewBox="0 0 620 560" width="100%" role="img"
+     aria-label="Job state transition diagram" class="statechart">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--ink-muted)" />
+    </marker>
+  </defs>
+
+  <text x="30" y="30" class="sd-entry">add(id, run, options)</text>
+  <path d="M 100 40 L 100 74" class="edge" marker-end="url(#arrow)" />
+
+  <g class="node">
+    <rect x="30" y="76" width="140" height="46" rx="8" fill="var(--state-pending)" />
+    <text x="100" y="105" class="sd-node-label" text-anchor="middle">pending</text>
+  </g>
+  <g class="node">
+    <rect x="240" y="76" width="140" height="46" rx="8" fill="var(--state-running)" />
+    <text x="310" y="105" class="sd-node-label" text-anchor="middle">running</text>
+  </g>
+  <g class="node">
+    <rect x="230" y="228" width="160" height="46" rx="8" fill="var(--state-retry)" />
+    <text x="310" y="257" class="sd-node-label" text-anchor="middle">retry-waiting</text>
+  </g>
+
+  <g class="node terminal-node">
+    <rect x="448" y="76" width="142" height="46" rx="8" fill="var(--status-good)" />
+    <text x="519" y="105" class="sd-node-label" text-anchor="middle">✓ fulfilled</text>
+  </g>
+  <g class="node terminal-node">
+    <rect x="448" y="228" width="142" height="46" rx="8" fill="var(--status-critical)" />
+    <text x="519" y="257" class="sd-node-label" text-anchor="middle">✕ rejected</text>
+  </g>
+  <g class="node terminal-node">
+    <rect x="30" y="424" width="142" height="46" rx="8" fill="var(--status-muted)" />
+    <text x="101" y="453" class="sd-node-label" text-anchor="middle">⊘ cancelled</text>
+  </g>
+
+  <path d="M 172 99 L 236 99" class="edge" marker-end="url(#arrow)" />
+  <text x="204" y="90" class="edge-label" text-anchor="middle">slot free</text>
+
+  <path d="M 382 99 L 444 99" class="edge" marker-end="url(#arrow)" />
+  <text x="413" y="90" class="edge-label" text-anchor="middle">resolve</text>
+
+  <path d="M 310 124 L 310 224" class="edge" marker-end="url(#arrow)" />
+  <text x="318" y="163" class="edge-label">reject,</text>
+  <text x="318" y="178" class="edge-label">attempts ≤ retries</text>
+
+  <path d="M 382 116 C 430 150, 440 190, 452 224" class="edge" marker-end="url(#arrow)" />
+  <text x="452" y="170" class="edge-label">reject,</text>
+  <text x="452" y="185" class="edge-label">exhausted</text>
+
+  <path d="M 230 251 C 150 251, 110 200, 100 126" class="edge" marker-end="url(#arrow)" />
+  <text x="126" y="196" class="edge-label">timer fires</text>
+  <text x="126" y="211" class="edge-label">25·2^(k−1) ms</text>
+
+  <path d="M 86 124 L 86 420" class="edge cancel-edge" marker-end="url(#arrow)" />
+  <text x="30" y="290" class="edge-label">cancel()</text>
+
+  <path d="M 268 124 C 250 300, 200 380, 150 424" class="edge cancel-edge" marker-end="url(#arrow)" />
+  <text x="228" y="352" class="edge-label">cancel() · abort signal</text>
+
+  <path d="M 250 274 C 210 330, 180 380, 142 422" class="edge cancel-edge" marker-end="url(#arrow)" />
+  <text x="150" y="392" class="edge-label">cancel() · clear timer</text>
+
+  <g class="sd-note">
+    <text x="230" y="440">Terminal states are not retained:</text>
+    <text x="230" y="458">the record is dropped, which releases</text>
+    <text x="230" y="476">the id and the concurrency slot.</text>
+    <text x="230" y="502" class="sd-note-strong">A cancelled job never retries.</text>
+  </g>
+</svg>
+  </div>
+</div>
+
+<section>
+  <h2>Legacy failure modes and their fixes</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>#</th><th style="width:20%">Defect</th><th style="width:26%">What the legacy code does</th>
+        <th style="width:24%">Consequence</th><th style="width:30%">Fix</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="n">0</td>
+        <td><strong>Synchronous throws bypass everything</strong><div style="margin-top:5px;font-size:11px;color:var(--ink-muted)">proof: <span class="mono">#0 a synchronous throw escapes #pump</span></div></td>
+        <td><code>#pump</code> calls <code>item.run(signal)</code> from inside the <code>new Promise</code> executor in <code>add</code>, so a synchronous throw unwinds the executor rather than reaching <code>.catch</code>.</td>
+        <td>The promise rejects immediately with <code>retries</code> ignored, and <code>#running</code> / <code>#active</code> are never cleaned up — at <code>concurrency: 1</code> the queue wedges permanently.</td>
+        <td><code>run</code> is invoked inside its own <code>try/catch</code> and the throw is converted to a rejection, taking the identical path — retries included — as an async failure.</td>
+      </tr>
+      <tr>
+        <td class="n">1</td>
+        <td><strong>Retry-waiting is not a state</strong><div style="margin-top:5px;font-size:11px;color:var(--ink-muted)">proof: <span class="mono">#1/#2 drain resolves while a retry is still armed</span></div></td>
+        <td><code>#running</code> is decremented in <code>.finally()</code> even when a retry has just been armed, and the item sits in neither <code>#pending</code> nor <code>#active</code> during backoff.</td>
+        <td>Work that is sleeping between attempts is invisible to every counter in the queue.</td>
+        <td>An explicit <code>retry-waiting</code> state with its own counter, reported by <code>stats()</code> alongside pending and running.</td>
+      </tr>
+      <tr>
+        <td class="n">2</td>
+        <td><strong>drain() resolves early</strong><div style="margin-top:5px;font-size:11px;color:var(--ink-muted)">proof: <span class="mono">#1/#2 drain resolves while a retry is still armed</span></div></td>
+        <td><code>drain()</code> resolves as soon as <code>#pending</code> is empty, and returns an already-resolved promise if the array happens to be empty at call time.</td>
+        <td>Callers &ldquo;drain&rdquo; a queue that still has jobs executing and retry timers armed.</td>
+        <td>Resolves only when <code>pending</code>, <code>running</code>, and <code>retryWaiting</code> are all zero — re-evaluated after every transition, including cancellation and retry re-queue.</td>
+      </tr>
+      <tr>
+        <td class="n">3</td>
+        <td><strong>Retries lose their priority</strong><div style="margin-top:5px;font-size:11px;color:var(--ink-muted)">proof: <span class="mono">#3 a retried job is re-queued without re-sorting</span></div></td>
+        <td>A retried item is <code>push</code>ed back onto <code>#pending</code>; the <code>sort</code> only ever runs inside <code>add</code>.</td>
+        <td>A <code>priority: 100</code> retry runs <em>after</em> a <code>priority: -100</code> job that was queued later.</td>
+        <td>The pending queue is kept ordered on insert (priority desc, sequence asc), so a retry re-enters at a defined position in its own priority band.</td>
+      </tr>
+      <tr>
+        <td class="n">4</td>
+        <td><strong>Backoff is off by one</strong><div style="margin-top:5px;font-size:11px;color:var(--ink-muted)">proof: <span class="mono">#4 the first retry waits 50ms instead of 25ms</span></div></td>
+        <td><code>item.attempt += 1</code> runs <em>before</em> computing <code>25 * 2 ** item.attempt</code>.</td>
+        <td>The first retry waits 50ms instead of the documented 25ms; every delay in the curve is doubled.</td>
+        <td><code>retry</code> is 1-based and <code>25 * 2 ** (retry - 1)</code> is a pure function in <code>src/backoff.ts</code> with its own unit test.</td>
+      </tr>
+      <tr>
+        <td class="n">5</td>
+        <td><strong>Cancelling a running job retries it</strong><div style="margin-top:5px;font-size:11px;color:var(--ink-muted)">proof: <span class="mono">#5 cancelling a running job retries it instead of ending it</span></div></td>
+        <td><code>cancel</code> calls <code>controller.abort()</code> and nothing else.</td>
+        <td>The caller's promise never settles, and when the task rejects in response to the signal the job is <strong>retried after having been cancelled</strong>.</td>
+        <td>Cancellation is terminal: reject once with <code>AbortError</code>, mark the attempt abandoned, release the slot and the id, and discard whatever the attempt eventually produces.</td>
+      </tr>
+      <tr>
+        <td class="n">6</td>
+        <td><strong>Jobs resurrect out of backoff</strong><div style="margin-top:5px;font-size:11px;color:var(--ink-muted)">proof: <span class="mono">#6 cancelling during retry backoff returns false</span></div></td>
+        <td>During backoff the item is in neither <code>#pending</code> nor <code>#active</code>, so <code>cancel</code> cannot find it.</td>
+        <td><code>cancel</code> returns <code>false</code>, the timer survives, and the job runs after being cancelled.</td>
+        <td>Retry-waiting is a live state; each record owns its single timer, and cancelling clears it and decrements the counter in the same step.</td>
+      </tr>
+      <tr>
+        <td class="n">7</td>
+        <td><strong>Duplicate ids clobber each other</strong><div style="margin-top:5px;font-size:11px;color:var(--ink-muted)">proof: <span class="mono">#7 duplicate ids evict each other</span></div></td>
+        <td><code>#active</code> is keyed by id with no duplicate check.</td>
+        <td>Two jobs run under one id; the second evicts the first from <code>#active</code>, leaving the first permanently uncancellable.</td>
+        <td>Adding an id that is pending, running, or retry-waiting rejects with <code>DuplicateJobIdError</code>. The id is released the moment the job reaches a terminal state.</td>
+      </tr>
+      <tr>
+        <td class="n">8</td>
+        <td><strong>Two error channels, no types</strong><div style="margin-top:5px;font-size:11px;color:var(--ink-muted)">proof: <span class="mono">#8 add throws synchronously after close</span></div></td>
+        <td><code>add</code> throws a bare <code>new Error("closed")</code> after <code>close</code>.</td>
+        <td>Callers need both <code>try/catch</code> and <code>.catch</code>, and have nothing to discriminate on but a string.</td>
+        <td><code>add</code> never throws. Every rejected addition is a rejected promise carrying a typed error: <code>QueueClosedError</code>, <code>DuplicateJobIdError</code>, or <code>InvalidJobError</code>.</td>
+      </tr>
+      <tr>
+        <td class="n">9</td>
+        <td><strong>NaN concurrency deadlocks silently</strong><div style="margin-top:5px;font-size:11px;color:var(--ink-muted)">proof: <span class="mono">#9 a NaN concurrency is accepted and deadlocks the queue</span></div></td>
+        <td><code>if (concurrency &lt; 1) throw</code> — but <code>NaN &lt; 1</code> is <code>false</code>.</td>
+        <td><code>new JobQueue(NaN)</code> builds a queue where <code>0 &lt; NaN</code> is also false, so it never starts anything and every <code>add</code> hangs. <code>1.5</code> and <code>1e9</code> are accepted too.</td>
+        <td>Integer range check, 1 through 32, with a typed <code>InvalidConcurrencyError</code> thrown at construction.</td>
+      </tr>
+      <tr>
+        <td class="n">10</td>
+        <td><strong>Nothing is observable or testable</strong><div style="margin-top:5px;font-size:11px;color:var(--ink-muted)">proof: <span class="mono">(structural — every test in the left-hand column depends on it)</span></div></td>
+        <td>No stats, no events, no state field, and <code>setTimeout</code> hardcoded.</td>
+        <td>Nothing to assert against; tests must sleep and guess, which is why the legacy suite below still uses real delays.</td>
+        <td><code>stats()</code>, six typed events, and an injectable <code>Scheduler</code> — the replacement's 24 tests run in tens of milliseconds and assert on leaked timers directly.</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>Corrected semantics at a glance</h2>
+  <div class="cards">
+    <div class="card"><h3>Ordering</h3><p>Priority descending, then FIFO by insertion. The pending queue is kept sorted on insert, so a retry re-enters at a defined position in its own priority band instead of at the tail.</p></div>
+    <div class="card"><h3>Concurrency</h3><p>An integer from 1 through 32, validated at construction. At most that many jobs execute at once; a slot is released when an attempt settles or when a running job is cancelled.</p></div>
+    <div class="card"><h3>Identity</h3><p>One live record per id while pending, running, or retry-waiting. Duplicates reject with <code>DuplicateJobIdError</code>; the id is reusable the instant the job reaches a terminal state.</p></div>
+    <div class="card"><h3>Retries</h3><p><code>retries: n</code> means n attempts <em>after</em> the first. Retry k waits <code>25 · 2^(k−1)</code> ms — 25, 50, 100. A synchronous throw follows the identical path as a rejection.</p></div>
+    <div class="card"><h3>Cancellation</h3><p>Terminal from any live state, rejecting exactly once with <code>AbortError</code>. Running jobs get their signal aborted and never retry; backoff timers are cleared.</p></div>
+    <div class="card"><h3>Close</h3><p>Refuses new additions with a typed <code>QueueClosedError</code> while letting accepted work — retries included — settle. There is no reopen.</p></div>
+    <div class="card"><h3>Drain</h3><p>Resolves only when pending, running, and retry-waiting are all zero. Every concurrent caller resolves, and jobs added while a drain is outstanding are included in it.</p></div>
+    <div class="card"><h3>Error surfacing</h3><p><code>add</code> never throws: every rejected addition is a rejected promise, so one <code>catch</code> covers closed queues, duplicate ids, bad arguments, cancellation, and task failure alike.</p></div>
+  </div>
+</section>
+
+<section>
+  <h2>Timeline — deterministic demonstration run</h2>
+  <div class="panel">
+    <p class="lede">
+      Reconstructed from the event stream in <code>out/demo.txt</code>. The x axis is
+      <strong>logical event order</strong>, not wall clock: the demo's retry timers run on a virtual
+      clock, and job "work" is measured in microtask turns, so the run is byte-identical every time.
+      Dashed rules mark where the virtual clock advanced.
+    </p>
+    <div class="legend">
+      <span class="key"><span class="swatch" style="background:var(--state-pending)"></span> pending — waiting for a slot</span>
+      <span class="key"><span class="swatch" style="background:var(--state-running)"></span> running</span>
+      <span class="key"><span class="swatch" style="background:var(--state-retry)"></span> retry-waiting — timer armed</span>
+      <span class="key"><span class="dot" style="background:var(--status-good)">✓</span> fulfilled</span>
+      <span class="key"><span class="dot" style="background:var(--status-critical)">✕</span> rejected</span>
+      <span class="key"><span class="dot" style="background:var(--status-muted)">⊘</span> cancelled</span>
+    </div>
+    
+<svg viewBox="0 0 1180 346" width="100%" height="346"
+     role="img" aria-label="Job state occupancy over logical event order" class="swimlane">
+  <g class="gridlines">
+    <line x1="132.0" y1="16"
+          x2="132.0" y2="312" class="tick-line" />
+        <text x="132.0" y="12" class="tick-label"
+          text-anchor="middle">t=0ms</text>
+    <line x1="760.6" y1="16"
+          x2="760.6" y2="312" class="tick-line" />
+        <text x="760.6" y="12" class="tick-label"
+          text-anchor="middle">t=25ms</text>
+    <line x1="880.3" y1="16"
+          x2="880.3" y2="312" class="tick-line" />
+        <text x="880.3" y="12" class="tick-label"
+          text-anchor="middle">t=75ms</text>
+    <line x1="910.3" y1="16"
+          x2="910.3" y2="312" class="tick-line" />
+        <text x="910.3" y="12" class="tick-label"
+          text-anchor="middle">t=100ms</text>
+  </g>
+  <g class="lane">
+        <text x="120" y="45" class="lane-label" text-anchor="end">send-email</text>
+        <g class="seg" tabindex="0"
+              data-tip="send-email · pending · events 1–2">
+            <rect x="132.0" y="30" width="27.9" height="22"
+              rx="4" fill="var(--state-pending)" />
+            
+            <title>send-email — pending, events 1–2</title>
+          </g>
+      <g class="seg" tabindex="0"
+              data-tip="send-email · running · events 2–10">
+            <rect x="161.9" y="30" width="237.5" height="22"
+              rx="4" fill="var(--state-running)" />
+            <text x="168.9" y="45" class="seg-label">running</text>
+            <title>send-email — running, events 2–10</title>
+          </g>
+        <g class="terminal" tabindex="0" data-tip="send-email · fulfilled · =&gt; &quot;sent&quot; after 1 attempt(s)">
+            <circle cx="410.4" cy="41" r="9"
+              fill="var(--status-good)" />
+            <text x="410.4" y="45"
+              class="terminal-glyph" text-anchor="middle">✓</text>
+            <text x="424.4" y="45"
+              class="terminal-label">fulfilled</text>
+            <title>send-email — fulfilled: =&gt; &quot;sent&quot; after 1 attempt(s)</title>
+          </g>
+      </g>
+  <g class="lane">
+        <text x="120" y="79" class="lane-label" text-anchor="end">index-docs</text>
+        <g class="seg" tabindex="0"
+              data-tip="index-docs · pending · events 3–4">
+            <rect x="191.9" y="64" width="27.9" height="22"
+              rx="4" fill="var(--state-pending)" />
+            
+            <title>index-docs — pending, events 3–4</title>
+          </g>
+      <g class="seg" tabindex="0"
+              data-tip="index-docs · running · events 4–12">
+            <rect x="221.8" y="64" width="237.5" height="22"
+              rx="4" fill="var(--state-running)" />
+            <text x="228.8" y="79" class="seg-label">running</text>
+            <title>index-docs — running, events 4–12</title>
+          </g>
+        <g class="terminal" tabindex="0" data-tip="index-docs · fulfilled · =&gt; &quot;indexed&quot; after 1 attempt(s)">
+            <circle cx="470.3" cy="75" r="9"
+              fill="var(--status-good)" />
+            <text x="470.3" y="79"
+              class="terminal-glyph" text-anchor="middle">✓</text>
+            <text x="484.3" y="79"
+              class="terminal-label">fulfilled</text>
+            <title>index-docs — fulfilled: =&gt; &quot;indexed&quot; after 1 attempt(s)</title>
+          </g>
+      </g>
+  <g class="lane">
+        <text x="120" y="113" class="lane-label" text-anchor="end">warm-cache</text>
+        <g class="seg" tabindex="0"
+              data-tip="warm-cache · pending · events 5–11">
+            <rect x="251.7" y="98" width="177.6" height="22"
+              rx="4" fill="var(--state-pending)" />
+            <text x="258.7" y="113" class="seg-label">pending</text>
+            <title>warm-cache — pending, events 5–11</title>
+          </g>
+      <g class="seg" tabindex="0"
+              data-tip="warm-cache · running · events 11–14">
+            <rect x="431.3" y="98" width="87.8" height="22"
+              rx="4" fill="var(--state-running)" />
+            <text x="438.3" y="113" class="seg-label">running</text>
+            <title>warm-cache — running, events 11–14</title>
+          </g>
+        <g class="terminal" tabindex="0" data-tip="warm-cache · fulfilled · =&gt; &quot;warm&quot; after 1 attempt(s)">
+            <circle cx="530.1" cy="109" r="9"
+              fill="var(--status-good)" />
+            <text x="530.1" y="113"
+              class="terminal-glyph" text-anchor="middle">✓</text>
+            <text x="544.1" y="113"
+              class="terminal-label">fulfilled</text>
+            <title>warm-cache — fulfilled: =&gt; &quot;warm&quot; after 1 attempt(s)</title>
+          </g>
+      </g>
+  <g class="lane">
+        <text x="120" y="147" class="lane-label" text-anchor="end">thumbnail</text>
+        <g class="seg" tabindex="0"
+              data-tip="thumbnail · pending · events 6–13">
+            <rect x="281.7" y="132" width="207.5" height="22"
+              rx="4" fill="var(--state-pending)" />
+            <text x="288.7" y="147" class="seg-label">pending</text>
+            <title>thumbnail — pending, events 6–13</title>
+          </g>
+      <g class="seg" tabindex="0"
+              data-tip="thumbnail · running · events 13–15">
+            <rect x="491.2" y="132" width="57.9" height="22"
+              rx="4" fill="var(--state-running)" />
+            <text x="498.2" y="147" class="seg-label">run</text>
+            <title>thumbnail — running, events 13–15</title>
+          </g>
+        <g class="terminal" tabindex="0" data-tip="thumbnail · fulfilled · =&gt; &quot;resized&quot; after 1 attempt(s)">
+            <circle cx="560.1" cy="143" r="9"
+              fill="var(--status-good)" />
+            <text x="560.1" y="147"
+              class="terminal-glyph" text-anchor="middle">✓</text>
+            <text x="574.1" y="147"
+              class="terminal-label">fulfilled</text>
+            <title>thumbnail — fulfilled: =&gt; &quot;resized&quot; after 1 attempt(s)</title>
+          </g>
+      </g>
+  <g class="lane">
+        <text x="120" y="181" class="lane-label" text-anchor="end">stale-scan</text>
+        <g class="seg" tabindex="0"
+              data-tip="stale-scan · pending · events 7–9">
+            <rect x="311.6" y="166" width="57.9" height="22"
+              rx="4" fill="var(--state-pending)" />
+            <text x="318.6" y="181" class="seg-label">pen</text>
+            <title>stale-scan — pending, events 7–9</title>
+          </g>
+        <g class="terminal" tabindex="0" data-tip="stale-scan · cancelled · from pending">
+            <circle cx="380.5" cy="177" r="9"
+              fill="var(--status-muted)" />
+            <text x="380.5" y="181"
+              class="terminal-glyph" text-anchor="middle">⊘</text>
+            <text x="394.5" y="181"
+              class="terminal-label">cancelled</text>
+            <title>stale-scan — cancelled: from pending</title>
+          </g>
+      </g>
+  <g class="lane">
+        <text x="120" y="215" class="lane-label" text-anchor="end">flaky-upload</text>
+        <g class="seg" tabindex="0"
+              data-tip="flaky-upload · pending · events 16–17">
+            <rect x="581.0" y="200" width="27.9" height="22"
+              rx="4" fill="var(--state-pending)" />
+            
+            <title>flaky-upload — pending, events 16–17</title>
+          </g>
+      <g class="seg" tabindex="0"
+              data-tip="flaky-upload · running · events 17–20">
+            <rect x="610.9" y="200" width="87.8" height="22"
+              rx="4" fill="var(--state-running)" />
+            <text x="617.9" y="215" class="seg-label">running</text>
+            <title>flaky-upload — running, events 17–20</title>
+          </g>
+      <g class="seg" tabindex="0"
+              data-tip="flaky-upload · retry-waiting · events 20–22">
+            <rect x="700.7" y="200" width="57.9" height="22"
+              rx="4" fill="var(--state-retry)" />
+            <text x="707.7" y="215" class="seg-label">ret</text>
+            <title>flaky-upload — retry-waiting, events 20–22</title>
+          </g>
+      <g class="seg" tabindex="0"
+              data-tip="flaky-upload · running · events 22–24">
+            <rect x="760.6" y="200" width="57.9" height="22"
+              rx="4" fill="var(--state-running)" />
+            <text x="767.6" y="215" class="seg-label">run</text>
+            <title>flaky-upload — running, events 22–24</title>
+          </g>
+      <g class="seg" tabindex="0"
+              data-tip="flaky-upload · retry-waiting · events 24–26">
+            <rect x="820.5" y="200" width="57.9" height="22"
+              rx="4" fill="var(--state-retry)" />
+            <text x="827.5" y="215" class="seg-label">ret</text>
+            <title>flaky-upload — retry-waiting, events 24–26</title>
+          </g>
+      <g class="seg" tabindex="0"
+              data-tip="flaky-upload · running · events 26–27">
+            <rect x="880.3" y="200" width="27.9" height="22"
+              rx="4" fill="var(--state-running)" />
+            
+            <title>flaky-upload — running, events 26–27</title>
+          </g>
+        <g class="terminal" tabindex="0" data-tip="flaky-upload · fulfilled · =&gt; &quot;uploaded&quot; after 3 attempt(s)">
+            <circle cx="919.3" cy="211" r="9"
+              fill="var(--status-good)" />
+            <text x="919.3" y="215"
+              class="terminal-glyph" text-anchor="middle">✓</text>
+            <text x="933.3" y="215"
+              class="terminal-label">fulfilled</text>
+            <title>flaky-upload — fulfilled: =&gt; &quot;uploaded&quot; after 3 attempt(s)</title>
+          </g>
+      </g>
+  <g class="lane">
+        <text x="120" y="249" class="lane-label" text-anchor="end">bad-report</text>
+        <g class="seg" tabindex="0"
+              data-tip="bad-report · pending · events 18–19">
+            <rect x="640.9" y="234" width="27.9" height="22"
+              rx="4" fill="var(--state-pending)" />
+            
+            <title>bad-report — pending, events 18–19</title>
+          </g>
+      <g class="seg" tabindex="0"
+              data-tip="bad-report · running · events 19–21">
+            <rect x="670.8" y="234" width="57.9" height="22"
+              rx="4" fill="var(--state-running)" />
+            <text x="677.8" y="249" class="seg-label">run</text>
+            <title>bad-report — running, events 19–21</title>
+          </g>
+      <g class="seg" tabindex="0"
+              data-tip="bad-report · retry-waiting · events 21–23">
+            <rect x="730.7" y="234" width="57.9" height="22"
+              rx="4" fill="var(--state-retry)" />
+            <text x="737.7" y="249" class="seg-label">ret</text>
+            <title>bad-report — retry-waiting, events 21–23</title>
+          </g>
+      <g class="seg" tabindex="0"
+              data-tip="bad-report · running · events 23–25">
+            <rect x="790.5" y="234" width="57.9" height="22"
+              rx="4" fill="var(--state-running)" />
+            <text x="797.5" y="249" class="seg-label">run</text>
+            <title>bad-report — running, events 23–25</title>
+          </g>
+        <g class="terminal" tabindex="0" data-tip="bad-report · rejected · !! malformed template after 2 attempt(s)">
+            <circle cx="859.4" cy="245" r="9"
+              fill="var(--status-critical)" />
+            <text x="859.4" y="249"
+              class="terminal-glyph" text-anchor="middle">✕</text>
+            <text x="873.4" y="249"
+              class="terminal-label">rejected</text>
+            <title>bad-report — rejected: !! malformed template after 2 attempt(s)</title>
+          </g>
+      </g>
+  <g class="lane">
+        <text x="120" y="283" class="lane-label" text-anchor="end">stuck-crawler</text>
+        <g class="seg" tabindex="0"
+              data-tip="stuck-crawler · pending · events 28–29">
+            <rect x="940.2" y="268" width="27.9" height="22"
+              rx="4" fill="var(--state-pending)" />
+            
+            <title>stuck-crawler — pending, events 28–29</title>
+          </g>
+      <g class="seg" tabindex="0"
+              data-tip="stuck-crawler · running · events 29–30">
+            <rect x="970.1" y="268" width="27.9" height="22"
+              rx="4" fill="var(--state-running)" />
+            
+            <title>stuck-crawler — running, events 29–30</title>
+          </g>
+        <g class="terminal" tabindex="0" data-tip="stuck-crawler · cancelled · from running">
+            <circle cx="1009.1" cy="279" r="9"
+              fill="var(--status-muted)" />
+            <text x="1009.1" y="283"
+              class="terminal-glyph" text-anchor="middle">⊘</text>
+            <text x="1023.1" y="283"
+              class="terminal-label">cancelled</text>
+            <title>stuck-crawler — cancelled: from running</title>
+          </g>
+      </g>
+  <line x1="132" y1="316" x2="1030" y2="316" class="axis" />
+  <text x="251.7" y="332" class="tick-label" text-anchor="middle">5</text>
+  <text x="401.4" y="332" class="tick-label" text-anchor="middle">10</text>
+  <text x="551.1" y="332" class="tick-label" text-anchor="middle">15</text>
+  <text x="700.7" y="332" class="tick-label" text-anchor="middle">20</text>
+  <text x="850.4" y="332" class="tick-label" text-anchor="middle">25</text>
+  <text x="1000.1" y="332" class="tick-label" text-anchor="middle">30</text>
+  <text x="120" y="332" class="axis-title" text-anchor="end">event #</text>
+</svg>
+  </div>
+
+  <div class="grid-2" style="margin-top:16px; grid-template-columns: 1fr 520px;">
+    <div class="panel">
+      <h2>Event log</h2>
+      <p class="lede">The same run as a table — the accessible view of the chart above.</p>
+      <table>
+        <thead><tr><th>#</th><th>virtual t</th><th>event</th><th>job</th><th>detail</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="n tnum">1</td>
+            <td class="tnum mono">0ms</td>
+            <td><span class="badge b-queued">queued</span></td>
+            <td class="mono">send-email</td>
+            <td>priority=10 retries=0</td>
+          </tr>
+          <tr>
+            <td class="n tnum">2</td>
+            <td class="tnum mono">0ms</td>
+            <td><span class="badge b-started">started</span></td>
+            <td class="mono">send-email</td>
+            <td>attempt 1</td>
+          </tr>
+          <tr>
+            <td class="n tnum">3</td>
+            <td class="tnum mono">0ms</td>
+            <td><span class="badge b-queued">queued</span></td>
+            <td class="mono">index-docs</td>
+            <td>priority=0 retries=0</td>
+          </tr>
+          <tr>
+            <td class="n tnum">4</td>
+            <td class="tnum mono">0ms</td>
+            <td><span class="badge b-started">started</span></td>
+            <td class="mono">index-docs</td>
+            <td>attempt 1</td>
+          </tr>
+          <tr>
+            <td class="n tnum">5</td>
+            <td class="tnum mono">0ms</td>
+            <td><span class="badge b-queued">queued</span></td>
+            <td class="mono">warm-cache</td>
+            <td>priority=5 retries=0</td>
+          </tr>
+          <tr>
+            <td class="n tnum">6</td>
+            <td class="tnum mono">0ms</td>
+            <td><span class="badge b-queued">queued</span></td>
+            <td class="mono">thumbnail</td>
+            <td>priority=5 retries=0</td>
+          </tr>
+          <tr>
+            <td class="n tnum">7</td>
+            <td class="tnum mono">0ms</td>
+            <td><span class="badge b-queued">queued</span></td>
+            <td class="mono">stale-scan</td>
+            <td>priority=0 retries=0</td>
+          </tr>
+          <tr>
+            <td class="n tnum">8</td>
+            <td class="tnum mono">0ms</td>
+            <td><span class="badge b-refused">refused</span></td>
+            <td class="mono">send-email</td>
+            <td>DuplicateJobIdError</td>
+          </tr>
+          <tr>
+            <td class="n tnum">9</td>
+            <td class="tnum mono">0ms</td>
+            <td><span class="badge b-cancelled">cancelled</span></td>
+            <td class="mono">stale-scan</td>
+            <td>from pending</td>
+          </tr>
+          <tr>
+            <td class="n tnum">10</td>
+            <td class="tnum mono">0ms</td>
+            <td><span class="badge b-fulfilled">fulfilled</span></td>
+            <td class="mono">send-email</td>
+            <td>=&gt; &quot;sent&quot; after 1 attempt(s)</td>
+          </tr>
+          <tr>
+            <td class="n tnum">11</td>
+            <td class="tnum mono">0ms</td>
+            <td><span class="badge b-started">started</span></td>
+            <td class="mono">warm-cache</td>
+            <td>attempt 1</td>
+          </tr>
+          <tr>
+            <td class="n tnum">12</td>
+            <td class="tnum mono">0ms</td>
+            <td><span class="badge b-fulfilled">fulfilled</span></td>
+            <td class="mono">index-docs</td>
+            <td>=&gt; &quot;indexed&quot; after 1 attempt(s)</td>
+          </tr>
+          <tr>
+            <td class="n tnum">13</td>
+            <td class="tnum mono">0ms</td>
+            <td><span class="badge b-started">started</span></td>
+            <td class="mono">thumbnail</td>
+            <td>attempt 1</td>
+          </tr>
+          <tr>
+            <td class="n tnum">14</td>
+            <td class="tnum mono">0ms</td>
+            <td><span class="badge b-fulfilled">fulfilled</span></td>
+            <td class="mono">warm-cache</td>
+            <td>=&gt; &quot;warm&quot; after 1 attempt(s)</td>
+          </tr>
+          <tr>
+            <td class="n tnum">15</td>
+            <td class="tnum mono">0ms</td>
+            <td><span class="badge b-fulfilled">fulfilled</span></td>
+            <td class="mono">thumbnail</td>
+            <td>=&gt; &quot;resized&quot; after 1 attempt(s)</td>
+          </tr>
+          <tr>
+            <td class="n tnum">16</td>
+            <td class="tnum mono">0ms</td>
+            <td><span class="badge b-queued">queued</span></td>
+            <td class="mono">flaky-upload</td>
+            <td>priority=5 retries=3</td>
+          </tr>
+          <tr>
+            <td class="n tnum">17</td>
+            <td class="tnum mono">0ms</td>
+            <td><span class="badge b-started">started</span></td>
+            <td class="mono">flaky-upload</td>
+            <td>attempt 1</td>
+          </tr>
+          <tr>
+            <td class="n tnum">18</td>
+            <td class="tnum mono">0ms</td>
+            <td><span class="badge b-queued">queued</span></td>
+            <td class="mono">bad-report</td>
+            <td>priority=1 retries=1</td>
+          </tr>
+          <tr>
+            <td class="n tnum">19</td>
+            <td class="tnum mono">0ms</td>
+            <td><span class="badge b-started">started</span></td>
+            <td class="mono">bad-report</td>
+            <td>attempt 1</td>
+          </tr>
+          <tr>
+            <td class="n tnum">20</td>
+            <td class="tnum mono">0ms</td>
+            <td><span class="badge b-retrying">retrying</span></td>
+            <td class="mono">flaky-upload</td>
+            <td>retry 1 in 25ms (network reset #1)</td>
+          </tr>
+          <tr>
+            <td class="n tnum">21</td>
+            <td class="tnum mono">0ms</td>
+            <td><span class="badge b-retrying">retrying</span></td>
+            <td class="mono">bad-report</td>
+            <td>retry 1 in 25ms (malformed template)</td>
+          </tr>
+          <tr>
+            <td class="n tnum">22</td>
+            <td class="tnum mono">25ms</td>
+            <td><span class="badge b-started">started</span></td>
+            <td class="mono">flaky-upload</td>
+            <td>attempt 2</td>
+          </tr>
+          <tr>
+            <td class="n tnum">23</td>
+            <td class="tnum mono">25ms</td>
+            <td><span class="badge b-started">started</span></td>
+            <td class="mono">bad-report</td>
+            <td>attempt 2</td>
+          </tr>
+          <tr>
+            <td class="n tnum">24</td>
+            <td class="tnum mono">25ms</td>
+            <td><span class="badge b-retrying">retrying</span></td>
+            <td class="mono">flaky-upload</td>
+            <td>retry 2 in 50ms (network reset #2)</td>
+          </tr>
+          <tr>
+            <td class="n tnum">25</td>
+            <td class="tnum mono">25ms</td>
+            <td><span class="badge b-rejected">rejected</span></td>
+            <td class="mono">bad-report</td>
+            <td>!! malformed template after 2 attempt(s)</td>
+          </tr>
+          <tr>
+            <td class="n tnum">26</td>
+            <td class="tnum mono">75ms</td>
+            <td><span class="badge b-started">started</span></td>
+            <td class="mono">flaky-upload</td>
+            <td>attempt 3</td>
+          </tr>
+          <tr>
+            <td class="n tnum">27</td>
+            <td class="tnum mono">100ms</td>
+            <td><span class="badge b-fulfilled">fulfilled</span></td>
+            <td class="mono">flaky-upload</td>
+            <td>=&gt; &quot;uploaded&quot; after 3 attempt(s)</td>
+          </tr>
+          <tr>
+            <td class="n tnum">28</td>
+            <td class="tnum mono">100ms</td>
+            <td><span class="badge b-queued">queued</span></td>
+            <td class="mono">stuck-crawler</td>
+            <td>priority=9 retries=5</td>
+          </tr>
+          <tr>
+            <td class="n tnum">29</td>
+            <td class="tnum mono">100ms</td>
+            <td><span class="badge b-started">started</span></td>
+            <td class="mono">stuck-crawler</td>
+            <td>attempt 1</td>
+          </tr>
+          <tr>
+            <td class="n tnum">30</td>
+            <td class="tnum mono">100ms</td>
+            <td><span class="badge b-cancelled">cancelled</span></td>
+            <td class="mono">stuck-crawler</td>
+            <td>from running</td>
+          </tr>
+          <tr>
+            <td class="n tnum">31</td>
+            <td class="tnum mono">100ms</td>
+            <td><span class="badge b-refused">refused</span></td>
+            <td class="mono">after-close</td>
+            <td>QueueClosedError</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="panel">
+      <h2>stats() snapshots</h2>
+      <p class="lede">Taken at labelled checkpoints during the same run.</p>
+      <table>
+        <thead><tr><th>checkpoint</th><th>pend</th><th>run</th><th>retry</th><th>ids</th><th>closed</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>after 5 adds</td>
+            <td class="tnum">3</td>
+            <td class="tnum">2</td>
+            <td class="tnum">0</td>
+            <td class="tnum">5</td>
+            <td>no</td>
+          </tr>
+          <tr>
+            <td>after cancellation</td>
+            <td class="tnum">2</td>
+            <td class="tnum">2</td>
+            <td class="tnum">0</td>
+            <td class="tnum">4</td>
+            <td>no</td>
+          </tr>
+          <tr>
+            <td>phase 1 complete</td>
+            <td class="tnum">0</td>
+            <td class="tnum">0</td>
+            <td class="tnum">0</td>
+            <td class="tnum">0</td>
+            <td>no</td>
+          </tr>
+          <tr>
+            <td>both in backoff</td>
+            <td class="tnum">0</td>
+            <td class="tnum">0</td>
+            <td class="tnum">2</td>
+            <td class="tnum">2</td>
+            <td>no</td>
+          </tr>
+          <tr>
+            <td>retries resolved</td>
+            <td class="tnum">0</td>
+            <td class="tnum">0</td>
+            <td class="tnum">0</td>
+            <td class="tnum">0</td>
+            <td>no</td>
+          </tr>
+          <tr>
+            <td>crawler running</td>
+            <td class="tnum">0</td>
+            <td class="tnum">1</td>
+            <td class="tnum">0</td>
+            <td class="tnum">1</td>
+            <td>no</td>
+          </tr>
+          <tr>
+            <td>after drain</td>
+            <td class="tnum">0</td>
+            <td class="tnum">0</td>
+            <td class="tnum">0</td>
+            <td class="tnum">0</td>
+            <td>yes</td>
+          </tr>
+        </tbody>
+      </table>
+      <details style="margin-top:12px">
+        <summary>Raw transcript — out/demo.txt</summary>
+        <pre>The Haunted Queue — deterministic demonstration
+concurrency=2, retry timers on a virtual clock, work measured in ticks
+
+── phase 1 · mixed priority admission ────────────────────────────
+001  t=   0ms  queued     send-email     priority=10 retries=0
+002  t=   0ms  started    send-email     attempt 1
+003  t=   0ms  queued     index-docs     priority=0 retries=0
+004  t=   0ms  started    index-docs     attempt 1
+005  t=   0ms  queued     warm-cache     priority=5 retries=0
+006  t=   0ms  queued     thumbnail      priority=5 retries=0
+007  t=   0ms  queued     stale-scan     priority=0 retries=0
+      stats @ after 5 adds           pending=3 running=2 retryWaiting=0 liveIds=5 closed=false
+
+── phase 2 · rejected additions ──────────────────────────────────
+008  t=   0ms  refused    send-email     DuplicateJobIdError
+
+── phase 3 · cancel a job still waiting for a slot ───────────────
+009  t=   0ms  cancelled  stale-scan     from pending
+      cancel(&quot;stale-scan&quot;) -&gt; true
+      cancel(&quot;not-a-job&quot;)  -&gt; false
+      stats @ after cancellation     pending=2 running=2 retryWaiting=0 liveIds=4 closed=false
+010  t=   0ms  fulfilled  send-email     =&gt; &quot;sent&quot; after 1 attempt(s)
+011  t=   0ms  started    warm-cache     attempt 1
+012  t=   0ms  fulfilled  index-docs     =&gt; &quot;indexed&quot; after 1 attempt(s)
+013  t=   0ms  started    thumbnail      attempt 1
+014  t=   0ms  fulfilled  warm-cache     =&gt; &quot;warm&quot; after 1 attempt(s)
+015  t=   0ms  fulfilled  thumbnail      =&gt; &quot;resized&quot; after 1 attempt(s)
+      stats @ phase 1 complete       pending=0 running=0 retryWaiting=0 liveIds=0 closed=false
+
+── phase 4 · retry with exponential backoff ──────────────────────
+016  t=   0ms  queued     flaky-upload   priority=5 retries=3
+017  t=   0ms  started    flaky-upload   attempt 1
+018  t=   0ms  queued     bad-report     priority=1 retries=1
+019  t=   0ms  started    bad-report     attempt 1
+020  t=   0ms  retrying   flaky-upload   retry 1 in 25ms (network reset #1)
+021  t=   0ms  retrying   bad-report     retry 1 in 25ms (malformed template)
+      stats @ both in backoff        pending=0 running=0 retryWaiting=2 liveIds=2 closed=false
+022  t=  25ms  started    flaky-upload   attempt 2
+023  t=  25ms  started    bad-report     attempt 2
+024  t=  25ms  retrying   flaky-upload   retry 2 in 50ms (network reset #2)
+025  t=  25ms  rejected   bad-report     !! malformed template after 2 attempt(s)
+026  t=  75ms  started    flaky-upload   attempt 3
+027  t= 100ms  fulfilled  flaky-upload   =&gt; &quot;uploaded&quot; after 3 attempt(s)
+      stats @ retries resolved       pending=0 running=0 retryWaiting=0 liveIds=0 closed=false
+
+── phase 5 · cancel a running job ────────────────────────────────
+028  t= 100ms  queued     stuck-crawler  priority=9 retries=5
+029  t= 100ms  started    stuck-crawler  attempt 1
+      stats @ crawler running        pending=0 running=1 retryWaiting=0 liveIds=1 closed=false
+030  t= 100ms  cancelled  stuck-crawler  from running
+      cancel(&quot;stuck-crawler&quot;) -&gt; true
+      retry timers armed after cancelling a running job: 0
+
+── phase 6 · close, then drain ───────────────────────────────────
+031  t= 100ms  refused    after-close    QueueClosedError
+
+── settled promises ──────────────────────────────────────────────
+      bad-report     rejected   Error: malformed template
+      flaky-upload   fulfilled  &quot;uploaded&quot;
+      index-docs     fulfilled  &quot;indexed&quot;
+      send-email     fulfilled  &quot;sent&quot;
+      stale-scan     cancelled  AbortError: Job &quot;stale-scan&quot; was cancelled.
+      stuck-crawler  cancelled  AbortError: Job &quot;stuck-crawler&quot; was cancelled.
+      thumbnail      fulfilled  &quot;resized&quot;
+      warm-cache     fulfilled  &quot;warm&quot;
+
+── final state ───────────────────────────────────────────────────
+      stats @ after drain            pending=0 running=0 retryWaiting=0 liveIds=0 closed=true
+      retry timers still armed:      0
+      virtual time elapsed:          100ms
+      every tracked promise settled: true
+      listener failures contained:   10
+</pre>
+      </details>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Test summary</h2>
+  <div class="grid-2" style="grid-template-columns: 1fr 1fr;">
+    <div class="panel">
+      <div class="suite-head">
+        <h2 style="margin:0">Replacement · test/job-queue.test.ts</h2>
+        <span class="count">24 passing</span>
+      </div>
+      <p class="lede">
+        Retry timers run on <code>ManualScheduler</code>, so the suite never sleeps and
+        <code>clock.pending</code> doubles as a leak detector.
+      </p>
+      <ul class="test-list">
+        <li><span class="ok">✓</span><span>concurrency must be an integer from 1 through 32</span><span class="ms">0.1ms</span></li>
+        <li><span class="ok">✓</span><span>higher priority starts first and ties keep FIFO insertion order</span><span class="ms">1.6ms</span></li>
+        <li><span class="ok">✓</span><span>at most `concurrency` jobs execute at once</span><span class="ms">1.5ms</span></li>
+        <li><span class="ok">✓</span><span>rejected while pending, running, or retry-waiting</span><span class="ms">2.6ms</span></li>
+        <li><span class="ok">✓</span><span>an id becomes reusable after the job settles permanently</span><span class="ms">0.0ms</span></li>
+        <li><span class="ok">✓</span><span>a synchronous throw behaves exactly like a rejected promise</span><span class="ms">1.7ms</span></li>
+        <li><span class="ok">✓</span><span>a job that eventually succeeds resolves with the later attempt</span><span class="ms">2.4ms</span></li>
+        <li><span class="ok">✓</span><span>`retries` is additional attempts; exhaustion rejects with the last error</span><span class="ms">2.4ms</span></li>
+        <li><span class="ok">✓</span><span>the default backoff curve is 25 * 2 ** (retry - 1)</span><span class="ms">0.0ms</span></li>
+        <li><span class="ok">✓</span><span>cancelling a pending job removes it and rejects exactly once</span><span class="ms">2.5ms</span></li>
+        <li><span class="ok">✓</span><span>cancelling a running job aborts its signal and never retries</span><span class="ms">2.4ms</span></li>
+        <li><span class="ok">✓</span><span>cancelling during retry backoff clears the timer</span><span class="ms">2.8ms</span></li>
+        <li><span class="ok">✓</span><span>cancel returns false when no live job holds the id</span><span class="ms">0.1ms</span></li>
+        <li><span class="ok">✓</span><span>waits for active and pending jobs, and all callers resolve</span><span class="ms">2.4ms</span></li>
+        <li><span class="ok">✓</span><span>does not resolve while a job is waiting in retry backoff</span><span class="ms">2.5ms</span></li>
+        <li><span class="ok">✓</span><span>jobs added before a pending drain resolves are included in it</span><span class="ms">2.4ms</span></li>
+        <li><span class="ok">✓</span><span>drain on an idle queue resolves immediately</span><span class="ms">0.0ms</span></li>
+        <li><span class="ok">✓</span><span>blocks additions with QueueClosedError but lets work and retries settle</span><span class="ms">1.3ms</span></li>
+        <li><span class="ok">✓</span><span>invalid additions reject rather than throw synchronously</span><span class="ms">0.1ms</span></li>
+        <li><span class="ok">✓</span><span>transitions are emitted in a deterministic order</span><span class="ms">2.4ms</span></li>
+        <li><span class="ok">✓</span><span>a listener that throws cannot break queue execution</span><span class="ms">0.1ms</span></li>
+        <li><span class="ok">✓</span><span>a reporter that throws is also contained</span><span class="ms">0.0ms</span></li>
+        <li><span class="ok">✓</span><span>unsubscribe stops delivery and stats snapshots are frozen</span><span class="ms">0.1ms</span></li>
+        <li><span class="ok">✓</span><span>a mixed workload leaves no timers, live ids, or unsettled promises</span><span class="ms">8.4ms</span></li>
+      </ul>
+    </div>
+    <div class="panel">
+      <div class="suite-head">
+        <h2 style="margin:0">Characterization · test/legacy-failures.test.ts</h2>
+        <span class="count">10 passing</span>
+      </div>
+      <p class="lede">
+        These run against <code>legacy/queue.ts</code> and assert the <em>broken</em> behaviour on
+        purpose, so the defect table above is evidence rather than commentary. They use small real
+        delays because the legacy queue has no timer seam — that is defect 10.
+      </p>
+      <ul class="test-list">
+        <li><span class="ok">✓</span><span>#0 a synchronous throw escapes #pump, skipping retries and leaking the slot</span><span class="ms">41.4ms</span></li>
+        <li><span class="ok">✓</span><span>#1/#2 drain resolves while a retry is still armed</span><span class="ms">50.9ms</span></li>
+        <li><span class="ok">✓</span><span>#3 a retried job is re-queued without re-sorting, losing its priority</span><span class="ms">81.5ms</span></li>
+        <li><span class="ok">✓</span><span>#4 the first retry waits 50ms instead of 25ms</span><span class="ms">51.8ms</span></li>
+        <li><span class="ok">✓</span><span>#5 cancelling a running job retries it instead of ending it</span><span class="ms">134.7ms</span></li>
+        <li><span class="ok">✓</span><span>#6 cancelling during retry backoff returns false and the job resurrects</span><span class="ms">51.2ms</span></li>
+        <li><span class="ok">✓</span><span>#7 duplicate ids evict each other, making the first uncancellable</span><span class="ms">36.9ms</span></li>
+        <li><span class="ok">✓</span><span>#8 add throws synchronously after close, with an untyped Error</span><span class="ms">0.1ms</span></li>
+        <li><span class="ok">✓</span><span>#9 a NaN concurrency is accepted and deadlocks the queue</span><span class="ms">40.7ms</span></li>
+        <li><span class="ok">✓</span><span>#9b a fractional concurrency is accepted</span><span class="ms">0.0ms</span></li>
+      </ul>
+    </div>
+  </div>
+  <details style="margin-top:12px">
+    <summary>Raw runner output — out/test.txt</summary>
+    <pre>bun test v1.3.11 (af24e281)
+
+ 34 pass
+ 0 fail
+ 132 expect() calls
+Ran 34 tests across 2 files. [538.00ms]
+</pre>
+  </details>
+</section>
+
+<footer>
+  <span class="mono">bun test</span> &nbsp;·&nbsp;
+  <span class="mono">bun run demo.ts</span> &nbsp;·&nbsp;
+  <span class="mono">bun run build-report.ts</span> (regenerates this page from
+  <span class="mono">out/demo.txt</span> and <span class="mono">out/test-results.xml</span>)
+  &nbsp;·&nbsp; self-contained: no network, no external assets.
+</footer>
+
+</div>
+<div id="tip"></div>
+<script>
+  // Theme toggle. Defaults to dark; remembers nothing (this is a local report).
+  const root = document.documentElement;
+  const toggle = document.getElementById("themeToggle");
+  const syncLabel = () => {
+    toggle.textContent = root.dataset.theme === "dark" ? "light" : "dark";
+  };
+  if (window.matchMedia("(prefers-color-scheme: light)").matches) {
+    root.dataset.theme = "light";
+  }
+  syncLabel();
+  toggle.addEventListener("click", () => {
+    root.dataset.theme = root.dataset.theme === "dark" ? "light" : "dark";
+    syncLabel();
+  });
+
+  // Hover layer for the swimlane.
+  const tip = document.getElementById("tip");
+  const show = (event) => {
+    const host = event.target.closest("[data-tip]");
+    if (!host) return;
+    tip.textContent = host.dataset.tip;
+    tip.style.opacity = "1";
+    const x = event.clientX ?? 0;
+    const y = event.clientY ?? 0;
+    tip.style.left = Math.min(x + 14, window.innerWidth - tip.offsetWidth - 12) + "px";
+    tip.style.top = (y + 18) + "px";
+  };
+  const hide = () => { tip.style.opacity = "0"; };
+  document.addEventListener("mousemove", (event) => {
+    event.target.closest("[data-tip]") ? show(event) : hide();
+  });
+  document.addEventListener("focusin", (event) => {
+    const host = event.target.closest("[data-tip]");
+    if (!host) return hide();
+    const box = host.getBoundingClientRect();
+    show({ target: host, clientX: box.left, clientY: box.top });
+  });
+  document.addEventListener("focusout", hide);
+</script>
+</body>
+</html>

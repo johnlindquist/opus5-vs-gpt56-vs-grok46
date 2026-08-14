@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "status": "complete",
+  "title": "Sand Alchemist — Elemental Cellular Automata",
+  "kind": "visual",
+  "entrypoint": "index.html",
+  "artifacts": [
+    "index.html",
+    "README.md",
+    "test/headless.mjs",
+    "test/env.mjs",
+    "test/perf.mjs"
+  ],
+  "checks": [
+    {
+      "name": "Behaviour suite (87 assertions, 20 groups)",
+      "command": "node test/headless.mjs",
+      "status": "passed",
+      "details": "Runs index.html's <script> block verbatim inside a Node vm against a DOM/Canvas stub, so the browser code itself is under test. Covers: all twelve required materials defined; the volcano attract scene producing steam, combustion, new stone and wood loss over 420 ticks with no input; sand falling and piling with sloped shoulders; water reaching the floor, spreading across 394 columns, self-levelling to within 3 cells and draining off a shelf; water boiling to steam beside lava and freezing under an ice cap; the freeze front being bounded (one ice cell freezes <400 of a 7,760-cell tank); quenching lava producing steam and stone and never ice; fire eating a 2,560-cell wood block to zero, leaving ash/smoke, expiring with no fuel, and rising; oil settling above water and flashing over to <20% in 120 ticks while wood keeps >20%; plants growing beside water and soil, drinking the pond, climbing, and NOT growing without water or a root; lava cooling to stone, igniting wood, and spreading ~3x slower than water; salt dissolving to brine, brine resisting freezing at -6C, salt de-icing; steam rising; lava vitrifying sand to glass; stone fully static; a symmetric sand pile staying symmetric to 3.5% (no directional bias); a falling grain advancing at most one cell per tick (no double update); all four presets running 900 ticks without throwing and evolving; seed 137 reproducing bit-for-bit while a different seed diverges; the particle pool never exceeding its 420 cap over 900 ticks; clear/brush/line/eraser; every keyboard binding dispatched through the page's real keydown listener (1-9, 0, shifted digits, Space, '.', R, C, brackets, F1-F4, arrow+Enter painting, Shift+Enter line, and suppression while a form control has focus); and render() in all view modes. Exit code 0, 87 passed, 0 failed."
+    },
+    {
+      "name": "Simulation performance at default resolution",
+      "command": "node test/perf.mjs",
+      "status": "passed",
+      "details": "Times the real step and the real renderer's CPU pixel work at 400x225 (90,000 cells) against a 16.67 ms/60 fps budget. Volcano 6.46 ms/frame, Terrarium 3.36 ms, Oil Fire 7.14 ms, Frozen Lake 9.02 ms; settled scenes 2.2-8.3 ms/tick; empty-world heat field 0.56 ms/tick. Every scene fits the budget at the default 1x speed. Exit code 0. Node's vm context is slower than a browser JIT, so these are pessimistic."
+    },
+    {
+      "name": "JavaScript syntax validation",
+      "command": "node -e \"const fs=require('fs');const c=fs.readFileSync('index.html','utf8').match(/<script>([\\s\\S]*?)<\\/script>/)[1];new Function(c);console.log('OK');\"",
+      "status": "passed",
+      "details": "The extracted <script> block parses as valid JavaScript with no syntax errors."
+    },
+    {
+      "name": "No remote runtime references",
+      "command": "grep -cEi \"https?://|<link|<script[^>]+src=|@import|@font-face|fetch\\(|XMLHttpRequest\" index.html",
+      "status": "passed",
+      "details": "Zero matches. index.html contains no external scripts, stylesheets, fonts, images or network calls; markup, CSS, simulation and renderer are all inline. Only system font stacks are used."
+    },
+    {
+      "name": "Opens directly from disk and renders the attract scene",
+      "command": "'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' --headless --disable-gpu --no-sandbox --virtual-time-budget=8000 --window-size=1760,1000 --screenshot=/tmp/final.png \"file://$(pwd)/index.html\"",
+      "status": "passed",
+      "details": "Loaded over file:// with no server and screenshotted. The volcano attract scene is already running with no input and no modal to dismiss: an erupting cone with a sinuous magma conduit, lava sheeting down both flanks, a steam plume where lava meets the meltwater lake, a burning grove, and the blue lake. HUD shows FPS, active-cell estimate, filled count, selected material, brush size, seed, scene and tick."
+    },
+    {
+      "name": "All four presets render correctly at the 7-second mark",
+      "command": "'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' --headless --disable-gpu --no-sandbox --window-size=1760,1000 --screenshot=/tmp/p-<preset>.png \"file://$(pwd)/preview-tmp.html\"  # temporary copy of index.html with loadPreset(<preset>) + 420 pre-stepped ticks appended; deleted after inspection",
+      "status": "passed",
+      "details": "Each preset was screenshotted at exactly 420 ticks (7 s at 60 fps) and inspected. Volcano: eruption, lava flows, steam plume, active forest fire. Terrarium: glass shell, dripping meltwater springs, planted shores, hearth fire. Oil Fire: a full-width sheet of flame over a dark oil layer floating on blue water, all three strata clearly separated. Frozen Lake: open water under a creeping ice sheet, sandy bed, glowing geothermal vent, lantern on its stone plinth. The temporary preview file was removed; only index.html ships."
+    },
+    {
+      "name": "Resize preserves the world",
+      "command": "'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' --headless --disable-gpu --no-sandbox --window-size=1180,720 --screenshot=/tmp/small.png \"file://$(pwd)/index.html\"  (also run at --window-size=2400,1300)",
+      "status": "passed",
+      "details": "Rendered at 1180x720 and 2400x1300. The logical grid is a fixed 400x225 and the canvas backing store a fixed 1600x900, so a resize only rescales the view via CSS max-width/max-height and aspect-ratio; the simulation never observes the window and no resampling occurs. Cells stay crisp via image-rendering: pixelated. Documented in README under 'Resize'."
+    },
+    {
+      "name": "Long-run stability of every preset",
+      "command": "node test/headless.mjs   (group 15: each preset stepped 900 ticks; supplemented by ad-hoc 3,600-tick runs during development)",
+      "status": "passed",
+      "details": "All four presets were stepped to 60+ simulated seconds during development while tracking per-material census. No exceptions, no unbounded growth, and no scene collapses to an inert state: at 60 s Volcano holds ~1,600 lava with an ongoing lava/stone/steam cycle, Terrarium's plants roughly triple while its water stays level (emitter caps prevent flooding), Oil Fire cycles between burn-off and reservoir refill, Frozen Lake stabilises at ~17,500 ice over ~4,500 liquid with ~1,800 active cells. Three real defects found and fixed this way: an unbounded ice refrigerator that iced over the world, latent heat strong enough to freeze water beside lava, and a temperature-based wake rule that defeated chunk sleeping."
+    }
+  ],
+  "summary": "A single-file, dependency-free Canvas 2D falling-sand laboratory on a 400x225 grid presented at 1600x900. Eighteen materials (the twelve required plus brine, ash, smoke, glass, acid and indestructible wall) interact through a shared temperature field built from three mechanisms: whole-grid conduction, direct radiative coupling from flames/lava/ice to their neighbours, and bounded latent heat at every phase change. Lava and ice carry finite heat and chill budgets, and ice formed by freezing inherits none, which is what keeps a freeze front local instead of consuming the world. Sand piles, water self-levels by wading through its own body, oil floats on water and flashes over, fire clings to its fuel before drifting up, plants root and drink from two cells away, lava crawls and crusts into glowing stone, and salt dissolves into non-freezing brine or de-ices directly. Four deterministic seeded scenes (Volcano, Terrarium, Oil Fire, Frozen Lake) with capped and schedulable emitters; the volcano is erupting on load with no tutorial. Full pointer and keyboard control including keyboard-only painting, shift-lines, right-drag erase, a searchable palette, pause/step/speed/seed/clear/reset, bloom, embers, a heat view and a reduced-motion mode that touches no cell rule. Performance is held inside a 60 fps budget by 16x16 chunk sleeping, waking on temperature change rather than absolute temperature, tick-stamped cells, a baked colour LUT, a shared material census and a fixed-capacity particle pool.",
+  "known_issues": [
+    "The Volcano's grove burns out in roughly twenty seconds and the wood does not regrow; after that the scene's perpetual engine is the lava/stone/steam cycle at the lake. Press R to restore it. The Terrarium is the scene built for a long-running self-sustaining ecosystem. Documented in README.",
+    "The Volcano slowly buries itself in stone over several minutes as the capped vent keeps erupting. This is the intended arc of a volcano rather than a steady state.",
+    "Material count is not conserved across phase changes: a flame quenched by water becomes a steam cell, and boiling clamps its latent heat draw. The thermal model targets legibility over strict energy or mass conservation, and the clamps exist specifically to prevent artefacts such as water freezing next to lava.",
+    "A large ice mass sealed in a tank with water will, over a minute or more, freeze most of it. The front is bounded per cold source, but a source with a large budget has correspondingly large reach. This is a bounded behaviour, not the earlier world-consuming runaway, and is asserted as bounded in the suite.",
+    "A very wide browser window letterboxes rather than revealing more world, because the grid is deliberately fixed so that resizing is guaranteed lossless. The trade-off is documented in README under 'Resize'.",
+    "Performance figures were measured through the Node vm harness on one machine; a browser JIT should do better, but frame rate will still drop on the busier scenes at the maximum 4x speed setting, where up to four ticks run per frame."
+  ]
+}

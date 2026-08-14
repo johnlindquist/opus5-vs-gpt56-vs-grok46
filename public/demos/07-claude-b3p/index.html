@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Kinetic Poster Foundry — Type as Physics</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div class="shell">
+
+  <header class="masthead">
+    <span class="mark">KPF</span>
+    <h1>Kinetic Poster Foundry</h1>
+    <span class="sub">type as physics</span>
+    <span class="badge" id="pausedBadge" hidden>paused</span>
+    <span class="badge muted" id="rmBadge" hidden>reduced motion</span>
+  </header>
+
+  <main class="stagewrap">
+    <canvas id="view" width="1600" height="900" role="img"
+      aria-label="Kinetic poster canvas. Default phrase FRONTIER / NIGHT."
+      tabindex="0"></canvas>
+    <p class="hint" id="hint">
+      drag to twist · release to ripple · <kbd>space</kbd> impulse · <kbd>R</kbd> rest · <kbd>P</kbd> pause · <kbd>1</kbd>–<kbd>4</kbd> presets
+    </p>
+  </main>
+
+  <aside class="panel" id="panel" aria-label="Poster controls">
+    <div class="panel-head">
+      <h2>Controls</h2>
+      <button type="button" id="collapse" class="ghost" aria-expanded="true" aria-controls="panelBody">hide</button>
+    </div>
+
+    <div class="panel-body" id="panelBody">
+
+      <fieldset>
+        <legend>Presets</legend>
+        <div class="presets" role="group" aria-label="Curated poster presets">
+          <button type="button" class="preset" data-preset="0"><b>1</b> Electric ribbon</button>
+          <button type="button" class="preset" data-preset="1"><b>2</b> Chrome pulse</button>
+          <button type="button" class="preset" data-preset="2"><b>3</b> Soft ink</button>
+          <button type="button" class="preset" data-preset="3"><b>4</b> Signal grid</button>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Typography</legend>
+        <label class="row wide" for="phrase">Phrase <span class="tip">use <code>/</code> for a line break</span></label>
+        <input id="phrase" type="text" value="FRONTIER / NIGHT" maxlength="140"
+               autocomplete="off" spellcheck="false" aria-describedby="posterStatus" />
+
+        <label class="row" for="fontStack">Font stack</label>
+        <select id="fontStack">
+          <option value="grotesk">Neo-grotesk (Helvetica / Arial)</option>
+          <option value="condensed">Condensed display (Impact)</option>
+          <option value="serif">Editorial serif (Times / Georgia)</option>
+          <option value="mono">Technical mono (Menlo / Consolas)</option>
+          <option value="geometric">Geometric (Avenir / Futura)</option>
+        </select>
+
+        <label class="row" for="layout">Layout</label>
+        <select id="layout">
+          <option value="stack">Stacked (two-line)</option>
+          <option value="offset">Offset split</option>
+          <option value="justify">Justified block</option>
+          <option value="single">Single line</option>
+        </select>
+
+        <label class="row" for="align">Alignment</label>
+        <select id="align">
+          <option value="left">Left</option>
+          <option value="center">Center</option>
+          <option value="right">Right</option>
+        </select>
+
+        <label class="row" for="margin">Margins <output id="marginOut">10%</output></label>
+        <input id="margin" type="range" min="4" max="26" step="1" value="10" />
+      </fieldset>
+
+      <fieldset>
+        <legend>Physics</legend>
+        <label class="row" for="density">Density <output id="densityOut">1.00×</output></label>
+        <input id="density" type="range" min="0.35" max="1.6" step="0.05" value="1" />
+
+        <label class="row" for="stiffness">Stiffness <output id="stiffnessOut">0.090</output></label>
+        <input id="stiffness" type="range" min="0.01" max="0.30" step="0.005" value="0.09" />
+
+        <label class="row" for="damping">Damping <output id="dampingOut">0.900</output></label>
+        <input id="damping" type="range" min="0.70" max="0.98" step="0.005" value="0.9" />
+      </fieldset>
+
+      <fieldset>
+        <legend>Light</legend>
+        <label class="row" for="trail">Trail <output id="trailOut">0.82</output></label>
+        <input id="trail" type="range" min="0" max="0.95" step="0.01" value="0.82" />
+
+        <label class="row" for="glow">Glow <output id="glowOut">0.80</output></label>
+        <input id="glow" type="range" min="0" max="1" step="0.01" value="0.8" />
+
+        <label class="row" for="palette">Palette</label>
+        <select id="palette">
+          <option value="frontier">Frontier night</option>
+          <option value="chrome">Chrome</option>
+          <option value="ink">Ink on paper</option>
+          <option value="signal">Signal green</option>
+          <option value="ember">Ember</option>
+          <option value="vapor">Vapor</option>
+        </select>
+
+        <label class="check"><input id="marks" type="checkbox" checked /> Crop marks &amp; grid</label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Output</legend>
+        <div class="btnrow">
+          <button type="button" id="export">Export PNG</button>
+          <button type="button" id="reset" class="ghost">Rest (R)</button>
+          <button type="button" id="pause" class="ghost" aria-pressed="false">Pause (P)</button>
+        </div>
+      </fieldset>
+
+      <p class="status" id="posterStatus" role="status" aria-live="polite">
+        Poster ready.
+      </p>
+    </div>
+  </aside>
+
+</div>
+<script src="engine.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

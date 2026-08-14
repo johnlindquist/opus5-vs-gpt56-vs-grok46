@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sand Alchemist — Elemental Cellular Automata</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="lab">
+    <header class="masthead">
+      <div class="brand">
+        <h1>Sand Alchemist</h1>
+        <p>Elemental laboratory · local canvas automata</p>
+      </div>
+      <div class="meters" aria-label="Simulation meters">
+        <div class="meter"><span>FPS</span><strong id="fps">0</strong></div>
+        <div class="meter"><span>Active cells</span><strong id="cells">0</strong></div>
+        <div class="meter"><span>Material</span><strong id="material">Sand</strong></div>
+        <div class="meter"><span>Brush</span><strong id="brush">9</strong></div>
+        <div class="meter"><span>Seed</span><strong id="seed">0xA13C3</strong></div>
+      </div>
+    </header>
+
+    <div class="viewport-wrap">
+      <div class="bezel">
+        <div class="stage">
+          <canvas id="world" width="1600" height="900" aria-label="Sand Alchemist world"></canvas>
+          <div id="brush-ghost" class="brush-ghost hidden"></div>
+        </div>
+      </div>
+    </div>
+
+    <section class="dock">
+      <div class="panel">
+        <h2>Materials</h2>
+        <div class="palette-head">
+          <input id="mat-search" type="search" placeholder="Filter materials" aria-label="Filter materials">
+        </div>
+        <div id="materials" class="materials"></div>
+        <p class="summary">Keys 1–9 paint Sand through Steam. 0 or E erases. [ ] or wheel resize the brush. Right-click erases. Shift draws a straight line. Space pauses, period steps, R restores the preset.</p>
+      </div>
+      <div class="panel">
+        <h2>Bench</h2>
+        <div class="presets" role="group" aria-label="Presets">
+          <button type="button" data-preset="volcano">Volcano</button>
+          <button type="button" data-preset="terrarium">Terrarium</button>
+          <button type="button" data-preset="oil-fire">Oil fire</button>
+          <button type="button" data-preset="frozen-lake">Frozen lake</button>
+        </div>
+        <div class="controls" style="margin-top:8px">
+          <button class="ctrl" id="pause-btn" type="button" aria-pressed="false">Pause</button>
+          <button class="ctrl" id="step-btn" type="button">Step</button>
+          <button class="ctrl" id="clear-btn" type="button">Clear</button>
+          <button class="ctrl" id="reset-btn" type="button">Reset</button>
+          <label class="speed">Speed
+            <input id="speed" type="range" min="1" max="4" value="1" aria-valuemin="1" aria-valuemax="4">
+            <span id="speed-label">1×</span>
+          </label>
+        </div>
+        <p id="preset-summary" class="summary" aria-live="polite"></p>
+      </div>
+    </section>
+  </main>
+  <script src="engine.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

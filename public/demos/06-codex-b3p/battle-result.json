@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "status": "complete",
+  "title": "Sand Alchemist — Elemental Cellular Automata",
+  "kind": "visual",
+  "entrypoint": "index.html",
+  "artifacts": [
+    "index.html",
+    "README.md"
+  ],
+  "checks": [
+    {
+      "name": "Inline JavaScript syntax validation",
+      "command": "node -e 'const fs=require(\"fs\");const h=fs.readFileSync(\"index.html\",\"utf8\");const s=h.match(/<script>([\\s\\S]*?)<\\/script>/);if(!s)throw Error(\"inline script missing\");new Function(s[1]);console.log(\"PASS: inline JavaScript parses successfully\");'",
+      "status": "passed",
+      "details": "Extracted the complete inline application script and compiled it with the built-in Node JavaScript parser without error."
+    },
+    {
+      "name": "Acceptance surface and offline-runtime audit",
+      "command": "node -e 'const fs=require(\"fs\"),h=fs.readFileSync(\"index.html\",\"utf8\"),r=fs.readFileSync(\"README.md\",\"utf8\");const req=[\"Sand\",\"Water\",\"Stone\",\"Wood\",\"Plant\",\"Fire\",\"Oil\",\"Ice\",\"Steam\",\"Lava\",\"Salt\",\"Eraser\"],controls=[\"pauseBtn\",\"stepBtn\",\"resetBtn\",\"clearBtn\",\"speedRange\",\"brushRange\",\"materialSearch\"],presets=[\"volcano\",\"terrarium\",\"oilfire\",\"frozen\"];const missing=[...req,...controls,...presets].filter(x=>!h.includes(x));if(missing.length)throw Error(\"missing: \"+missing.join(\", \"));if(/<(script|link|img)[^>]+(?:src|href)=[\"\\x27](?:https?:)?\\/\\//i.test(h))throw Error(\"remote runtime reference found\");if(!h.includes(\"contextmenu\")||!h.includes(\"e.shiftKey\")||!h.includes(\"prefers-reduced-motion\"))throw Error(\"interaction/accessibility hooks missing\");for(const word of req.slice(0,11))if(!r.includes(word))throw Error(\"README missing \"+word);console.log(\"PASS: 12 materials, 4 presets, required controls, input hooks, reduced-motion support, documentation, and zero remote runtime references verified\");'",
+      "status": "passed",
+      "details": "Verified all required materials, four named presets, controls, right-click and line-paint hooks, reduced-motion handling, material documentation, and absence of remote script, stylesheet, or image runtime references."
+    }
+  ],
+  "summary": "A polished, dependency-free Canvas 2D falling-sand laboratory with twelve selectable materials, heat-driven reactions, four deterministic presets, full painting and keyboard controls, accessible status UI, and a reactive volcano attract scene.",
+  "known_issues": []
+}

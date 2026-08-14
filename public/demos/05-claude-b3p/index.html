@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lightweaver — Mirror Lab</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span class="brand-text">
+        <b>LIGHTWEAVER</b>
+        <i>mirror lab</i>
+      </span>
+    </div>
+
+    <nav class="strip" aria-label="Level select">
+      <span class="strip-label">Levels</span>
+      <div class="chips" id="levelStrip"></div>
+    </nav>
+
+    <div class="stats" role="status" aria-live="polite">
+      <div class="stat"><span class="k">Moves</span><span class="v" id="statMoves">0</span></div>
+      <div class="stat"><span class="k">Best</span><span class="v" id="statBest">—</span></div>
+      <div class="stat"><span class="k">Solved</span><span class="v" id="statSolved">0/5</span></div>
+    </div>
+  </header>
+
+  <main class="stage" id="stage">
+    <canvas id="board" tabindex="0" aria-label="Optical board. Use Tab to select a piece, arrow keys to move it, Q and E to rotate."></canvas>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <div class="victory" id="victory" hidden>
+      <div class="victory-card">
+        <div class="victory-eyebrow">Beam path locked</div>
+        <h2 id="victoryTitle">Level complete</h2>
+        <p id="victoryLine">All plates at full radiance.</p>
+        <div class="victory-nums">
+          <div><span id="vMoves">0</span><small>moves</small></div>
+          <div><span id="vBest">0</span><small>best</small></div>
+        </div>
+        <div class="victory-actions">
+          <button type="button" id="btnNext">Next level</button>
+          <button type="button" id="btnStay">Keep tinkering</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <aside class="panel">
+    <section class="card objective">
+      <h1 id="lvName">First Light</h1>
+      <p id="lvObjective">—</p>
+      <ul class="targets" id="targetList"></ul>
+      <p class="alarm" id="alarm" hidden>⚠ A ray is crossing a watcher. Reroute it.</p>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <h2>Selection</h2>
+        <span class="pill" id="selName">none</span>
+      </div>
+      <dl class="readout">
+        <div><dt>Position</dt><dd id="selPos">—</dd></div>
+        <div><dt>Angle</dt><dd id="selAngle">—</dd></div>
+      </dl>
+      <div class="btnrow">
+        <button type="button" id="btnPrevSel">◀ Prev piece</button>
+        <button type="button" id="btnNextSel">Next piece ▶</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-head"><h2>Controls</h2></div>
+      <ul class="keys">
+        <li><kbd>Drag</kbd><span>Move a piece</span></li>
+        <li><kbd>Wheel</kbd><span>Rotate under cursor</span></li>
+        <li><kbd>Q</kbd><kbd>E</kbd><span>Rotate 15° (Shift: 5°)</span></li>
+        <li><kbd>← ↑ ↓ →</kbd><span>Nudge 5 units (Shift: 1)</span></li>
+        <li><kbd>Tab</kbd><span>Cycle selection</span></li>
+        <li><kbd>Z</kbd><kbd>Y</kbd><span>Undo / redo</span></li>
+        <li><kbd>R</kbd><span>Reset level</span></li>
+        <li><kbd>H</kbd><span>Staged hint</span></li>
+        <li><kbd>1</kbd>–<kbd>5</kbd><span>Load level</span></li>
+      </ul>
+      <div class="btnrow wrap">
+        <button type="button" id="btnUndo">Undo</button>
+        <button type="button" id="btnRedo">Redo</button>
+        <button type="button" id="btnReset">Reset</button>
+        <button type="button" id="btnHint">Hint</button>
+      </div>
+      <p class="hint" id="hintText">Press <kbd>H</kbd> for a nudge. Three stages, no auto-solve.</p>
+    </section>
+
+    <section class="card legend">
+      <div class="card-head"><h2>Optics</h2></div>
+      <ul>
+        <li><i class="sw mirror"></i>Mirror — reflects on both faces</li>
+        <li><i class="sw splitter"></i>Splitter — 50% through, 50% reflected</li>
+        <li><i class="sw filter"></i>Filter — passes one colour channel</li>
+        <li><i class="sw prism"></i>Prism — disperses white into R/G/B</li>
+        <li><i class="sw wall"></i>Wall — absorbs</li>
+        <li><i class="sw sensor"></i>Watcher — must stay dark</li>
+      </ul>
+    </section>
+  </aside>
+</div>
+
+<script src="engine.js"></script>
+<script src="levels.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

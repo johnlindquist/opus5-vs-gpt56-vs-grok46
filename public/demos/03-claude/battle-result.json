@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "status": "complete",
+  "title": "Neon Courier — One-Button Rooftop Heist",
+  "kind": "visual",
+  "entrypoint": "index.html",
+  "artifacts": [
+    "index.html",
+    "README.md",
+    "check.mjs",
+    "browser-check.mjs"
+  ],
+  "checks": [
+    {
+      "name": "headless simulation suite (52 assertions)",
+      "command": "node check.mjs",
+      "status": "passed",
+      "details": "Extracts the inline script from index.html, boots it against a DOM/Canvas stub and drives the real fixed-timestep simulation and the real renderer. Covers attract survival and variety, a bot-played 120s run with restarts, coyote time, jump buffering, charged jump, dash, sign breaking, seed determinism, localStorage persistence, entity/particle bounds, resize safety, reduced-motion playability and exception-free rendering in every mode. 52 passed, 0 failed."
+    },
+    {
+      "name": "real-browser input, resize and console hygiene (18 assertions)",
+      "command": "node browser-check.mjs",
+      "status": "passed",
+      "details": "Drives index.html from file:// in local Chrome over the DevTools Protocol with genuine key and pointer events. Confirms attract animates for 7s before any input, Space transitions into a fresh run, pointer tap jumps, an airborne tap dashes (vxBoost 1180), a 360ms hold charges the jump to vy -1158 vs -940 for a tap, P freezes and resumes the simulation, M toggles sound both ways, R restarts instantly, two device-metrics resizes leave world coordinates untouched, 4 focusable buttons plus a focusable labelled canvas exist, the live region carries state, and ~25s of play produces zero console errors, warnings or uncaught exceptions. 18 passed, 0 failed."
+    },
+    {
+      "name": "attract-mode screenshot at 7 seconds",
+      "command": "node browser-check.mjs --shot attract.png",
+      "status": "passed",
+      "details": "Captured the 1600x900 attract frame at the 7-second mark and inspected it. Shows the title treatment, the running courier mid-stride, rooftops with gaps and corner markers, a crate, three parallax skyline layers, rain, neon signs and the full HUD (score, best, distance, speed, daily seed, objective, heat ribbon). The demo courier had travelled 208m under its own control."
+    },
+    {
+      "name": "no remote runtime reference",
+      "command": "grep -nE \"https?://|fetch\\(|XMLHttpRequest|WebSocket|importScripts|\\.woff|\\.png|\\.mp3|<script[^>]+src|<link\" index.html",
+      "status": "passed",
+      "details": "No matches. index.html has exactly one inline script block, no external script/link/img/font/audio references and no network APIs in the runtime. check.mjs asserts the same thing statically."
+    },
+    {
+      "name": "collision integrity under bot play",
+      "command": "node check.mjs",
+      "status": "passed",
+      "details": "Instrumented every physics tick of a bot-played run for the deepest overlap of the player box into any rooftop body: max penetration 0.0 px. Two real bugs found and fixed during development this way - small upward roof steps let a grounded courier fall inside a building, and an airborne courier clipping a roof corner slipped through the wall face entirely."
+    },
+    {
+      "name": "visual inspection of gameplay, game-over and reduced-motion states",
+      "command": "node browser-check.mjs --shot attract.png",
+      "status": "passed",
+      "details": "Rendered and inspected screenshots of live gameplay (courier mid-jump over a gap with parallax and ground shadow), the game-over overlay (RUN TERMINATED, crash reason, score/distance/near-miss summary, best score, restart prompt) and reduced-motion play (thinner rain, no flashes, still fully playable). Also rendered a zoomed pose sheet confirming the run, jump, dash, stumble and crash poses are visually distinct."
+    }
+  ],
+  "summary": "A single-file Canvas 2D one-button endless runner that opens directly from disk. The courier auto-runs across procedurally assembled rooftops built from eight curated segment templates seeded by a daily-style seed shown in the HUD, dodging gaps, crates, overhead gantries, drones, sweepers and breakable neon signs. One button covers everything: tap to jump, hold to charge a higher jump, tap airborne to dash through signs, tap after a crash to restart, with coyote time and jump buffering for fairness. Near misses feed a decaying combo multiplier, and close calls trigger slow motion with a flash and shake. Difficulty and speed ramp smoothly with distance. An attract-mode bot plays a real run through the same one-button interface before the first input, so the page is animated and representative on load. The visual layer is a rain-soaked neon graphic-novel city with three parallax skyline layers, lit windows, antennae, neon signs, mist, lightning, speed lines, controlled screen shake and a rim-lit courier with distinct run, jump, dash, stumble and crash poses. Simulation runs on a fixed 1/120s timestep with sub-stepped collision resolution that prevents tunnelling, streamed and recycled level segments, pooled particles, and a virtual 1600x900 coordinate space so resizing cannot corrupt collision geometry. Reduced motion, keyboard focus, an accessible label and a live status region are all supported; generated Web Audio is opt-in only.",
+  "known_issues": []
+}

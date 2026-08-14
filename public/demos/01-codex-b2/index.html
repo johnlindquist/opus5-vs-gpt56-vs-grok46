@@ -1,0 +1,569 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <title>Signal Garden — Bioluminescent Ecosystem Synth</title>
+  <style>
+    :root {
+      --ink: #dffcff;
+      --muted: #7897a5;
+      --cyan: #65f7ff;
+      --violet: #a77aff;
+      --lime: #c6ff72;
+      --coral: #ff7d83;
+      --glass: rgba(4, 14, 24, .68);
+      --line: rgba(137, 225, 255, .16);
+    }
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #02070d; }
+    body {
+      color: var(--ink);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      letter-spacing: .02em;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: none;
+    }
+    canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; cursor: crosshair; }
+    .veil {
+      position: fixed; inset: 0; pointer-events: none;
+      background:
+        radial-gradient(circle at 50% 42%, transparent 0, rgba(0, 4, 10, .09) 60%, rgba(0, 2, 7, .58) 100%),
+        linear-gradient(180deg, rgba(0, 8, 18, .18), transparent 22%, transparent 75%, rgba(0, 3, 8, .4));
+      box-shadow: inset 0 0 160px rgba(0,0,0,.46);
+    }
+    header {
+      position: fixed; top: 26px; left: 30px; z-index: 2; pointer-events: none;
+      text-shadow: 0 2px 20px #000;
+    }
+    .eyebrow { color: var(--cyan); font-size: 10px; font-weight: 700; letter-spacing: .28em; text-transform: uppercase; opacity: .72; }
+    h1 { margin: 6px 0 1px; font-size: clamp(22px, 2.5vw, 36px); line-height: 1; font-weight: 250; letter-spacing: .08em; }
+    .subtitle { color: var(--muted); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; }
+    .stats {
+      position: fixed; top: 25px; right: 26px; z-index: 3; display: grid; grid-template-columns: repeat(4, auto);
+      border: 1px solid var(--line); border-radius: 12px; overflow: hidden;
+      background: var(--glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 14px 60px rgba(0,0,0,.24);
+    }
+    .stat { padding: 9px 14px 8px; min-width: 74px; border-left: 1px solid var(--line); }
+    .stat:first-child { border-left: 0; }
+    .stat b { display: block; font-size: 14px; font-weight: 500; color: #eaffff; font-variant-numeric: tabular-nums; }
+    .stat span { display: block; margin-top: 3px; color: var(--muted); font-size: 8px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
+    .preset-pill {
+      position: fixed; right: 26px; top: 90px; z-index: 3; padding: 7px 11px;
+      color: var(--lime); border: 1px solid rgba(198,255,114,.16); border-radius: 20px;
+      background: rgba(7,19,20,.58); font-size: 9px; letter-spacing: .18em; text-transform: uppercase;
+      pointer-events: none;
+    }
+    .legend {
+      position: fixed; left: 28px; bottom: 25px; z-index: 3; display: flex; align-items: center; gap: 15px;
+      padding: 9px 13px; border: 1px solid var(--line); border-radius: 10px;
+      background: var(--glass); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+      color: #91aab5; font-size: 9px; text-transform: uppercase; letter-spacing: .11em;
+    }
+    .legend i { display: inline-block; width: 7px; height: 7px; margin-right: 6px; border-radius: 50%; box-shadow: 0 0 9px currentColor; }
+    .legend .bloom { color: var(--lime); } .legend .drifter { color: var(--cyan); } .legend .hunter { color: var(--coral); }
+    .controls {
+      position: fixed; right: 26px; bottom: 24px; z-index: 3; display: flex; gap: 5px; flex-wrap: wrap; justify-content: flex-end;
+      max-width: min(700px, calc(100vw - 52px));
+    }
+    button {
+      appearance: none; border: 1px solid var(--line); border-radius: 8px; padding: 7px 9px;
+      color: #91aab5; background: var(--glass); font: inherit; font-size: 9px; letter-spacing: .08em;
+      text-transform: uppercase; cursor: pointer; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+      transition: color .18s, border-color .18s, background .18s, transform .18s;
+    }
+    button:hover { color: var(--ink); border-color: rgba(101,247,255,.35); background: rgba(9,28,40,.78); }
+    button:active { transform: translateY(1px); }
+    button:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
+    button kbd { color: var(--cyan); font: inherit; font-weight: 800; margin-right: 4px; }
+    #pulseBtn { min-width: 106px; position: relative; overflow: hidden; }
+    #pulseFill { position: absolute; inset: auto 0 0; height: 2px; background: var(--cyan); transform-origin: left; }
+    #pauseBadge {
+      position: fixed; inset: 50% auto auto 50%; z-index: 4; transform: translate(-50%, -50%) scale(.9);
+      padding: 12px 17px; border: 1px solid rgba(101,247,255,.28); border-radius: 30px;
+      color: var(--cyan); background: rgba(1,8,14,.78); font-size: 10px; font-weight: 700; letter-spacing: .24em;
+      text-transform: uppercase; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s;
+    }
+    #pauseBadge.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+    @media (max-width: 760px) {
+      header { top: 18px; left: 18px; }
+      .subtitle { display: none; }
+      .stats { top: auto; right: 14px; left: 14px; bottom: 62px; grid-template-columns: repeat(4, 1fr); }
+      .stat { min-width: 0; padding: 7px 8px; }
+      .preset-pill { top: 70px; right: 15px; }
+      .legend { left: 14px; bottom: 14px; padding: 7px 9px; }
+      .legend span:nth-child(n+2) { display: none; }
+      .controls { right: 14px; bottom: 14px; }
+      .controls button:not(#pulseBtn) { width: 34px; overflow: hidden; white-space: nowrap; }
+      .controls button:not(#pulseBtn) kbd { margin-right: 20px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      button { transition: none; }
+      .veil { box-shadow: inset 0 0 80px rgba(0,0,0,.4); }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="garden" aria-hidden="true"></canvas>
+  <div class="veil"></div>
+  <header>
+    <div class="eyebrow">Field study 07 · live</div>
+    <h1>Signal Garden</h1>
+    <div class="subtitle">A bioluminescent ecosystem synth</div>
+  </header>
+  <section class="stats" aria-label="Ecosystem status" aria-live="polite">
+    <div class="stat"><b id="population">0</b><span>Population</span></div>
+    <div class="stat"><b id="energy">0</b><span>Energy</span></div>
+    <div class="stat"><b id="seed">0</b><span>Seed</span></div>
+    <div class="stat"><b id="elapsed">00:00</b><span>Sim time</span></div>
+  </section>
+  <div class="preset-pill" id="presetName">1 · Luminous Shelf</div>
+  <div class="legend" aria-hidden="true">
+    <span class="bloom"><i></i>Bloom</span>
+    <span class="drifter"><i></i>Drifter</span>
+    <span class="hunter"><i></i>Hunter</span>
+  </div>
+  <nav class="controls" aria-label="Simulation controls">
+    <button id="preset1" aria-label="Switch to preset 1, Luminous Shelf"><kbd>1</kbd>Shelf</button>
+    <button id="preset2" aria-label="Switch to preset 2, Violet Trench"><kbd>2</kbd>Trench</button>
+    <button id="preset3" aria-label="Switch to preset 3, Coral Surge"><kbd>3</kbd>Surge</button>
+    <button id="pauseBtn" aria-label="Pause or resume"><kbd>P</kbd>Pause</button>
+    <button id="regenBtn" aria-label="Regenerate with next seed"><kbd>R</kbd>Reseed</button>
+    <button id="pulseBtn" aria-label="Emit global pulse"><span id="pulseFill"></span><kbd>Space</kbd>Pulse</button>
+  </nav>
+  <div id="pauseBadge">Ecosystem paused</div>
+  <p class="sr-only">
+    Signal Garden is an animated ecosystem. Lime flower-like blooms absorb drifting nutrient light.
+    Cyan tadpole-like drifters feed at blooms and carry energy in glowing trails. Coral triangular hunters
+    pursue bright drifters and emit disruption rings. Move the pointer to bend trails, click to plant a
+    signal beacon, drag to paint nutrients, press Space for a global pulse, P to pause, R to reseed,
+    and number keys 1 through 3 to change the ecosystem.
+  </p>
+  <script>
+  (() => {
+    'use strict';
+
+    const canvas = document.getElementById('garden');
+    const ctx = canvas.getContext('2d', { alpha: false, desynchronized: true });
+    const ui = {
+      population: document.getElementById('population'), energy: document.getElementById('energy'),
+      seed: document.getElementById('seed'), elapsed: document.getElementById('elapsed'),
+      presetName: document.getElementById('presetName'), pauseBtn: document.getElementById('pauseBtn'),
+      pauseBadge: document.getElementById('pauseBadge'), pulseFill: document.getElementById('pulseFill')
+    };
+    const TAU = Math.PI * 2;
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const FIXED_DT = 1 / 60;
+    const CELL = 120;
+    const MAX_DPR = 2;
+    const palettes = [
+      { name: 'Luminous Shelf', bg: [2, 9, 16], bloom: '#c6ff72', drift: '#63f6ff', hunter: '#ff7d83', accent: '#a77aff', density: 1 },
+      { name: 'Violet Trench', bg: [5, 5, 18], bloom: '#91ffcc', drift: '#b98aff', hunter: '#ff6f9e', accent: '#6adfff', density: .86 },
+      { name: 'Coral Surge', bg: [10, 5, 13], bloom: '#e5ff81', drift: '#64eaff', hunter: '#ff926e', accent: '#ce7dff', density: 1.12 }
+    ];
+
+    let W = 0, H = 0, dpr = 1, seedValue = 40731, presetIndex = 0;
+    let rand = mulberry32(seedValue), simTime = 0, accumulator = 0, last = performance.now();
+    let paused = false, pulseCooldown = 0, nextId = 1, uiClock = 0;
+    let blooms = [], drifters = [], hunters = [], nutrients = [], pulses = [], beacons = [], ambient = [], openingQueue = [];
+    let grid = new Map();
+    const pointer = { x: -9999, y: -9999, px: -9999, py: -9999, startX: 0, startY: 0, down: false, moved: false, lastPaint: 0 };
+
+    function mulberry32(a) {
+      return function() {
+        a |= 0; a = a + 0x6D2B79F5 | 0;
+        let t = Math.imul(a ^ a >>> 15, 1 | a);
+        t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+        return ((t ^ t >>> 14) >>> 0) / 4294967296;
+      };
+    }
+    const rr = (a, b) => a + (b - a) * rand();
+    const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+    const dist2 = (a, b) => (a.x-b.x)**2 + (a.y-b.y)**2;
+    const angleDelta = (a, b) => Math.atan2(Math.sin(b-a), Math.cos(b-a));
+    function hsla(hex, alpha) {
+      const n = parseInt(hex.slice(1), 16);
+      return `rgba(${n>>16},${(n>>8)&255},${n&255},${alpha})`;
+    }
+
+    class SpatialGrid {
+      constructor(size) { this.size = size; this.cells = new Map(); }
+      clear() { this.cells.clear(); }
+      key(x,y) { return `${Math.floor(x/this.size)},${Math.floor(y/this.size)}`; }
+      add(o) { const k=this.key(o.x,o.y); if(!this.cells.has(k)) this.cells.set(k,[]); this.cells.get(k).push(o); }
+      near(x,y,r) {
+        const out=[], s=this.size, x0=Math.floor((x-r)/s), x1=Math.floor((x+r)/s), y0=Math.floor((y-r)/s), y1=Math.floor((y+r)/s);
+        for(let gx=x0;gx<=x1;gx++) for(let gy=y0;gy<=y1;gy++) { const c=this.cells.get(`${gx},${gy}`); if(c) out.push(...c); }
+        return out;
+      }
+    }
+    const bloomGrid = new SpatialGrid(CELL), drifterGrid = new SpatialGrid(CELL), organismGrid = new SpatialGrid(CELL);
+
+    class Bloom {
+      constructor(x,y,energy=rr(20,50), generation=0) {
+        this.type='bloom'; this.id=nextId++; this.x=x; this.y=y; this.anchorX=x; this.anchorY=y;
+        this.energy=energy; this.maxEnergy=90; this.age=rr(0,20); this.phase=rr(0,TAU); this.angle=rr(0,TAU);
+        this.size=rr(9,16)*(generation ? .76 : 1); this.open=rr(0,.8); this.signal=0; this.lastSignal=-10;
+        this.generation=generation; this.dormant=false; this.dead=false; this.birthGlow=1;
+      }
+      update(dt) {
+        this.age+=dt; this.phase+=dt*(.4+this.energy*.005); this.birthGlow=Math.max(0,this.birthGlow-dt*.35);
+        this.x=this.anchorX+Math.sin(this.phase*.21+this.id)*7; this.y=this.anchorY+Math.cos(this.phase*.17+this.id)*4;
+        this.energy-=dt*(this.dormant ? .045 : .11);
+        let gained=0;
+        for(const n of nutrients) {
+          if(n.life<=0) continue;
+          const dx=this.x-n.x, dy=this.y-n.y, d2=dx*dx+dy*dy;
+          if(d2<2500) {
+            const d=Math.sqrt(d2)+.1, pull=22*dt/d;
+            n.vx+=dx*pull; n.vy+=dy*pull;
+            if(d<13+this.size*.3) { const bite=Math.min(n.energy, 13*dt); n.energy-=bite; gained+=bite; }
+          }
+        }
+        this.energy=Math.min(this.maxEnergy,this.energy+gained);
+        const target=this.energy>35 ? clamp((this.energy-25)/40,0,1) : .08;
+        this.open+=(target-this.open)*dt*1.5;
+        this.dormant=this.energy<5;
+        this.signal=Math.max(0,this.signal-dt*.55);
+        if(this.energy>74 && blooms.length<limits().blooms && this.age>18 && rand()<dt*.015) {
+          const a=rr(0,TAU), d=rr(70,130);
+          const child=new Bloom(clamp(this.x+Math.cos(a)*d,30,W-30),clamp(this.y+Math.sin(a)*d,45,H-35),24,this.generation+1);
+          blooms.push(child); this.energy-=28; emitPulse(this.x,this.y, palettes[presetIndex].bloom, 220, .8, this.id);
+        }
+        if(this.energy<=0 && this.age>20) this.dead=true;
+      }
+      signalHit(strength) {
+        if(simTime-this.lastSignal<1.5) return;
+        this.lastSignal=simTime; this.signal=Math.max(this.signal,strength); this.energy=Math.min(this.maxEnergy,this.energy+strength*1.7);
+        emitPulse(this.x,this.y,palettes[presetIndex].bloom,150,.55,this.id);
+      }
+      draw() {
+        const p=palettes[presetIndex], breathe=1+Math.sin(this.phase)*.08, s=this.size*breathe;
+        ctx.save(); ctx.translate(this.x,this.y); ctx.rotate(this.angle+Math.sin(this.phase*.23)*.12);
+        ctx.globalCompositeOperation='lighter';
+        ctx.shadowBlur=reduced?5:14+this.signal*9; ctx.shadowColor=p.bloom;
+        const stemGrad=ctx.createLinearGradient(0,0,0,s*2.7); stemGrad.addColorStop(0,hsla(p.bloom,.7)); stemGrad.addColorStop(1,hsla(p.accent,0));
+        ctx.strokeStyle=stemGrad; ctx.lineWidth=1;
+        ctx.beginPath(); ctx.moveTo(0,s*.35); ctx.bezierCurveTo(s*.4,s, -s*.45,s*1.7,0,s*2.8); ctx.stroke();
+        const petals=6;
+        for(let i=0;i<petals;i++) {
+          ctx.save(); ctx.rotate(i*TAU/petals);
+          const reach=s*(.38+.68*this.open);
+          ctx.fillStyle=hsla(i%2?p.bloom:p.accent, this.dormant?.12:.24+this.open*.22);
+          ctx.strokeStyle=hsla(p.bloom,this.dormant?.22:.48+this.signal*.35); ctx.lineWidth=.8;
+          ctx.beginPath(); ctx.moveTo(0,0); ctx.quadraticCurveTo(reach*.5,-s*.22,reach,0); ctx.quadraticCurveTo(reach*.5,s*.22,0,0); ctx.fill(); ctx.stroke();
+          ctx.restore();
+        }
+        ctx.fillStyle=this.dormant?'#33434a':'#ecffd1'; ctx.beginPath(); ctx.arc(0,0,2+this.open*2.2,0,TAU); ctx.fill();
+        if(this.birthGlow>0) { ctx.strokeStyle=hsla(p.bloom,this.birthGlow*.45); ctx.lineWidth=1; ctx.beginPath(); ctx.arc(0,0,s*(1.4+(1-this.birthGlow)*2),0,TAU);ctx.stroke(); }
+        ctx.restore();
+      }
+    }
+
+    class Drifter {
+      constructor(x,y,energy=rr(20,58)) {
+        this.type='drifter'; this.id=nextId++; this.x=x; this.y=y; this.vx=rr(-15,15); this.vy=rr(-15,15);
+        this.angle=rr(0,TAU); this.energy=energy; this.age=rr(0,20); this.size=rr(3.4,5.8); this.signal=0;
+        this.lastSignal=-10; this.trail=[]; this.trailTick=0; this.dead=false; this.target=null; this.disrupted=0;
+      }
+      update(dt) {
+        this.age+=dt; this.energy-=dt*(.22+Math.hypot(this.vx,this.vy)*.0018); this.signal=Math.max(0,this.signal-dt*.8); this.disrupted=Math.max(0,this.disrupted-dt);
+        if(!this.target || this.target.dead || rand()<dt*.3) {
+          let best=null, score=Infinity;
+          for(const b of bloomGrid.near(this.x,this.y,300)) {
+            if(b.dormant) continue;
+            const s=dist2(this,b)/(20+b.energy);
+            if(s<score){score=s;best=b;}
+          }
+          this.target=best;
+        }
+        let ax=Math.sin(this.age*.47+this.id)*4, ay=Math.cos(this.age*.39+this.id*2)*4;
+        if(this.target) {
+          const dx=this.target.x-this.x, dy=this.target.y-this.y, d=Math.hypot(dx,dy)+.1;
+          ax+=dx/d*20; ay+=dy/d*20;
+          if(d<18+this.target.size && this.target.energy>8) {
+            const bite=Math.min(this.target.energy-5,dt*3.6);
+            if(bite>0) { this.target.energy-=bite; this.energy=Math.min(100,this.energy+bite*.9); this.signal=Math.max(this.signal,.35); }
+          }
+        }
+        for(const b of beacons) {
+          const dx=b.x-this.x,dy=b.y-this.y,d=Math.hypot(dx,dy)+1;
+          if(d<b.radius) { ax+=dx/d*22*b.life; ay+=dy/d*22*b.life; }
+        }
+        const pdx=this.x-pointer.x,pdy=this.y-pointer.y,pd=Math.hypot(pdx,pdy)+1;
+        if(pd<150) { const force=(1-pd/150)*55; ax+=-pdy/pd*force; ay+=pdx/pd*force; }
+        ax+=Math.sin(this.y*.008+simTime)*3; ay+=Math.cos(this.x*.007-simTime*.7)*3;
+        if(this.disrupted>0) { ax+=Math.sin(this.id+simTime*8)*45; ay+=Math.cos(this.id+simTime*7)*45; }
+        this.vx=(this.vx+ax*dt)*.988; this.vy=(this.vy+ay*dt)*.988;
+        const speed=Math.hypot(this.vx,this.vy), max=35+this.energy*.12;
+        if(speed>max){this.vx=this.vx/speed*max;this.vy=this.vy/speed*max;}
+        this.x+=this.vx*dt; this.y+=this.vy*dt; wrap(this,18);
+        this.angle=Math.atan2(this.vy,this.vx);
+        this.trailTick+=dt;
+        if(this.trailTick>(reduced?.12:.055)){this.trailTick=0;this.trail.push({x:this.x,y:this.y,a:1});}
+        const keep=reduced?10:26; if(this.trail.length>keep)this.trail.shift();
+        for(const t of this.trail) {
+          t.a-=dt*(reduced?3:1.2);
+          const dx=t.x-pointer.x,dy=t.y-pointer.y,d=Math.hypot(dx,dy)+1;
+          if(d<130){const f=(1-d/130)*18*dt;t.x+=-dy/d*f;t.y+=dx/d*f;}
+        }
+        this.trail=this.trail.filter(t=>t.a>0);
+        if(this.energy>82 && drifters.length<limits().drifters && this.age>9 && rand()<dt*.025) {
+          drifters.push(new Drifter(this.x+rr(-9,9),this.y+rr(-9,9),this.energy*.36));
+          this.energy*=.58; emitPulse(this.x,this.y,palettes[presetIndex].drift,90,.5,this.id);
+        }
+        if(this.energy<=0 || this.age>150) this.dead=true;
+      }
+      signalHit(strength) {
+        if(simTime-this.lastSignal<1.1)return;
+        this.lastSignal=simTime;this.signal=Math.max(this.signal,strength);
+        if(strength>.45) emitPulse(this.x,this.y,palettes[presetIndex].drift,125,.42,this.id);
+      }
+      draw() {
+        const p=palettes[presetIndex], glow=clamp(this.energy/65,0.25,1);
+        if(this.trail.length>1) {
+          ctx.save();ctx.globalCompositeOperation='lighter';ctx.lineCap='round';
+          for(let k=1;k<3;k++){ctx.beginPath();for(let i=0;i<this.trail.length;i++){const t=this.trail[i];i?ctx.lineTo(t.x,t.y):ctx.moveTo(t.x,t.y);}
+            ctx.strokeStyle=hsla(k===1?p.drift:p.accent,(k===1?.18:.06)*glow);ctx.lineWidth=k===1?1.2:5;ctx.stroke();}
+          ctx.restore();
+        }
+        ctx.save();ctx.translate(this.x,this.y);ctx.rotate(this.angle);ctx.globalCompositeOperation='lighter';
+        ctx.shadowBlur=reduced?4:10+glow*8;ctx.shadowColor=p.drift;
+        ctx.fillStyle=hsla(p.drift,.45+.4*glow);ctx.beginPath();ctx.ellipse(0,0,this.size*1.8,this.size*.75,0,0,TAU);ctx.fill();
+        ctx.fillStyle='#e8ffff';ctx.beginPath();ctx.arc(this.size*.75,0,1.15,0,TAU);ctx.fill();
+        ctx.strokeStyle=hsla(p.drift,.38);ctx.lineWidth=.8;
+        ctx.beginPath();ctx.moveTo(-this.size,0);ctx.quadraticCurveTo(-this.size*2.4,Math.sin(simTime*8+this.id)*this.size,-this.size*3,0);ctx.stroke();
+        if(this.signal>.1){ctx.strokeStyle=hsla(p.accent,this.signal*.7);ctx.beginPath();ctx.arc(0,0,this.size*(2+this.signal*2),0,TAU);ctx.stroke();}
+        ctx.restore();
+      }
+    }
+
+    class Hunter {
+      constructor(x,y) {
+        this.type='hunter';this.id=nextId++;this.x=x;this.y=y;this.vx=rr(-10,10);this.vy=rr(-10,10);
+        this.angle=rr(0,TAU);this.energy=rr(30,65);this.age=0;this.size=rr(8,12);this.target=null;
+        this.signal=0;this.lastSignal=-10;this.disruptCooldown=rr(1,5);this.dead=false;this.trail=[];
+      }
+      update(dt) {
+        this.age+=dt;this.energy-=dt*.18;this.signal=Math.max(0,this.signal-dt*.7);this.disruptCooldown-=dt;
+        if(!this.target || this.target.dead || this.target.energy<22 || rand()<dt*.4) {
+          let best=null,score=Infinity;
+          for(const d of drifterGrid.near(this.x,this.y,340)){
+            if(d.energy<20)continue;const s=dist2(this,d)/(d.energy*d.energy);if(s<score){score=s;best=d;}
+          } this.target=best;
+        }
+        let ax=Math.sin(this.age*.3+this.id)*3,ay=Math.cos(this.age*.27+this.id)*3;
+        if(this.target) {
+          const dx=this.target.x-this.x,dy=this.target.y-this.y,d=Math.hypot(dx,dy)+.1;
+          ax+=dx/d*28;ay+=dy/d*28;
+          if(d<22 && this.disruptCooldown<=0) {
+            const stolen=Math.min(16,this.target.energy*.32);this.target.energy-=stolen;this.energy=Math.min(105,this.energy+stolen*.72);
+            this.target.disrupted=3;this.disruptCooldown=6+rr(0,3);
+            emitPulse(this.x,this.y,palettes[presetIndex].hunter,210,.95,this.id,true);
+          }
+        }
+        this.vx=(this.vx+ax*dt)*.992;this.vy=(this.vy+ay*dt)*.992;
+        const sp=Math.hypot(this.vx,this.vy),max=44;if(sp>max){this.vx=this.vx/sp*max;this.vy=this.vy/sp*max;}
+        this.x+=this.vx*dt;this.y+=this.vy*dt;wrap(this,30);this.angle=Math.atan2(this.vy,this.vx);
+        if(!reduced && (this.trail.length===0||dist2(this,this.trail[this.trail.length-1])>64))this.trail.push({x:this.x,y:this.y,a:1});
+        if(this.trail.length>12)this.trail.shift();for(const t of this.trail)t.a-=dt*.8;this.trail=this.trail.filter(t=>t.a>0);
+        if(this.energy>88 && hunters.length<limits().hunters && this.age>35 && rand()<dt*.007) {
+          hunters.push(new Hunter(this.x+rr(-20,20),this.y+rr(-20,20)));this.energy*=.58;
+        }
+        if(this.energy<=0||this.age>220)this.dead=true;
+      }
+      signalHit(strength){this.signal=Math.max(this.signal,strength);this.vx*=-.75;this.vy*=-.75;}
+      draw() {
+        const p=palettes[presetIndex];
+        if(this.trail.length>1){ctx.save();ctx.globalCompositeOperation='lighter';ctx.beginPath();this.trail.forEach((t,i)=>i?ctx.lineTo(t.x,t.y):ctx.moveTo(t.x,t.y));ctx.strokeStyle=hsla(p.hunter,.13);ctx.lineWidth=3;ctx.stroke();ctx.restore();}
+        ctx.save();ctx.translate(this.x,this.y);ctx.rotate(this.angle);ctx.globalCompositeOperation='lighter';ctx.shadowBlur=reduced?5:15;ctx.shadowColor=p.hunter;
+        ctx.fillStyle=hsla(p.hunter,.22);ctx.strokeStyle=hsla(p.hunter,.85);ctx.lineWidth=1.1;
+        ctx.beginPath();ctx.moveTo(this.size*1.45,0);ctx.lineTo(-this.size,.72*this.size);ctx.lineTo(-this.size*.55,0);ctx.lineTo(-this.size,-.72*this.size);ctx.closePath();ctx.fill();ctx.stroke();
+        ctx.fillStyle='#fff0e9';ctx.beginPath();ctx.arc(this.size*.55,0,1.4,0,TAU);ctx.fill();
+        ctx.strokeStyle=hsla(p.hunter,.35);ctx.beginPath();ctx.moveTo(-this.size*.7,0);ctx.lineTo(-this.size*2.2,Math.sin(simTime*5+this.id)*3);ctx.stroke();
+        ctx.restore();
+      }
+    }
+
+    function limits(){
+      const factor=reduced?.62:1, area=clamp(W*H/(1600*900),.55,1.45);
+      return {blooms:Math.floor(32*factor*area),drifters:Math.floor(82*factor*area),hunters:Math.floor(10*factor*area),nutrients:Math.floor(230*factor*area)};
+    }
+    function wrap(o,pad){if(o.x<-pad)o.x=W+pad;if(o.x>W+pad)o.x=-pad;if(o.y<-pad)o.y=H+pad;if(o.y>H+pad)o.y=-pad;}
+    function emitPulse(x,y,color,maxRadius=180,strength=.7,sourceId=-1,disrupt=false){
+      pulses.push({x,y,color,r:2,prev:0,max:maxRadius,speed:105,life:1,strength,sourceId,hit:new Set(),disrupt});
+      if(pulses.length>38)pulses.shift();
+    }
+    function addNutrient(x,y,count=1,painted=false){
+      const lim=limits();for(let i=0;i<count&&nutrients.length<lim.nutrients;i++) nutrients.push({
+        x:x+rr(-12,12),y:y+rr(-12,12),vx:rr(-5,5)+(painted?(pointer.x-pointer.px)*1.4:0),
+        vy:rr(-5,5)+(painted?(pointer.y-pointer.py)*1.4:0),energy:rr(3,7),life:rr(12,32),size:rr(.7,2.1)
+      });
+    }
+    function plantBeacon(x,y){
+      beacons.push({x,y,life:1,age:0,radius:220,phase:rr(0,TAU)});if(beacons.length>5)beacons.shift();
+      emitPulse(x,y,palettes[presetIndex].accent,270,.92,-1);
+    }
+    function globalPulse(){
+      if(pulseCooldown>0)return;
+      pulseCooldown=8; emitPulse(W/2,H/2,palettes[presetIndex].drift,Math.hypot(W,H)*.62,1.15,-1);
+      for(let i=0;i<10;i++)addNutrient(W/2+Math.cos(i*TAU/10)*80,H/2+Math.sin(i*TAU/10)*80);
+    }
+
+    function init(nextSeed=false){
+      if(nextSeed)seedValue=(seedValue+7919)>>>0;
+      rand=mulberry32(seedValue+presetIndex*100003);nextId=1;simTime=0;accumulator=0;
+      blooms=[];drifters=[];hunters=[];nutrients=[];pulses=[];beacons=[];ambient=[];openingQueue=[];
+      const lim=limits(), density=palettes[presetIndex].density;
+      const bc=Math.min(lim.blooms,Math.floor((reduced?15:23)*density));
+      const dc=Math.min(lim.drifters,Math.floor((reduced?27:48)*density));
+      const hc=Math.min(lim.hunters,Math.floor((reduced?3:6)*density));
+      for(let i=0;i<bc;i++){
+        const band=i%3, x=rr(65,W-65), y=H*(.25+band*.24)+rr(-65,65);
+        blooms.push(new Bloom(x,clamp(y,70,H-55),rr(28,68)));
+      }
+      for(let i=0;i<dc;i++)drifters.push(new Drifter(rr(25,W-25),rr(60,H-25),rr(25,72)));
+      for(let i=0;i<hc;i++)hunters.push(new Hunter(rr(80,W-80),rr(100,H-80)));
+      for(let i=0;i<Math.min(lim.nutrients,reduced?85:145);i++)addNutrient(rr(0,W),rr(50,H),1);
+      for(let i=0;i<(reduced?55:110);i++)ambient.push({x:rr(0,W),y:rr(0,H),z:rr(.2,1),phase:rr(0,TAU)});
+      ui.seed.textContent=seedValue;ui.presetName.textContent=`${presetIndex+1} · ${palettes[presetIndex].name}`;
+      openingQueue=blooms.slice(0,5).map((b,i)=>({at:.5+i*.18,bloom:b}));
+    }
+
+    function rebuildGrids(){
+      bloomGrid.clear();drifterGrid.clear();organismGrid.clear();
+      for(const b of blooms){bloomGrid.add(b);organismGrid.add(b);}
+      for(const d of drifters){drifterGrid.add(d);organismGrid.add(d);}
+      for(const h of hunters)organismGrid.add(h);
+    }
+    function update(dt){
+      simTime+=dt;pulseCooldown=Math.max(0,pulseCooldown-dt);
+      while(openingQueue.length&&simTime>=openingQueue[0].at){
+        const opening=openingQueue.shift(), b=opening.bloom;
+        if(!b.dead)emitPulse(b.x,b.y,palettes[presetIndex].bloom,170,.6,b.id);
+      }
+      rebuildGrids();
+      for(const b of blooms)b.update(dt);for(const d of drifters)d.update(dt);for(const h of hunters)h.update(dt);
+      for(const n of nutrients){
+        n.life-=dt;n.energy-=dt*.018;n.vx+=Math.sin(n.y*.013+simTime*.5)*dt*1.5;n.vy+=Math.cos(n.x*.011-simTime*.4)*dt*.8;
+        n.vx*=.994;n.vy*=.994;n.x+=n.vx*dt;n.y+=n.vy*dt;wrap(n,4);
+      }
+      for(const p of pulses){
+        p.prev=p.r;p.r+=p.speed*dt;p.life=1-p.r/p.max;
+        for(const o of organismGrid.near(p.x,p.y,p.r+CELL)){
+          if(o.id===p.sourceId||p.hit.has(o.id))continue;
+          const d=Math.hypot(o.x-p.x,o.y-p.y);
+          if(d>=p.prev-12&&d<=p.r+12){p.hit.add(o.id);if(p.disrupt&&o.type==='drifter')o.disrupted=2.3;else o.signalHit(p.strength*p.life);}
+        }
+      }
+      for(const b of beacons){b.age+=dt;b.life=Math.max(0,1-b.age/9);}
+      blooms=blooms.filter(x=>!x.dead);drifters=drifters.filter(x=>!x.dead);hunters=hunters.filter(x=>!x.dead);
+      nutrients=nutrients.filter(x=>x.life>0&&x.energy>.05);pulses=pulses.filter(x=>x.life>0);beacons=beacons.filter(x=>x.life>0);
+      const lim=limits();
+      if(nutrients.length<lim.nutrients*.48&&rand()<dt*5)addNutrient(rr(0,W),rr(40,H),1);
+      if(blooms.length<Math.min(10,lim.blooms)&&rand()<dt*.2)blooms.push(new Bloom(rr(50,W-50),rr(80,H-50),35));
+      if(drifters.length<Math.min(22,lim.drifters)&&rand()<dt*.45)drifters.push(new Drifter(rr(0,W),rr(60,H),38));
+      if(hunters.length<Math.min(3,lim.hunters)&&rand()<dt*.03)hunters.push(new Hunter(rr(0,W),rr(50,H)));
+      if(pointer.down&&performance.now()-pointer.lastPaint>38){addNutrient(pointer.x,pointer.y,reduced?1:2,true);pointer.lastPaint=performance.now();}
+      uiClock+=dt;if(uiClock>.25){uiClock=0;updateUI();}
+    }
+
+    function drawBackground(){
+      const p=palettes[presetIndex], bg=p.bg;
+      ctx.globalCompositeOperation='source-over';
+      const g=ctx.createRadialGradient(W*.52,H*.42,0,W*.52,H*.42,Math.max(W,H)*.8);
+      g.addColorStop(0,`rgb(${bg[0]+3},${bg[1]+7},${bg[2]+10})`);g.addColorStop(.55,`rgb(${bg[0]},${bg[1]},${bg[2]})`);g.addColorStop(1,'#010409');
+      ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+      ctx.save();ctx.globalCompositeOperation='lighter';
+      for(const a of ambient){const y=(a.y+simTime*a.z*.7)%H,x=a.x+Math.sin(simTime*.08+a.phase)*18*a.z;ctx.fillStyle=hsla(p.drift,.025+.05*a.z);ctx.beginPath();ctx.arc(x,y,a.z*.9,0,TAU);ctx.fill();}
+      ctx.strokeStyle='rgba(87,189,210,.025)';ctx.lineWidth=1;
+      for(let y=H*.18;y<H;y+=H*.19){ctx.beginPath();for(let x=0;x<=W;x+=40){const yy=y+Math.sin(x*.006+simTime*.12+y)*10; x?ctx.lineTo(x,yy):ctx.moveTo(x,yy);}ctx.stroke();}
+      ctx.restore();
+    }
+    function drawNutrients(){
+      const p=palettes[presetIndex];ctx.save();ctx.globalCompositeOperation='lighter';
+      for(const n of nutrients){const a=clamp(n.energy/5,0,.8)*clamp(n.life/3,0,1);ctx.fillStyle=hsla(p.bloom,a*.55);ctx.shadowColor=p.bloom;ctx.shadowBlur=reduced?2:6;ctx.beginPath();ctx.arc(n.x,n.y,n.size,0,TAU);ctx.fill();}
+      ctx.restore();
+    }
+    function drawBeacons(){
+      const p=palettes[presetIndex];ctx.save();ctx.globalCompositeOperation='lighter';
+      for(const b of beacons){
+        const r=17+b.age*8;ctx.strokeStyle=hsla(p.accent,b.life*.5);ctx.lineWidth=1;
+        for(let i=0;i<3;i++){ctx.beginPath();ctx.arc(b.x,b.y,r+i*12+Math.sin(simTime*2+b.phase)*3,0,TAU);ctx.stroke();}
+        ctx.fillStyle=hsla(p.accent,b.life*.55);ctx.shadowColor=p.accent;ctx.shadowBlur=reduced?4:18;ctx.beginPath();ctx.arc(b.x,b.y,3+b.life*2,0,TAU);ctx.fill();
+      }ctx.restore();
+    }
+    function drawPulses(){
+      ctx.save();ctx.globalCompositeOperation='lighter';
+      for(const p of pulses){
+        const alpha=clamp(p.life,0,1)*(p.disrupt?.28:.38);ctx.strokeStyle=hsla(p.color,alpha);ctx.lineWidth=p.disrupt?2.2:1.2;
+        ctx.shadowColor=p.color;ctx.shadowBlur=reduced?2:8;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,TAU);ctx.stroke();
+        if(!reduced){ctx.strokeStyle=hsla(p.color,alpha*.25);ctx.lineWidth=6;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,TAU);ctx.stroke();}
+      }ctx.restore();
+    }
+    function drawConnections(){
+      const p=palettes[presetIndex];ctx.save();ctx.globalCompositeOperation='lighter';ctx.lineWidth=.55;
+      for(const d of drifters){
+        if(!d.target||dist2(d,d.target)>120*120)continue;
+        const a=clamp(1-Math.sqrt(dist2(d,d.target))/120,0,1)*.14;ctx.strokeStyle=hsla(d.energy>55?p.bloom:p.drift,a);
+        ctx.setLineDash([2,6]);ctx.lineDashOffset=-simTime*8;ctx.beginPath();ctx.moveTo(d.x,d.y);ctx.lineTo(d.target.x,d.target.y);ctx.stroke();
+      }ctx.setLineDash([]);ctx.restore();
+    }
+    function render(){
+      drawBackground();drawNutrients();drawConnections();
+      const ordered=[...blooms,...drifters,...hunters].sort((a,b)=>(a.size||4)-(b.size||4));
+      for(const o of ordered)o.draw();
+      drawBeacons();drawPulses();
+      if(pointer.down){ctx.save();ctx.strokeStyle=hsla(palettes[presetIndex].bloom,.22);ctx.beginPath();ctx.arc(pointer.x,pointer.y,14+Math.sin(simTime*5)*2,0,TAU);ctx.stroke();ctx.restore();}
+    }
+    function updateUI(){
+      ui.population.textContent=blooms.length+drifters.length+hunters.length;
+      const total=[...blooms,...drifters,...hunters].reduce((s,o)=>s+Math.max(0,o.energy),0);
+      ui.energy.textContent=Math.round(total).toLocaleString();
+      const m=Math.floor(simTime/60),s=Math.floor(simTime%60);ui.elapsed.textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+      ui.pulseFill.style.transform=`scaleX(${1-clamp(pulseCooldown/8,0,1)})`;
+    }
+    function frame(now){
+      const elapsed=Math.min(.1,(now-last)/1000);last=now;
+      if(!paused){accumulator+=elapsed;let steps=0;while(accumulator>=FIXED_DT&&steps<6){update(FIXED_DT);accumulator-=FIXED_DT;steps++;}}
+      render();requestAnimationFrame(frame);
+    }
+    function resize(){
+      const oldW=W||innerWidth,oldH=H||innerHeight;W=innerWidth;H=innerHeight;dpr=Math.min(devicePixelRatio||1,MAX_DPR);
+      canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);canvas.style.width=W+'px';canvas.style.height=H+'px';ctx.setTransform(dpr,0,0,dpr,0,0);
+      if(blooms.length){const sx=W/oldW,sy=H/oldH;for(const o of [...blooms,...drifters,...hunters,...nutrients,...beacons]){o.x*=sx;o.y*=sy;if(o.anchorX!=null){o.anchorX*=sx;o.anchorY*=sy;}}for(const a of ambient){a.x*=sx;a.y*=sy;}}
+    }
+    function setPointer(e){
+      pointer.px=pointer.x;pointer.py=pointer.y;pointer.x=e.clientX;pointer.y=e.clientY;
+      if(pointer.down&&Math.hypot(pointer.x-pointer.startX,pointer.y-pointer.startY)>6)pointer.moved=true;
+    }
+    canvas.addEventListener('pointermove',e=>{setPointer(e);});
+    canvas.addEventListener('pointerdown',e=>{setPointer(e);pointer.down=true;pointer.moved=false;pointer.startX=pointer.x;pointer.startY=pointer.y;pointer.lastPaint=performance.now();canvas.setPointerCapture(e.pointerId);});
+    canvas.addEventListener('pointerup',e=>{setPointer(e);if(!pointer.moved)plantBeacon(pointer.x,pointer.y);pointer.down=false;});
+    canvas.addEventListener('pointercancel',()=>pointer.down=false);
+    function togglePause(){paused=!paused;ui.pauseBtn.innerHTML=paused?'<kbd>P</kbd>Resume':'<kbd>P</kbd>Pause';ui.pauseBadge.classList.toggle('show',paused);last=performance.now();}
+    function setPreset(n){presetIndex=n;init(false);}
+    addEventListener('keydown',e=>{
+      if(e.repeat)return;
+      if(e.code==='Space'){e.preventDefault();globalPulse();}
+      else if(e.key.toLowerCase()==='p')togglePause();
+      else if(e.key.toLowerCase()==='r')init(true);
+      else if(['1','2','3'].includes(e.key))setPreset(Number(e.key)-1);
+    });
+    document.getElementById('pulseBtn').addEventListener('click',globalPulse);
+    document.getElementById('pauseBtn').addEventListener('click',togglePause);
+    document.getElementById('regenBtn').addEventListener('click',()=>init(true));
+    document.getElementById('preset1').addEventListener('click',()=>setPreset(0));
+    document.getElementById('preset2').addEventListener('click',()=>setPreset(1));
+    document.getElementById('preset3').addEventListener('click',()=>setPreset(2));
+    addEventListener('resize',resize,{passive:true});
+    document.addEventListener('visibilitychange',()=>{last=performance.now();accumulator=0;});
+    resize();init();updateUI();requestAnimationFrame(frame);
+  })();
+  </script>
+</body>
+</html>

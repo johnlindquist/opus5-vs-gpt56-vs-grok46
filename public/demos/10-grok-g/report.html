@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Haunted Queue — Architecture Report</title>
+  <style>
+    :root {
+      --ink: #1c1915;
+      --muted: #5c564c;
+      --paper: #f4efe6;
+      --card: #fffdf8;
+      --line: #d9d0c3;
+      --accent: #8b2f2f;
+      --good: #2f6b4f;
+      --warn: #9a6b12;
+      --pending: #3d5a80;
+      --running: #8b2f2f;
+      --retry: #9a6b12;
+      --done: #2f6b4f;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font: 15px/1.45 "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    }
+    .stage {
+      width: 1600px;
+      min-height: 900px;
+      margin: 0 auto;
+      padding: 28px 32px 24px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto auto 1fr auto;
+      gap: 16px 20px;
+    }
+    header {
+      grid-column: 1 / -1;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      border-bottom: 3px solid var(--ink);
+      padding-bottom: 10px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 34px;
+      letter-spacing: -0.02em;
+    }
+    .kicker {
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-size: 11px;
+      color: var(--accent);
+      font-family: "Avenir Next", "Segoe UI", sans-serif;
+      margin-bottom: 4px;
+    }
+    .meta {
+      text-align: right;
+      font-family: "Avenir Next", "Segoe UI", sans-serif;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .meta strong { color: var(--good); font-size: 20px; }
+    h2 {
+      margin: 0 0 10px;
+      font-size: 16px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      font-family: "Avenir Next", "Segoe UI", sans-serif;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 14px 16px;
+      min-height: 0;
+    }
+    .arch {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      font-size: 13px;
+      font-family: "Avenir Next", "Segoe UI", sans-serif;
+    }
+    .col h3 {
+      margin: 0 0 8px;
+      font-size: 13px;
+      color: var(--accent);
+    }
+    .blob {
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      padding: 8px 10px;
+      margin-bottom: 6px;
+      background: #faf6ef;
+    }
+    .blob code { font-size: 12px; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+      font-family: "Avenir Next", "Segoe UI", sans-serif;
+    }
+    th, td {
+      text-align: left;
+      padding: 6px 8px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+    th { color: var(--muted); font-weight: 600; }
+    .wide { grid-column: 1 / -1; }
+    .timeline {
+      font-family: ui-monospace, "SF Mono", Menlo, monospace;
+      font-size: 12px;
+      line-height: 1.55;
+      margin: 0;
+      white-space: pre-wrap;
+    }
+    footer {
+      grid-column: 1 / -1;
+      font-size: 12px;
+      color: var(--muted);
+      font-family: "Avenir Next", "Segoe UI", sans-serif;
+      display: flex;
+      justify-content: space-between;
+    }
+    .chip {
+      display: inline-block;
+      padding: 1px 7px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-family: "Avenir Next", "Segoe UI", sans-serif;
+    }
+    .ok { background: #dceee3; color: var(--good); }
+    svg { width: 100%; height: 250px; display: block; }
+    .note { font-size: 12px; color: var(--muted); margin: 8px 0 0; }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <header>
+      <div>
+        <div class="kicker">Spec 10 · Isolated refactor</div>
+        <h1>The Haunted Queue</h1>
+      </div>
+      <div class="meta">
+        Replacement: <code>src/job-queue.ts</code><br>
+        Tests: <strong>19 passed</strong> · Demo: idle after drain
+      </div>
+    </header>
+
+    <section class="card">
+      <h2>Before / after architecture</h2>
+      <div class="arch">
+        <div class="col">
+          <h3>Legacy · one private pump</h3>
+          <div class="blob"><code>JobQueue</code> owns pending array, active map, running count, drainers, and an inline <code>#pump</code>.</div>
+          <div class="blob">Priority via <code>Array.sort</code> on every add. Equal keys have no insertion sequence.</div>
+          <div class="blob">Retries mutate the same item and <code>setTimeout</code> with no handle. IDs are not unique.</div>
+          <div class="blob"><code>drain</code> watches pending length only. Cancel never settles the caller promise.</div>
+        </div>
+        <div class="col">
+          <h3>Replacement · owned state machine</h3>
+          <div class="blob"><code>types.ts</code> public contracts · <code>errors.ts</code> typed failures · <code>backoff.ts</code> delay formula + default scheduler.</div>
+          <div class="blob"><code>JobQueue</code> holds live IDs, a pending list keyed by priority then sequence, in-flight occupancy, and cancellable retry handles.</div>
+          <div class="blob"><code>stats()</code> and <code>subscribe()</code> are observers. Listener throws are isolated.</div>
+          <div class="blob">Hooks inject delay and <code>schedule</code> so tests never sleep on exponential backoff.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>State transitions</h2>
+      <svg viewBox="0 0 720 250" role="img" aria-label="Job state machine">
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#1c1915"></path>
+          </marker>
+        </defs>
+        <rect x="20" y="90" width="120" height="52" rx="8" fill="#e8eef6" stroke="#3d5a80"/>
+        <text x="80" y="121" text-anchor="middle" font-size="16" font-family="Avenir Next, sans-serif">pending</text>
+        <rect x="210" y="90" width="120" height="52" rx="8" fill="#f6e4e4" stroke="#8b2f2f"/>
+        <text x="270" y="121" text-anchor="middle" font-size="16" font-family="Avenir Next, sans-serif">running</text>
+        <rect x="400" y="20" width="140" height="52" rx="8" fill="#f7edd6" stroke="#9a6b12"/>
+        <text x="470" y="51" text-anchor="middle" font-size="16" font-family="Avenir Next, sans-serif">retry-waiting</text>
+        <rect x="400" y="160" width="140" height="52" rx="8" fill="#dceee3" stroke="#2f6b4f"/>
+        <text x="470" y="191" text-anchor="middle" font-size="16" font-family="Avenir Next, sans-serif">settled</text>
+        <line x1="140" y1="116" x2="210" y2="116" stroke="#1c1915" marker-end="url(#arrow)"/>
+        <text x="175" y="108" text-anchor="middle" font-size="11">slot free</text>
+        <path d="M330 100 C 360 70, 380 50, 400 46" fill="none" stroke="#1c1915" marker-end="url(#arrow)"/>
+        <text x="368" y="64" font-size="11">fail, retries left</text>
+        <path d="M400 72 C 300 80, 280 70, 270 90" fill="none" stroke="#1c1915" marker-end="url(#arrow)"/>
+        <text x="300" y="78" font-size="11">timer fires</text>
+        <line x1="270" y1="142" x2="400" y2="176" stroke="#1c1915" marker-end="url(#arrow)"/>
+        <text x="300" y="172" font-size="11">fulfill / exhaust / abort</text>
+        <line x1="80" y1="142" x2="400" y2="176" stroke="#1c1915" marker-end="url(#arrow)"/>
+        <text x="150" y="186" font-size="11">cancel pending</text>
+        <line x1="540" y1="46" x2="540" y2="160" stroke="#1c1915" marker-end="url(#arrow)"/>
+        <text x="630" y="110" font-size="11">cancel backoff</text>
+        <text x="20" y="28" font-size="12" fill="#5c564c">Live ID exists in pending, running, or retry-waiting. After settle, the ID may be reused.</text>
+      </svg>
+      <p class="note">Occupancy (<code>inFlight</code>) includes a cancelled run until its function returns, so the concurrency ceiling stays honest. The ID is released at cancel so a new job may reuse it.</p>
+    </section>
+
+    <section class="card wide">
+      <h2>Legacy failure modes and fixes</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Failure</th>
+            <th>Legacy</th>
+            <th>Fix</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>FIFO among equals</td>
+            <td>Sort by priority only</td>
+            <td>Stable pick: higher priority, then lower insertion sequence</td>
+          </tr>
+          <tr>
+            <td>Duplicate IDs</td>
+            <td>Later job overwrites the active map entry</td>
+            <td><code>DuplicateJobError</code> while the id is live</td>
+          </tr>
+          <tr>
+            <td>Retry delay</td>
+            <td><code>25 * 2 ** attempt</code> after increment (first retry 50ms)</td>
+            <td><code>25 * 2 ** (attemptNumber - 1)</code> (first retry 25ms)</td>
+          </tr>
+          <tr>
+            <td>Pending cancel</td>
+            <td>Spliced out; promise never settles</td>
+            <td>Reject exactly once with <code>AbortError</code></td>
+          </tr>
+          <tr>
+            <td>Running cancel</td>
+            <td>Abort only; <code>finally</code> still retries</td>
+            <td>Abort, reject, skip retry</td>
+          </tr>
+          <tr>
+            <td>Backoff cancel</td>
+            <td>Timer not stored</td>
+            <td>Cancel handle cleared; reject <code>AbortError</code></td>
+          </tr>
+          <tr>
+            <td>Drain</td>
+            <td>Idle if pending is empty while jobs run</td>
+            <td>Wait until live IDs and in-flight runs are gone</td>
+          </tr>
+          <tr>
+            <td>Close</td>
+            <td>Synchronous throw <code>"closed"</code></td>
+            <td>Rejected <code>QueueClosedError</code> from <code>add</code></td>
+          </tr>
+          <tr>
+            <td>Concurrency</td>
+            <td>Any number ≥ 1</td>
+            <td>Integer 1–32</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="card">
+      <h2>Test summary</h2>
+      <p style="margin:0 0 8px;font-family:'Avenir Next',sans-serif;font-size:13px;">
+        <span class="chip ok">bun test · 19 pass · 0 fail</span>
+        Injectable <code>schedule</code> / <code>retryDelayMs</code>; no multi-second sleeps.
+      </p>
+      <table>
+        <tbody>
+          <tr><td>Concurrency bounds</td><td>1–32 integer</td></tr>
+          <tr><td>Priority + FIFO</td><td>5, then 1/1, then 0</td></tr>
+          <tr><td>Ceiling</td><td>peak running = 2</td></tr>
+          <tr><td>Duplicate + reuse</td><td>live reject; settle then reuse</td></tr>
+          <tr><td>Sync throw</td><td>same as rejection</td></tr>
+          <tr><td>Retry success / exhaust</td><td>3 attempts; delays 25 then 50</td></tr>
+          <tr><td>Cancel pending / running / backoff</td><td>AbortError, no retry, timer gone</td></tr>
+          <tr><td>Drain + close + events + cleanup</td><td>multi-waiter, late add, listener isolation</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="card">
+      <h2>Deterministic demo timeline</h2>
+      <p class="note" style="margin-top:0;">From <code>out/demo.txt</code> · concurrency 2 · zero backoff · mixed priorities. Invoice/email share priority 5 (FIFO). Flaky retries once then fulfills.</p>
+      <pre class="timeline">01 queued   paint     p=1
+02 started  paint     attempt=1
+03 queued   invoice   p=5
+04 started  invoice   attempt=1
+05 queued   email     p=5
+06 queued   backup    p=0
+07 queued   flaky     p=3
+08 fulfilled paint
+09 started  email     p=5
+10 fulfilled invoice
+11 started  flaky     attempt=1
+12 retrying flaky     delayMs=0
+13 started  backup    p=0
+14 fulfilled email
+15 fulfilled backup
+16 started  flaky     attempt=2
+17 fulfilled flaky
+stats live=0  flakyTries=2  drain complete</pre>
+    </section>
+
+    <footer>
+      <span>Addition policy: <code>add</code> returns a rejected promise for closed / duplicate / invalid input; it does not throw.</span>
+      <span>Local files only · no external assets</span>
+    </footer>
+  </div>
+</body>
+</html>

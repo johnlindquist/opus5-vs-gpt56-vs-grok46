@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "status": "complete",
+  "title": "Gravity Atelier — Build a Solar System",
+  "kind": "visual",
+  "entrypoint": "index.html",
+  "artifacts": [
+    "index.html",
+    "README.md",
+    "checks.mjs",
+    "gravity-atelier.png"
+  ],
+  "checks": [
+    {
+      "name": "Offline structure, syntax, and deterministic stability check",
+      "command": "node checks.mjs",
+      "status": "passed",
+      "details": "Confirmed the inline application script parses, required implementation markers and offline constraints are present, and the stable preset stays within 1.32% maximum radial drift over a 30-second default-rate equivalent simulation."
+    },
+    {
+      "name": "Direct-open browser interaction smoke test",
+      "command": "agent-browser --session finalcheck open \"file://$PWD/index.html\" && agent-browser --session finalcheck set viewport 1600 900 && agent-browser --session finalcheck wait --text \"Gravity Atelier\" && agent-browser --session finalcheck click '#pause' && test \"$(agent-browser --session finalcheck get text '#runState')\" = \"PAUSED\" && agent-browser --session finalcheck press . && agent-browser --session finalcheck press Space && agent-browser --session finalcheck click '[data-preset=\"2\"]' && test \"$(agent-browser --session finalcheck get text '#bodyName')\" = \"Janus\" && agent-browser --session finalcheck click '[data-preset=\"3\"]' && test \"$(agent-browser --session finalcheck get text '#bodyName')\" = \"Arrow\" && agent-browser --session finalcheck click '[data-preset=\"1\"]' && agent-browser --session finalcheck mouse move 400 650 && agent-browser --session finalcheck mouse down && agent-browser --session finalcheck mouse move 490 590 && agent-browser --session finalcheck mouse up && test \"$(agent-browser --session finalcheck get text '#bodyName')\" = \"Voyager 08\" && agent-browser --session finalcheck mouse move 500 500 && agent-browser --session finalcheck mouse wheel -500 && test \"$(agent-browser --session finalcheck get text '#scaleValue')\" = \"50 UNITS\" && agent-browser --session finalcheck errors && agent-browser --session finalcheck close",
+      "status": "passed",
+      "details": "Opened index.html from file:// at 1600×900, verified pause, single-step, resume, all three presets, a real pointer drag launch, pointer-centered zoom, live selected-body updates, and no browser errors; the session was closed afterward."
+    },
+    {
+      "name": "Initial visual capture and console check",
+      "command": "agent-browser --session gravity screenshot gravity-atelier.png && agent-browser --session gravity errors",
+      "status": "passed",
+      "details": "Captured the automatic attract scene with the luminous system, orbital trails, controls, scale legend, and Aurelia information panel; the browser reported no console errors."
+    }
+  ],
+  "summary": "A polished, deterministic Canvas 2D orbital sandbox with three curated systems, fixed-step pairwise gravity, trails, launch prediction, collisions with merging and fragmentation, inspection, zoom/pan, keyboard controls, and a premium astronomical-instrument interface.",
+  "known_issues": []
+}

@@ -1,0 +1,521 @@
+{
+  "schema_version": 1,
+  "source": "data/requests.csv",
+  "row_count": 80,
+  "quantile_convention": "Linear interpolation at h=(n-1)p on sorted values (R type 7 / NumPy default).",
+  "variants": {
+    "control": {
+      "all_requests": {
+        "count": 40,
+        "mean_ms": 316.75,
+        "median_ms": 235.5,
+        "p95_ms": 787.25,
+        "min_ms": 169,
+        "max_ms": 854,
+        "non_200_count": 0,
+        "non_200_rate": 0
+      },
+      "status_200_only": {
+        "count": 40,
+        "mean_ms": 316.75,
+        "median_ms": 235.5,
+        "p95_ms": 787.25,
+        "min_ms": 169,
+        "max_ms": 854,
+        "non_200_count": 0,
+        "non_200_rate": 0
+      }
+    },
+    "candidate": {
+      "all_requests": {
+        "count": 40,
+        "mean_ms": 604.7,
+        "median_ms": 416.5,
+        "p95_ms": 1457.85,
+        "min_ms": 146,
+        "max_ms": 1584,
+        "non_200_count": 4,
+        "non_200_rate": 0.1
+      },
+      "status_200_only": {
+        "count": 36,
+        "mean_ms": 513.89,
+        "median_ms": 403.5,
+        "p95_ms": 1278.5,
+        "min_ms": 146,
+        "max_ms": 1455,
+        "non_200_count": 0,
+        "non_200_rate": 0
+      }
+    }
+  },
+  "traffic_mix": {
+    "region": [
+      {
+        "category": "eu",
+        "control": {
+          "count": 16,
+          "share": 0.4
+        },
+        "candidate": {
+          "count": 22,
+          "share": 0.55
+        },
+        "candidate_minus_control_share_pp": 15
+      },
+      {
+        "category": "us",
+        "control": {
+          "count": 24,
+          "share": 0.6
+        },
+        "candidate": {
+          "count": 18,
+          "share": 0.45
+        },
+        "candidate_minus_control_share_pp": -15
+      }
+    ],
+    "device": [
+      {
+        "category": "desktop",
+        "control": {
+          "count": 28,
+          "share": 0.7
+        },
+        "candidate": {
+          "count": 16,
+          "share": 0.4
+        },
+        "candidate_minus_control_share_pp": -30
+      },
+      {
+        "category": "mobile",
+        "control": {
+          "count": 12,
+          "share": 0.3
+        },
+        "candidate": {
+          "count": 24,
+          "share": 0.6
+        },
+        "candidate_minus_control_share_pp": 30
+      }
+    ],
+    "cache": [
+      {
+        "category": "cold",
+        "control": {
+          "count": 12,
+          "share": 0.3
+        },
+        "candidate": {
+          "count": 24,
+          "share": 0.6
+        },
+        "candidate_minus_control_share_pp": 30
+      },
+      {
+        "category": "warm",
+        "control": {
+          "count": 28,
+          "share": 0.7
+        },
+        "candidate": {
+          "count": 16,
+          "share": 0.4
+        },
+        "candidate_minus_control_share_pp": -30
+      }
+    ],
+    "payload_range_kb": [
+      {
+        "category": "0000-0255",
+        "control": {
+          "count": 30,
+          "share": 0.75
+        },
+        "candidate": {
+          "count": 16,
+          "share": 0.4
+        },
+        "candidate_minus_control_share_pp": -35
+      },
+      {
+        "category": "0256-0511",
+        "control": {
+          "count": 6,
+          "share": 0.15
+        },
+        "candidate": {
+          "count": 8,
+          "share": 0.2
+        },
+        "candidate_minus_control_share_pp": 5
+      },
+      {
+        "category": "0512-0767",
+        "control": {
+          "count": 1,
+          "share": 0.025
+        },
+        "candidate": {
+          "count": 6,
+          "share": 0.15
+        },
+        "candidate_minus_control_share_pp": 12.5
+      },
+      {
+        "category": "0768+",
+        "control": {
+          "count": 3,
+          "share": 0.075
+        },
+        "candidate": {
+          "count": 10,
+          "share": 0.25
+        },
+        "candidate_minus_control_share_pp": 17.5
+      }
+    ]
+  },
+  "strata": [
+    {
+      "key": "eu|desktop|warm",
+      "region": "eu",
+      "device": "desktop",
+      "cache": "warm",
+      "control": {
+        "count": 12,
+        "mean_ms": 238.5,
+        "median_ms": 239.5,
+        "p95_ms": 249,
+        "min_ms": 226,
+        "max_ms": 249,
+        "non_200_count": 0,
+        "non_200_rate": 0
+      },
+      "candidate": {
+        "count": 8,
+        "mean_ms": 211.38,
+        "median_ms": 211.5,
+        "p95_ms": 223.6,
+        "min_ms": 198,
+        "max_ms": 225,
+        "non_200_count": 0,
+        "non_200_rate": 0
+      },
+      "mean_delta_ms": -27.12,
+      "mean_delta_percent": -11.4,
+      "direction": "candidate_faster"
+    },
+    {
+      "key": "eu|mobile|cold",
+      "region": "eu",
+      "device": "mobile",
+      "cache": "cold",
+      "control": {
+        "count": 4,
+        "mean_ms": 798.25,
+        "median_ms": 798.5,
+        "p95_ms": 847.55,
+        "min_ms": 742,
+        "max_ms": 854,
+        "non_200_count": 0,
+        "non_200_rate": 0
+      },
+      "candidate": {
+        "count": 14,
+        "mean_ms": 1216.93,
+        "median_ms": 1219,
+        "p95_ms": 1537.2,
+        "min_ms": 902,
+        "max_ms": 1584,
+        "non_200_count": 4,
+        "non_200_rate": 0.2857
+      },
+      "mean_delta_ms": 418.68,
+      "mean_delta_percent": 52.4,
+      "direction": "candidate_slower"
+    },
+    {
+      "key": "us|desktop|warm",
+      "region": "us",
+      "device": "desktop",
+      "cache": "warm",
+      "control": {
+        "count": 16,
+        "mean_ms": 180,
+        "median_ms": 180,
+        "p95_ms": 191,
+        "min_ms": 169,
+        "max_ms": 191,
+        "non_200_count": 0,
+        "non_200_rate": 0
+      },
+      "candidate": {
+        "count": 8,
+        "mean_ms": 155.38,
+        "median_ms": 155,
+        "p95_ms": 164.95,
+        "min_ms": 146,
+        "max_ms": 166,
+        "non_200_count": 0,
+        "non_200_rate": 0
+      },
+      "mean_delta_ms": -24.62,
+      "mean_delta_percent": -13.7,
+      "direction": "candidate_faster"
+    },
+    {
+      "key": "us|mobile|cold",
+      "region": "us",
+      "device": "mobile",
+      "cache": "cold",
+      "control": {
+        "count": 8,
+        "mean_ms": 466.88,
+        "median_ms": 466,
+        "p95_ms": 496.8,
+        "min_ms": 438,
+        "max_ms": 501,
+        "non_200_count": 0,
+        "non_200_rate": 0
+      },
+      "candidate": {
+        "count": 10,
+        "mean_ms": 421.7,
+        "median_ms": 420,
+        "p95_ms": 445.2,
+        "min_ms": 397,
+        "max_ms": 447,
+        "non_200_count": 0,
+        "non_200_rate": 0
+      },
+      "mean_delta_ms": -45.18,
+      "mean_delta_percent": -9.7,
+      "direction": "candidate_faster"
+    }
+  ],
+  "mix_adjustment": {
+    "method": "Direct standardization to combined-sample region × device × cache shares.",
+    "standardized_control_mean_ms": 398.28,
+    "standardized_candidate_mean_ms": 468.15,
+    "candidate_minus_control_ms": 69.87,
+    "aggregate_candidate_minus_control_ms": 287.95
+  },
+  "payload_analysis": {
+    "ranges": [
+      {
+        "range": "0000-0255",
+        "variant": "candidate",
+        "count": 16,
+        "mean_ms": 208.25,
+        "median_ms": 182,
+        "p95_ms": 409.5,
+        "min_ms": 146,
+        "max_ms": 447,
+        "non_200_count": 0,
+        "non_200_rate": 0
+      },
+      {
+        "range": "0000-0255",
+        "variant": "control",
+        "count": 30,
+        "mean_ms": 221.33,
+        "median_ms": 191,
+        "p95_ms": 352.95,
+        "min_ms": 169,
+        "max_ms": 460,
+        "non_200_count": 0,
+        "non_200_rate": 0
+      },
+      {
+        "range": "0256-0511",
+        "variant": "candidate",
+        "count": 8,
+        "mean_ms": 370.25,
+        "median_ms": 412,
+        "p95_ms": 435.55,
+        "min_ms": 221,
+        "max_ms": 438,
+        "non_200_count": 0,
+        "non_200_rate": 0
+      },
+      {
+        "range": "0256-0511",
+        "variant": "control",
+        "count": 6,
+        "mean_ms": 472.83,
+        "median_ms": 475,
+        "p95_ms": 498,
+        "min_ms": 446,
+        "max_ms": 501,
+        "non_200_count": 0,
+        "non_200_rate": 0
+      },
+      {
+        "range": "0512-0767",
+        "variant": "candidate",
+        "count": 6,
+        "mean_ms": 837.83,
+        "median_ms": 923,
+        "p95_ms": 1202,
+        "min_ms": 414,
+        "max_ms": 1242,
+        "non_200_count": 0,
+        "non_200_rate": 0
+      },
+      {
+        "range": "0512-0767",
+        "variant": "control",
+        "count": 1,
+        "mean_ms": 742,
+        "median_ms": 742,
+        "p95_ms": 742,
+        "min_ms": 742,
+        "max_ms": 742,
+        "non_200_count": 0,
+        "non_200_rate": 0
+      },
+      {
+        "range": "0768+",
+        "variant": "candidate",
+        "count": 10,
+        "mean_ms": 1286.7,
+        "median_ms": 1296,
+        "p95_ms": 1551.6,
+        "min_ms": 986,
+        "max_ms": 1584,
+        "non_200_count": 4,
+        "non_200_rate": 0.4
+      },
+      {
+        "range": "0768+",
+        "variant": "control",
+        "count": 3,
+        "mean_ms": 817,
+        "median_ms": 811,
+        "p95_ms": 849.7,
+        "min_ms": 786,
+        "max_ms": 854,
+        "non_200_count": 0,
+        "non_200_rate": 0
+      }
+    ],
+    "candidate_eu_mobile_cold": {
+      "all_requests": {
+        "count": 14,
+        "mean_ms": 1216.93,
+        "median_ms": 1219,
+        "p95_ms": 1537.2,
+        "min_ms": 902,
+        "max_ms": 1584,
+        "non_200_count": 4,
+        "non_200_rate": 0.2857
+      },
+      "status_200_only": {
+        "count": 10,
+        "mean_ms": 1134.9,
+        "median_ms": 1109,
+        "p95_ms": 1424.85,
+        "min_ms": 902,
+        "max_ms": 1455,
+        "non_200_count": 0,
+        "non_200_rate": 0
+      },
+      "count_payload_at_least_768_kb": 10,
+      "errors": 4
+    },
+    "error_rows": [
+      {
+        "request_id": "r070",
+        "variant": "candidate",
+        "minute": 27,
+        "region": "eu",
+        "device": "mobile",
+        "cache": "cold",
+        "payload_kb": 960,
+        "latency_ms": 1264,
+        "status": 504
+      },
+      {
+        "request_id": "r072",
+        "variant": "candidate",
+        "minute": 29,
+        "region": "eu",
+        "device": "mobile",
+        "cache": "cold",
+        "payload_kb": 1120,
+        "latency_ms": 1512,
+        "status": 504
+      },
+      {
+        "request_id": "r076",
+        "variant": "candidate",
+        "minute": 33,
+        "region": "eu",
+        "device": "mobile",
+        "cache": "cold",
+        "payload_kb": 880,
+        "latency_ms": 1328,
+        "status": 504
+      },
+      {
+        "request_id": "r078",
+        "variant": "candidate",
+        "minute": 35,
+        "region": "eu",
+        "device": "mobile",
+        "cache": "cold",
+        "payload_kb": 1040,
+        "latency_ms": 1584,
+        "status": 504
+      }
+    ]
+  },
+  "findings": [
+    {
+      "id": "aggregate-gap",
+      "kind": "computed_fact",
+      "text": "Candidate aggregate mean and tail latency are higher than control when all requests, including errors, are retained."
+    },
+    {
+      "id": "mix-effect",
+      "kind": "interpretation",
+      "text": "Traffic mix explains part of the aggregate gap: candidate has more mobile/cold and EU-mobile-cold observations, but standardization does not remove the regression."
+    },
+    {
+      "id": "three-faster-one-slower",
+      "kind": "computed_fact",
+      "text": "Candidate is faster in three of four comparable strata and materially slower in EU × mobile × cold."
+    },
+    {
+      "id": "localized-association",
+      "kind": "interpretation",
+      "text": "The regression and all observed errors are concentrated in candidate EU × mobile × cold traffic; payload size is entangled with that stratum and time."
+    }
+  ],
+  "limitations": [
+    "Variant is perfectly separated by time (control minutes 0–15; candidate minutes 20–37), so temporal drift is confounded with treatment.",
+    "Traffic was not balanced or randomized across strata; stratum sample sizes differ, especially EU × mobile × cold (control n=4, candidate n=14).",
+    "Payload distributions do not overlap well inside EU × mobile × cold, limiting like-for-like payload comparisons.",
+    "Region, device, and cache occur only in four bundled combinations, so their individual effects and interactions are not separately identifiable.",
+    "The dataset is small, contains no repeated rollout cycles, and supplies no server/resource/network telemetry.",
+    "Status 504 may be part of the latency mechanism; excluding it would condition on an outcome, so primary statistics retain all rows."
+  ],
+  "recommendations": [
+    {
+      "action": "pause_or_scope",
+      "text": "Do not continue the candidate for EU mobile cold traffic on this dataset alone; pause that slice or constrain it behind a guardrail while preserving the faster strata for a controlled follow-up."
+    },
+    {
+      "action": "experiment",
+      "text": "Run a concurrent randomized control/candidate comparison within region × device × cache, with balanced payload bands and predefined latency/error guardrails."
+    },
+    {
+      "action": "measurement",
+      "text": "Instrument stage-level latency, timeout origin, payload bytes, network timing, and resource saturation for EU mobile cold requests, keyed by request ID."
+    }
+  ]
+}

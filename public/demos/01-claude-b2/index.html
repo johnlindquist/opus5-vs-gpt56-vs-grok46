@@ -1,0 +1,1775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Signal Garden — Bioluminescent Ecosystem Synth</title>
+<style>
+  :root{
+    --ink:#dff4ff;
+    --dim:#7f9fb4;
+    --edge:rgba(140,215,255,.20);
+    --panel:rgba(6,14,22,.52);
+    --focus:#7ef0d6;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    background:#02060a;
+    color:var(--ink);
+    font:13px/1.45 ui-sans-serif,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+    -webkit-tap-highlight-color:transparent;
+  }
+  #stage{position:fixed;inset:0}
+  canvas{display:block;width:100%;height:100%;touch-action:none;cursor:crosshair}
+  .sr-only{
+    position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+    clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0;
+  }
+  .ui{position:fixed;pointer-events:none;z-index:2}
+  .ui > *{pointer-events:auto}
+
+  /* ── Title ─────────────────────────────────────────────── */
+  #title{top:0;left:0;padding:20px 24px;max-width:min(48vw,520px);
+    background:radial-gradient(135% 135% at 0% 0%,rgba(2,8,14,.88),rgba(2,8,14,0) 74%)}
+  #title h1{
+    margin:0;font-size:15px;font-weight:600;letter-spacing:.34em;text-transform:uppercase;
+    color:#eafbff;text-shadow:0 0 18px rgba(90,220,255,.55);
+  }
+  #title h1 span{color:#7ef0d6}
+  #title p{margin:6px 0 0;font-size:11.5px;letter-spacing:.06em;color:var(--dim);max-width:34ch}
+
+  /* ── Readouts ──────────────────────────────────────────── */
+  #hud{top:0;right:0;padding:16px 18px}
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--edge);
+    border-radius:10px;
+    backdrop-filter:blur(9px) saturate(1.2);
+    -webkit-backdrop-filter:blur(9px) saturate(1.2);
+    box-shadow:0 10px 34px rgba(0,0,0,.45), inset 0 1px 0 rgba(190,240,255,.06);
+  }
+  #hud .panel{padding:11px 13px;min-width:212px}
+  .row{display:flex;justify-content:space-between;align-items:baseline;gap:14px;font-variant-numeric:tabular-nums}
+  .row + .row{margin-top:4px}
+  .k{color:var(--dim);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase}
+  .v{font-size:12.5px;color:#eafbff}
+  .v.accent{color:#7ef0d6}
+  .bar{height:3px;border-radius:2px;background:rgba(126,240,214,.14);margin-top:9px;overflow:hidden}
+  .bar i{display:block;height:100%;width:0%;background:linear-gradient(90deg,#3ad6ff,#7ef0d6,#c8ff8a);transition:width .18s linear}
+  #popsplit{margin-top:8px;display:flex;gap:10px;font-size:10.5px;color:var(--dim);letter-spacing:.08em}
+  #popsplit b{font-weight:600;font-variant-numeric:tabular-nums}
+  .dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:5px;vertical-align:1px}
+
+  /* ── Legend ────────────────────────────────────────────── */
+  #legend{left:0;bottom:0;padding:18px 24px;max-width:min(56vw,600px)}
+  #hud,#controls{background:radial-gradient(120% 120% at 100% 0%,rgba(2,8,14,.55),rgba(2,8,14,0) 76%)}
+  #legend .panel{padding:10px 12px}
+  #legend dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:3px 12px;font-size:11px}
+  #legend dt{color:#9fe9ff;letter-spacing:.1em;white-space:nowrap}
+  #legend dd{margin:0;color:var(--dim)}
+  kbd{
+    display:inline-block;min-width:17px;text-align:center;padding:1px 5px;border-radius:4px;
+    background:rgba(126,240,214,.10);border:1px solid rgba(126,240,214,.26);
+    color:#bff6e8;font:inherit;font-size:10.5px;letter-spacing:.04em;
+  }
+  #cooldown{display:inline-block;width:26px;height:3px;border-radius:2px;background:rgba(126,240,214,.18);vertical-align:2px;overflow:hidden}
+  #cooldown i{display:block;height:100%;width:100%;background:#7ef0d6}
+
+  /* ── Buttons ───────────────────────────────────────────── */
+  #controls{right:0;bottom:0;padding:18px 18px;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+  button{
+    font:inherit;font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+    color:#cfeeff;background:var(--panel);border:1px solid var(--edge);
+    border-radius:8px;padding:7px 11px;cursor:pointer;
+    backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px);
+    transition:background .15s,border-color .15s,color .15s,transform .1s;
+  }
+  button:hover{background:rgba(20,48,64,.66);border-color:rgba(140,215,255,.42);color:#eafbff}
+  button:active{transform:translateY(1px)}
+  button[aria-pressed="true"]{color:#02100c;background:#7ef0d6;border-color:#7ef0d6}
+  button:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+  .seg{display:flex;gap:4px}
+
+  #flash{
+    position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);
+    padding:9px 16px;border-radius:9px;background:rgba(6,16,24,.72);
+    border:1px solid var(--edge);color:#eafbff;font-size:12px;letter-spacing:.16em;
+    text-transform:uppercase;opacity:0;transition:opacity .32s;pointer-events:none;z-index:3;
+    backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  }
+  #flash.on{opacity:1}
+
+  @media (max-width:760px){
+    #title p{display:none}
+    #legend{display:none}
+    #title h1{font-size:12px;letter-spacing:.24em}
+    #hud .panel{min-width:172px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    button{transition:none}
+    .bar i{transition:none}
+  }
+</style>
+</head>
+<body>
+
+<div id="stage">
+  <canvas id="scene" role="img" aria-describedby="scene-desc" tabindex="0"></canvas>
+</div>
+
+<p id="scene-desc" class="sr-only" aria-live="polite" role="status">
+  A dark underwater scene of a simulated bioluminescent ecosystem. Loading.
+</p>
+
+<div class="ui" id="title">
+  <h1>Signal <span>Garden</span></h1>
+  <p>A bioluminescent ecosystem synth. Blooms feed on nutrient light, drifters carry
+     energy between them, hunters cut the signal.</p>
+</div>
+
+<div class="ui" id="hud">
+  <div class="panel">
+    <div class="row"><span class="k">Preset</span><span class="v accent" id="v-preset">—</span></div>
+    <div class="row"><span class="k">Seed</span><span class="v" id="v-seed">—</span></div>
+    <div class="row"><span class="k">Population</span><span class="v" id="v-pop">0</span></div>
+    <div class="row"><span class="k">Energy</span><span class="v" id="v-energy">0</span></div>
+    <div class="row"><span class="k">Sim time</span><span class="v" id="v-time">00:00</span></div>
+    <div class="bar"><i id="v-bar"></i></div>
+    <div id="popsplit">
+      <span><span class="dot" style="background:#57e8c8;box-shadow:0 0 7px #57e8c8"></span>Blooms&nbsp;<b id="v-blooms">0</b></span>
+      <span><span class="dot" style="background:#7fd0ff;box-shadow:0 0 7px #7fd0ff"></span>Drifters&nbsp;<b id="v-drifters">0</b></span>
+      <span><span class="dot" style="background:#ff8a6b;box-shadow:0 0 7px #ff8a6b"></span>Hunters&nbsp;<b id="v-hunters">0</b></span>
+    </div>
+  </div>
+</div>
+
+<div class="ui" id="legend">
+  <div class="panel">
+    <dl>
+      <dt>Move</dt><dd>bend nearby trails like a current</dd>
+      <dt>Click</dt><dd>plant a temporary signal beacon</dd>
+      <dt>Drag</dt><dd>paint a nutrient current</dd>
+      <dt><kbd>Space</kbd></dt><dd>global pulse <span id="cooldown"><i></i></span></dd>
+      <dt><kbd>P</kbd> <kbd>R</kbd></dt><dd>pause · regenerate with next seed</dd>
+      <dt><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd></dt><dd>ecosystem presets · <kbd>M</kbd> audio</dd>
+    </dl>
+  </div>
+</div>
+
+<div class="ui" id="controls">
+  <div class="seg">
+    <button type="button" id="b-p1" aria-pressed="true">1 · Abyss</button>
+    <button type="button" id="b-p2" aria-pressed="false">2 · Violet</button>
+    <button type="button" id="b-p3" aria-pressed="false">3 · Ember</button>
+  </div>
+  <button type="button" id="b-pulse">Pulse</button>
+  <button type="button" id="b-pause" aria-pressed="false">Pause</button>
+  <button type="button" id="b-seed">Reseed</button>
+  <button type="button" id="b-audio" aria-pressed="false">Audio off</button>
+</div>
+
+<div id="flash" role="status" aria-live="off"></div>
+
+<script>
+"use strict";
+(function () {
+/* ══════════════════════════════════════════════════════════════════════════
+   SIGNAL GARDEN — bioluminescent ecosystem synth
+   Canvas 2D · deterministic seeded RNG · fixed 60 Hz simulation timestep
+   No external assets, fonts, frameworks, or network requests.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── deterministic random ────────────────────────────────────────────── */
+function mulberry32(a) {
+  return function () {
+    a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+let rnd = mulberry32(1);
+const rf = (a, b) => a + (b - a) * rnd();
+const ri = (a, b) => Math.floor(rf(a, b + 1));
+const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
+const lerp = (a, b, t) => a + (b - a) * t;
+const TAU = Math.PI * 2;
+
+/* ── environment ─────────────────────────────────────────────────────── */
+const reduceMotion = window.matchMedia &&
+  window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+const canvas = document.getElementById('scene');
+const ctx = canvas.getContext('2d', { alpha: false });
+let DPR = 1, W = 1600, H = 900;
+
+// emissive bloom-pass buffer (half resolution)
+const glow = document.createElement('canvas');
+const gctx = glow.getContext('2d');
+let GS = 0.5;                       // glow scale
+let blurOK = false;
+try { gctx.filter = 'blur(3px)'; blurOK = /blur/.test(gctx.filter); gctx.filter = 'none'; }
+catch (e) { blurOK = false; }
+
+// persistent trail layer
+const trailC = document.createElement('canvas');
+const tctx = trailC.getContext('2d');
+
+// blur target for the bloom pass — blurring at glow resolution instead of at
+// full resolution during upscale is several times cheaper for the same look
+const blurC = document.createElement('canvas');
+const bctx = blurC.getContext('2d');
+
+// nutrient field buffer (one pixel per grid cell, upscaled with smoothing)
+const fieldC = document.createElement('canvas');
+const fctx = fieldC.getContext('2d');
+let fieldImg = null;
+
+// drifting particulate for depth
+let snow = [];
+
+/* ── presets ─────────────────────────────────────────────────────────── */
+const PRESETS = [
+  {
+    name: 'Abyssal Bloom',
+    desc: 'a calm deep-water basin of teal blooms and violet drifters',
+    water: ['#04101a', '#010409'],
+    bloomHue: 166, driftHue: 206, hunterHue: 14,
+    bloomHues: [166, 148, 192], driftHues: [206, 228, 186], hunterHues: [12, 24],
+    blooms: 30, drifters: 78, hunters: 4,
+    nutrient: 0.62, nutrientRegen: 0.030, driftSpeed: 1.0,
+    bloomCap: 42, driftCap: 140, hunterCap: 6, mood: 0
+  },
+  {
+    name: 'Ultraviolet Shoal',
+    desc: 'a dense ultraviolet shoal with fast, tightly-flocked drifters',
+    water: ['#0b0a1e', '#03020a'],
+    bloomHue: 286, driftHue: 190, hunterHue: 96,
+    bloomHues: [286, 264, 312], driftHues: [190, 206, 166], hunterHues: [92, 104],
+    blooms: 24, drifters: 110, hunters: 5,
+    nutrient: 0.74, nutrientRegen: 0.042, driftSpeed: 1.28,
+    bloomCap: 36, driftCap: 176, hunterCap: 8, mood: 1
+  },
+  {
+    name: 'Ember Reef',
+    desc: 'a sparse warm reef where hunters outnumber the light',
+    water: ['#140a08', '#050203'],
+    bloomHue: 72, driftHue: 32, hunterHue: 350,
+    bloomHues: [72, 48, 96], driftHues: [32, 16, 52], hunterHues: [350, 338],
+    blooms: 36, drifters: 56, hunters: 7,
+    nutrient: 0.48, nutrientRegen: 0.024, driftSpeed: 0.88,
+    bloomCap: 48, driftCap: 112, hunterCap: 10, mood: 2
+  }
+];
+let presetIndex = 0;
+let P = PRESETS[0];
+
+/* ── world state ─────────────────────────────────────────────────────── */
+const DT = 1 / 60;                  // fixed simulation timestep
+const MAX_STEPS = 5;                // catch-up clamp
+let seed = 1337;
+let simTime = 0, paused = false, acc = 0, lastT = 0;
+
+let blooms = [], drifters = [], hunters = [], pulses = [], motes = [], beacons = [];
+let pulseCooldown = 0;
+let relayLive = 0;              // live relay count, keeps chain reactions bounded
+const PULSE_CD = 4.0;
+
+/* nutrient field ------------------------------------------------------ */
+const CELL = 44;
+let NX = 1, NY = 1, nutrient = new Float32Array(1), nutBase = new Float32Array(1);
+
+function buildField() {
+  NX = Math.max(2, Math.ceil(W / CELL));
+  NY = Math.max(2, Math.ceil(H / CELL));
+  const n = new Float32Array(NX * NY);
+  const b = new Float32Array(NX * NY);
+  const f = mulberry32(seed ^ 0x9e37);
+  for (let y = 0; y < NY; y++) {
+    for (let x = 0; x < NX; x++) {
+      // smooth low-frequency plumes so nutrient reads as geography, not noise
+      const u = x / NX, v = y / NY;
+      let s = 0;
+      s += Math.sin(u * 3.1 + f() * 0.0 + seed * 0.011) * 0.5;
+      s += Math.sin(v * 2.3 - seed * 0.007) * 0.4;
+      s += Math.sin((u + v) * 5.0 + seed * 0.019) * 0.28;
+      const base = clamp(P.nutrient * (0.55 + 0.45 * (s * 0.5 + 0.5)), 0.05, 1.2);
+      b[y * NX + x] = base;
+      n[y * NX + x] = base;
+    }
+  }
+  nutrient = n; nutBase = b;
+  fieldC.width = NX; fieldC.height = NY;
+  fieldImg = fctx.createImageData ? fctx.createImageData(NX, NY) : null;
+}
+const fieldAt = (x, y) => {
+  const i = clamp((y / CELL) | 0, 0, NY - 1) * NX + clamp((x / CELL) | 0, 0, NX - 1);
+  return nutrient[i];
+};
+function drawNutrient(x, y, amount, radius) {
+  const cx = (x / CELL) | 0, cy = (y / CELL) | 0, r = Math.ceil(radius / CELL);
+  for (let j = -r; j <= r; j++) for (let i = -r; i <= r; i++) {
+    const gx = cx + i, gy = cy + j;
+    if (gx < 0 || gy < 0 || gx >= NX || gy >= NY) continue;
+    const d = Math.hypot(i, j) / (r + 0.001);
+    if (d > 1) continue;
+    const k = gy * NX + gx;
+    nutrient[k] = Math.min(2.2, nutrient[k] + amount * (1 - d * d));
+  }
+}
+
+/* spatial hash — keeps neighbour queries local instead of all-to-all --- */
+class Grid {
+  constructor(cell) { this.cell = cell; this.map = new Map(); }
+  key(x, y) { return (((y / this.cell) | 0) * 8192 + ((x / this.cell) | 0)); }
+  clear() { this.map.clear(); }
+  insert(o) {
+    const k = this.key(o.x, o.y);
+    let b = this.map.get(k);
+    if (!b) { b = []; this.map.set(k, b); }
+    b.push(o);
+  }
+  query(x, y, r, out) {
+    out.length = 0;
+    const c = this.cell, span = Math.max(1, Math.ceil(r / c));
+    const cx = (x / c) | 0, cy = (y / c) | 0;
+    for (let j = -span; j <= span; j++) {
+      for (let i = -span; i <= span; i++) {
+        const b = this.map.get((cy + j) * 8192 + (cx + i));
+        if (!b) continue;
+        for (let n = 0; n < b.length; n++) out.push(b[n]);
+      }
+    }
+    return out;
+  }
+}
+const bloomGrid = new Grid(110);
+const driftGrid = new Grid(90);
+const scratch = [];
+const scratch2 = [];
+
+/* ── pointer / interaction state ─────────────────────────────────────── */
+const pointer = { x: -1e4, y: -1e4, px: -1e4, py: -1e4, vx: 0, vy: 0, down: false, active: false, dragged: false, sx: 0, sy: 0 };
+
+/* ── organisms ───────────────────────────────────────────────────────── */
+function makeBloom(x, y) {
+  return {
+    x, y,
+    hx: x, hy: y,                       // anchor
+    z: rf(0.5, 1.15),                   // depth → scale + parallax
+    r: rf(17, 34),
+    petals: ri(5, 8),
+    rot: rf(0, TAU),
+    spin: rf(-0.16, 0.16),
+    energy: rf(0.34, 0.86),
+    open: 0, target: 0,
+    hue: P.bloomHues[ri(0, P.bloomHues.length - 1)] + rf(-7, 7),
+    excite: 0, disrupt: 0,
+    cool: rf(0, 3),
+    dormant: 0,
+    drift: rf(0, TAU),
+    age: 0, alive: 1, fade: 0
+  };
+}
+function makeDrifter(x, y, energy) {
+  const a = rf(0, TAU);
+  return {
+    x, y,
+    vx: Math.cos(a) * rf(14, 34), vy: Math.sin(a) * rf(14, 34),
+    z: rf(0.5, 1.15),
+    r: rf(4.2, 7.4),
+    energy: energy != null ? energy : rf(0.40, 0.78),
+    hue: P.driftHues[ri(0, P.driftHues.length - 1)] + rf(-8, 8),
+    excite: 0, disrupt: 0, feed: 0, panic: 0,
+    wander: rf(0, TAU),
+    trail: [], tmax: reduceMotion ? 10 : 20,
+    target: null, cool: rf(0, 2),
+    alive: 1, fade: 0, age: 0
+  };
+}
+function makeHunter(x, y) {
+  const a = rf(0, TAU);
+  return {
+    x, y,
+    vx: Math.cos(a) * 30, vy: Math.sin(a) * 30,
+    z: rf(0.75, 1.15),
+    r: rf(11, 16),
+    energy: rf(0.45, 0.8),
+    hue: P.hunterHues[ri(0, P.hunterHues.length - 1)] + rf(-5, 5),
+    angle: a, strike: 0, dormant: 0,
+    trail: [], tmax: reduceMotion ? 8 : 14,
+    target: null, cool: 0, alive: 1, fade: 0
+  };
+}
+function emitPulse(x, y, maxR, strength, hue, kind, generation) {
+  if (pulses.length > 110) return;
+  if (kind === 'relay') { if (relayLive >= 26) return; relayLive++; }
+  pulses.push({
+    x, y, r: kind === 'global' ? 4 : 2,
+    maxR, speed: kind === 'global' ? 340 : (kind === 'disrupt' ? 210 : 150),
+    strength, hue, kind, gen: generation || 0, life: 1,
+    hit: new Set()          // each wavefront touches each organism exactly once
+  });
+}
+function addMote(x, y, hue, vx, vy, life, size) {
+  if (motes.length > (reduceMotion ? 180 : 420)) return;
+  motes.push({ x, y, vx, vy, hue, life, max: life, size });
+}
+
+/* ── world generation ────────────────────────────────────────────────── */
+function regenerate(newSeed, keepTime) {
+  seed = newSeed;
+  rnd = mulberry32(seed);
+  simTime = keepTime ? simTime : 0;
+  blooms = []; drifters = []; hunters = []; pulses = []; motes = []; beacons = [];
+  pulseCooldown = 0; relayLive = 0;
+  buildField();
+
+  const scale = reduceMotion ? 0.6 : 1;
+  const areaK = clamp((W * H) / (1600 * 900), 0.45, 1.9);
+
+  const nb = Math.round(P.blooms * scale * areaK);
+  for (let i = 0; i < nb; i++) {
+    // reject positions on top of existing blooms so silhouettes stay legible
+    let x = 0, y = 0, ok = false;
+    for (let t = 0; t < 24 && !ok; t++) {
+      x = rf(W * 0.05, W * 0.95); y = rf(H * 0.08, H * 0.94);
+      ok = true;
+      for (let k = 0; k < blooms.length; k++) {
+        const d = Math.hypot(blooms[k].x - x, blooms[k].y - y);
+        if (d < 96) { ok = false; break; }
+      }
+    }
+    blooms.push(makeBloom(x, y));
+  }
+  const nd = Math.round(P.drifters * scale * areaK);
+  for (let i = 0; i < nd; i++) drifters.push(makeDrifter(rf(0, W), rf(0, H)));
+  const nh = Math.round(P.hunters * scale * areaK);
+  for (let i = 0; i < nh; i++) hunters.push(makeHunter(rf(0, W), rf(0, H)));
+
+  snow = [];
+  const ns = Math.round((reduceMotion ? 70 : 150) * areaK);
+  for (let i = 0; i < ns; i++) {
+    snow.push({ x: rf(0, W), y: rf(0, H), z: rf(0, 1), r: rf(0.5, 1.7), p: rf(0, TAU), h: rf(-24, 24) });
+  }
+
+  // clear persistence layers so a reseed reads as a clean new world
+  tctx.setTransform(1, 0, 0, 1, 0, 0);
+  tctx.clearRect(0, 0, trailC.width, trailC.height);
+
+  // warm start: settle the ecosystem so frame one is already alive
+  const warm = reduceMotion ? 90 : 200;
+  for (let i = 0; i < warm; i++) step(DT);
+  simTime = keepTime ? simTime : 0;
+  updateHUD(true);
+}
+
+/* ── simulation step (fixed timestep) ────────────────────────────────── */
+function step(dt) {
+  simTime += dt;
+  if (pulseCooldown > 0) pulseCooldown = Math.max(0, pulseCooldown - dt);
+
+  /* nutrient field: slow diffusion back toward its base plumes ---------- */
+  const regen = P.nutrientRegen * dt * 60;
+  for (let i = 0; i < nutrient.length; i++) {
+    nutrient[i] += (nutBase[i] - nutrient[i]) * clamp(regen * 0.30, 0, 0.5);
+  }
+
+  /* rebuild spatial hashes --------------------------------------------- */
+  bloomGrid.clear();
+  for (let i = 0; i < blooms.length; i++) if (blooms[i].alive) bloomGrid.insert(blooms[i]);
+  driftGrid.clear();
+  for (let i = 0; i < drifters.length; i++) if (drifters[i].alive) driftGrid.insert(drifters[i]);
+
+  /* beacons ------------------------------------------------------------ */
+  for (let i = beacons.length - 1; i >= 0; i--) {
+    const b = beacons[i];
+    b.life -= dt;
+    b.phase += dt;
+    if (b.phase > 1.15) {
+      b.phase = 0;
+      emitPulse(b.x, b.y, 300, 0.85, P.bloomHue + 30, 'beacon', 0);
+      drawNutrient(b.x, b.y, 0.03, 70);
+    }
+    if (b.life <= 0) beacons.splice(i, 1);
+  }
+
+  /* pulses: expand, excite what they cross, propagate onward ----------- */
+  for (let i = pulses.length - 1; i >= 0; i--) {
+    const p = pulses[i];
+    const pr = p.r;
+    p.r += p.speed * dt;
+    p.life = 1 - p.r / p.maxR;
+    if (p.life <= 0) { if (p.kind === 'relay') relayLive--; pulses.splice(i, 1); continue; }
+    const band = 22;
+
+    // blooms in the annulus this frame swept through
+    bloomGrid.query(p.x, p.y, p.r + band, scratch);
+    for (let k = 0; k < scratch.length; k++) {
+      const o = scratch[k];
+      const d = Math.hypot(o.x - p.x, o.y - p.y);
+      if (d < pr - band || d > p.r + band || p.hit.has(o)) continue;
+      p.hit.add(o);
+      if (p.kind === 'disrupt') {
+        o.disrupt = Math.max(o.disrupt, 1.4 * p.strength);
+        o.target = 0; o.excite = Math.max(o.excite, 0.2);
+      } else {
+        o.excite = Math.min(1.4, o.excite + 0.55 * p.strength * p.life);
+        o.cool -= 0.35 * p.strength;
+        // relay: the signal genuinely travels organism to organism
+        if (p.gen < 2 && p.strength > 0.34 && o.energy > 0.34 && o.disrupt <= 0 && rnd() < 0.45) {
+          emitPulse(o.x, o.y, 150 + o.r * 5, p.strength * 0.52, o.hue, 'relay', p.gen + 1);
+        }
+      }
+    }
+    // drifters
+    driftGrid.query(p.x, p.y, p.r + band, scratch);
+    for (let k = 0; k < scratch.length; k++) {
+      const o = scratch[k];
+      const d = Math.hypot(o.x - p.x, o.y - p.y);
+      if (d < pr - band || d > p.r + band || p.hit.has(o)) continue;
+      p.hit.add(o);
+      if (p.kind === 'disrupt') {
+        o.disrupt = Math.max(o.disrupt, 1.2 * p.strength);
+        o.panic = Math.max(o.panic, 0.9);
+        o.target = null;
+      } else {
+        o.excite = Math.min(1.2, o.excite + 0.4 * p.strength * p.life);
+        const dx = o.x - p.x, dy = o.y - p.y, dl = Math.max(1, d);
+        o.vx += (dx / dl) * 34 * p.strength * p.life;
+        o.vy += (dy / dl) * 34 * p.strength * p.life;
+      }
+    }
+  }
+
+  updateBlooms(dt);
+  updateDrifters(dt);
+  updateHunters(dt);
+  updateMotes(dt);
+
+  /* population floors keep the attract state stable indefinitely -------- */
+  if (blooms.length < 6) blooms.push(makeBloom(rf(W * 0.1, W * 0.9), rf(H * 0.1, H * 0.9)));
+  if (drifters.length < 8) {
+    const src = blooms.length ? blooms[ri(0, blooms.length - 1)] : { x: W / 2, y: H / 2 };
+    drifters.push(makeDrifter(src.x + rf(-30, 30), src.y + rf(-30, 30), 0.45));
+  }
+  if (hunters.length < 1 && simTime > 6) hunters.push(makeHunter(rf(0, W), rf(0, H)));
+}
+
+/* ── blooms ──────────────────────────────────────────────────────────── */
+function updateBlooms(dt) {
+  const cap = Math.round(P.bloomCap * (reduceMotion ? 0.6 : 1));
+  for (let i = blooms.length - 1; i >= 0; i--) {
+    const b = blooms[i];
+    b.age += dt;
+    b.rot += b.spin * dt * (0.5 + b.open);
+    b.excite = Math.max(0, b.excite - dt * 1.15);
+    b.disrupt = Math.max(0, b.disrupt - dt * 0.75);
+
+    if (!b.alive) {
+      b.fade -= dt * 0.6;
+      b.open = Math.max(0, b.open - dt * 1.2);
+      if (b.fade <= 0) blooms.splice(i, 1);
+      continue;
+    }
+
+    // slow tethered drift — anchored, but never static
+    b.drift += dt * 0.24;
+    b.x = b.hx + Math.sin(b.drift * 0.9) * 7 * b.z;
+    b.y = b.hy + Math.cos(b.drift * 0.63) * 5 * b.z;
+
+    // absorb nutrient light from the field beneath it
+    const food = fieldAt(b.x, b.y);
+    if (b.dormant > 0) {
+      b.dormant -= dt;
+      b.energy += food * dt * 0.020;
+      b.target = 0;
+    } else {
+      const intake = food * dt * (0.145 + 0.04 * b.z);
+      b.energy += intake;
+      const idx = clamp((b.y / CELL) | 0, 0, NY - 1) * NX + clamp((b.x / CELL) | 0, 0, NX - 1);
+      nutrient[idx] = Math.max(0, nutrient[idx] - intake * 0.85);
+      b.energy -= dt * 0.012;                     // metabolism
+    }
+    b.energy = clamp(b.energy, 0, 1.25);
+
+    b.cool -= dt;
+    // open when charged: release a signal pulse and edible motes
+    if (b.disrupt <= 0 && b.energy > 0.60 && b.cool <= 0 && b.dormant <= 0) {
+      b.target = 1;
+      if (b.open > 0.9) {
+        b.cool = rf(6, 12);
+        b.target = 0;
+        emitPulse(b.x, b.y, 190 + b.r * 8, 0.9, b.hue, 'bloom', 0);
+        b.energy -= 0.14;
+        const n = reduceMotion ? 3 : ri(5, 9);
+        for (let k = 0; k < n; k++) {
+          const a = rf(0, TAU), s = rf(16, 46);
+          addMote(b.x, b.y, b.hue, Math.cos(a) * s, Math.sin(a) * s, rf(1.6, 3.4), rf(1.0, 2.2));
+        }
+        audio.ping(b.hue, b.energy, b.x / W);
+        // reproduction: a charged bloom seeds a neighbour
+        if (b.energy > 0.5 && blooms.length < cap && rnd() < 0.09) {
+          const a = rf(0, TAU), d = rf(96, 175);
+          const nx = clamp(b.x + Math.cos(a) * d, 20, W - 20);
+          const ny = clamp(b.y + Math.sin(a) * d, 20, H - 20);
+          let clear = true;
+          bloomGrid.query(nx, ny, 90, scratch);
+          for (let k = 0; k < scratch.length; k++) {
+            if (Math.hypot(scratch[k].x - nx, scratch[k].y - ny) < 86) { clear = false; break; }
+          }
+          if (clear) {
+            const child = makeBloom(nx, ny);
+            child.energy = 0.16; child.r *= 0.72; child.hue = b.hue + rf(-8, 8);
+            blooms.push(child);
+            b.energy -= 0.22;
+          }
+        }
+        // spawn a drifter when the colony is thin
+        if (drifters.length < P.driftCap * 0.35 && rnd() < 0.5) {
+          drifters.push(makeDrifter(b.x + rf(-16, 16), b.y + rf(-16, 16), 0.35));
+        }
+      }
+    } else if (b.energy < 0.28 || b.disrupt > 0) {
+      b.target = 0;
+    }
+    b.open += (b.target - b.open) * clamp(dt * 2.4, 0, 1);
+
+    // depletion → dormancy → death
+    if (b.energy <= 0.015) {
+      if (b.dormant <= 0) b.dormant = rf(6, 13);
+      if (b.age > 26 && rnd() < dt * 0.09) { b.alive = 0; b.fade = 1; }
+    } else if (b.energy > 0.1 && b.dormant > 0 && b.energy > 0.24) {
+      b.dormant = 0;
+    }
+  }
+}
+
+/* ── drifters ────────────────────────────────────────────────────────── */
+function updateDrifters(dt) {
+  const cap = Math.round(P.driftCap * (reduceMotion ? 0.6 : 1));
+  const speed = P.driftSpeed;
+  for (let i = drifters.length - 1; i >= 0; i--) {
+    const d = drifters[i];
+    d.age += dt;
+    d.excite = Math.max(0, d.excite - dt * 1.4);
+    d.disrupt = Math.max(0, d.disrupt - dt * 0.7);
+    d.feed = Math.max(0, d.feed - dt * 2.2);
+    d.panic = Math.max(0, d.panic - dt * 0.55);
+
+    if (!d.alive) {
+      d.fade -= dt * 1.1;
+      d.x += d.vx * dt * 0.3; d.y += d.vy * dt * 0.3;
+      if (d.trail.length) d.trail.pop();
+      if (d.fade <= 0) drifters.splice(i, 1);
+      continue;
+    }
+
+    let ax = 0, ay = 0;
+
+    /* seek: nearest open / charged bloom within a local radius ---------- */
+    d.cool -= dt;
+    if (d.cool <= 0) {
+      d.cool = 0.28;
+      let best = null, bestScore = -1e9;
+      bloomGrid.query(d.x, d.y, 300, scratch);
+      for (let k = 0; k < scratch.length; k++) {
+        const b = scratch[k];
+        if (!b.alive || b.energy < 0.34) continue;   // spent blooms are left to recharge
+        const dist = Math.hypot(b.x - d.x, b.y - d.y);
+        if (dist > 340) continue;
+        const score = b.energy * 120 + b.open * 180 - dist;
+        if (score > bestScore) { bestScore = score; best = b; }
+      }
+      d.target = best;
+    }
+    // only real fear breaks off feeding; mild unease just adds the flee force
+    if (d.panic > 0.4) d.target = null;
+
+    let seeking = false;
+    if (d.target && d.target.alive && d.energy < 0.92) {
+      const dx = d.target.x - d.x, dy = d.target.y - d.y;
+      const dist = Math.max(1, Math.hypot(dx, dy));
+      ax += (dx / dist) * 92; ay += (dy / dist) * 92;
+      seeking = true;
+      // energy transfer on contact — visibly drains the bloom, fills the drifter
+      if (dist < d.target.r * (1 + d.target.open * 1.5) + d.r + 5) {
+        // graze the surplus only — never strip a bloom below its recharge floor
+        const take = Math.min(Math.max(0, d.target.energy - 0.26) * 0.6, dt * 0.34 * (0.35 + d.target.open));
+        if (take > 0) {
+          d.target.energy -= take;
+          d.energy = Math.min(1.25, d.energy + take * 0.9);
+          d.feed = 1; d.excite = Math.min(1.2, d.excite + take * 2.4);
+          d.target.excite = Math.min(1.4, d.target.excite + take * 1.6);
+          if (rnd() < dt * 20) addMote(d.x, d.y, d.hue, rf(-20, 20), rf(-20, 20), rf(0.5, 1.2), 1.2);
+        }
+      }
+    }
+
+    /* beacons attract strongly — the pointer's own signal --------------- */
+    for (let k = 0; k < beacons.length; k++) {
+      const b = beacons[k];
+      const dx = b.x - d.x, dy = b.y - d.y;
+      const dist = Math.max(1, Math.hypot(dx, dy));
+      if (dist < 420) {
+        const w = (1 - dist / 420) * 150 * b.life / b.max;
+        ax += (dx / dist) * w; ay += (dy / dist) * w;
+        seeking = true;
+      }
+    }
+
+    /* flee hunters ------------------------------------------------------ */
+    for (let k = 0; k < hunters.length; k++) {
+      const h = hunters[k];
+      if (!h.alive || h.dormant > 0) continue;
+      const dx = d.x - h.x, dy = d.y - h.y;
+      const dist = Math.max(1, Math.hypot(dx, dy));
+      if (dist < 190) {
+        const w = (1 - dist / 190);
+        ax += (dx / dist) * 260 * w * w;
+        ay += (dy / dist) * 260 * w * w;
+        d.panic = Math.max(d.panic, w);
+      }
+    }
+
+    /* loose flocking with local neighbours (spatial hash, not all-pairs)  */
+    driftGrid.query(d.x, d.y, 60, scratch2);
+    let cx = 0, cy = 0, cn = 0, sx = 0, sy = 0;
+    for (let k = 0; k < scratch2.length; k++) {
+      const o = scratch2[k];
+      if (o === d || !o.alive) continue;
+      const dx = o.x - d.x, dy = o.y - d.y;
+      const dist = Math.hypot(dx, dy);
+      if (dist > 60 || dist < 0.001) continue;
+      cx += o.vx; cy += o.vy; cn++;
+      if (dist < 20) { sx -= dx / dist * (20 - dist); sy -= dy / dist * (20 - dist); }
+    }
+    if (cn) { ax += (cx / cn - d.vx) * 0.55; ay += (cy / cn - d.vy) * 0.55; }
+    ax += sx * 5.5; ay += sy * 5.5;
+
+    /* wander when nothing calls ---------------------------------------- */
+    if (!seeking) {
+      d.wander += rf(-1.6, 1.6) * dt * 5;
+      ax += Math.cos(d.wander) * 46;
+      ay += Math.sin(d.wander) * 46;
+      // gentle upward nutrient-gradient bias so idle drifters still read as alive
+      const g = fieldAt(d.x, d.y);
+      ax += (fieldAt(d.x + 60, d.y) - g) * 90;
+      ay += (fieldAt(d.x, d.y + 60) - g) * 90;
+    }
+
+    /* pointer current bends motion and trails --------------------------- */
+    if (pointer.active) {
+      const dx = d.x - pointer.x, dy = d.y - pointer.y;
+      const dist = Math.hypot(dx, dy);
+      if (dist < 220 && dist > 0.5) {
+        const w = 1 - dist / 220;
+        // swirl around the cursor + carry along its motion
+        ax += (-dy / dist) * 130 * w + pointer.vx * 2.6 * w;
+        ay += (dx / dist) * 130 * w + pointer.vy * 2.6 * w;
+      }
+    }
+
+    /* integrate --------------------------------------------------------- */
+    const boost = 1 + d.energy * 0.55 + d.panic * 0.9;
+    d.vx += ax * dt; d.vy += ay * dt;
+    const sp = Math.hypot(d.vx, d.vy);
+    const maxSp = (74 * speed) * boost * (d.disrupt > 0 ? 0.55 : 1);
+    if (sp > maxSp) { d.vx = d.vx / sp * maxSp; d.vy = d.vy / sp * maxSp; }
+    d.vx *= 0.992; d.vy *= 0.992;
+    d.x += d.vx * dt; d.y += d.vy * dt;
+
+    // soft wrap keeps the field continuous without popping trails badly
+    const m = 30;
+    if (d.x < -m) { d.x += W + m * 2; d.trail.length = 0; }
+    else if (d.x > W + m) { d.x -= W + m * 2; d.trail.length = 0; }
+    if (d.y < -m) { d.y += H + m * 2; d.trail.length = 0; }
+    else if (d.y > H + m) { d.y -= H + m * 2; d.trail.length = 0; }
+
+    // trail
+    const t = d.trail;
+    const last = t[0];
+    if (!last || Math.hypot(last.x - d.x, last.y - d.y) > 3.4) {
+      t.unshift({ x: d.x, y: d.y });
+      if (t.length > d.tmax) t.length = d.tmax;
+    }
+    // pointer current also drags existing trail points — the wake bends
+    if (pointer.active) {
+      for (let k = 0; k < t.length; k++) {
+        const pt = t[k];
+        const dx = pt.x - pointer.x, dy = pt.y - pointer.y;
+        const dist = Math.hypot(dx, dy);
+        if (dist < 190 && dist > 0.5) {
+          const w = (1 - dist / 190) * (1 - k / t.length);
+          pt.x += (-dy / dist * 26 + pointer.vx * 0.55) * w * dt;
+          pt.y += (dx / dist * 26 + pointer.vy * 0.55) * w * dt;
+        }
+      }
+    }
+
+    /* metabolism, reproduction, death ----------------------------------- */
+    d.energy += fieldAt(d.x, d.y) * dt * 0.0085;      // weak grazing between blooms
+    d.energy -= dt * (0.020 + sp * 0.00016);
+    if (d.energy > 0.98 && drifters.length < cap && rnd() < dt * 0.9) {
+      const child = makeDrifter(d.x + rf(-8, 8), d.y + rf(-8, 8), d.energy * 0.42);
+      child.hue = d.hue + rf(-6, 6);
+      drifters.push(child);
+      d.energy *= 0.5;
+      d.excite = 1.2;
+      for (let k = 0; k < 6; k++) addMote(d.x, d.y, d.hue, rf(-30, 30), rf(-30, 30), rf(0.6, 1.4), 1.4);
+      audio.blip(d.hue, d.x / W);
+    }
+    if (d.energy <= 0) {
+      d.alive = 0; d.fade = 1;
+      drawNutrient(d.x, d.y, 0.10, 46);         // decomposition feeds the field
+    }
+  }
+}
+
+/* ── hunters ─────────────────────────────────────────────────────────── */
+function updateHunters(dt) {
+  const cap = Math.round(P.hunterCap * (reduceMotion ? 0.6 : 1));
+  for (let i = hunters.length - 1; i >= 0; i--) {
+    const h = hunters[i];
+    h.strike = Math.max(0, h.strike - dt * 1.8);
+
+    if (!h.alive) {
+      h.fade -= dt * 0.9;
+      if (h.trail.length) h.trail.pop();
+      if (h.fade <= 0) hunters.splice(i, 1);
+      continue;
+    }
+
+    let ax = 0, ay = 0;
+    if (h.dormant > 0) {
+      // starved: drifts slowly, dim, harmless
+      h.dormant -= dt;
+      h.energy += dt * 0.028;
+      ax += Math.cos(h.angle + 1.2) * 8; ay += Math.sin(h.angle + 1.2) * 8;
+      if (h.energy > 0.4) h.dormant = 0;
+    } else {
+      h.cool -= dt;
+      if (h.cool <= 0) {
+        h.cool = 0.4;
+        let best = null, bestScore = -1e9;
+        driftGrid.query(h.x, h.y, 360, scratch);
+        for (let k = 0; k < scratch.length; k++) {
+          const d = scratch[k];
+          if (!d.alive) continue;
+          const dist = Math.hypot(d.x - h.x, d.y - h.y);
+          if (dist > 380) continue;
+          const score = d.energy * 300 - dist;   // hunts the *energised* ones
+          if (score > bestScore) { bestScore = score; best = d; }
+        }
+        h.target = best;
+      }
+      if (h.target && h.target.alive) {
+        const dx = h.target.x - h.x, dy = h.target.y - h.y;
+        const dist = Math.max(1, Math.hypot(dx, dy));
+        ax += (dx / dist) * 118; ay += (dy / dist) * 118;
+        if (dist < h.r + h.target.r + 8) {
+          const take = Math.min(h.target.energy, 0.55);
+          h.target.energy -= take;
+          h.energy = Math.min(1.2, h.energy + take * 0.8);
+          h.strike = 1;
+          h.target.panic = 1;
+          // disruption pulse: nearby signals go quiet for a moment
+          emitPulse(h.x, h.y, 220, 0.9, h.hue, 'disrupt', 0);
+          for (let k = 0; k < (reduceMotion ? 4 : 10); k++) {
+            const a = rf(0, TAU), s = rf(30, 90);
+            addMote(h.x, h.y, h.target.hue, Math.cos(a) * s, Math.sin(a) * s, rf(0.5, 1.1), rf(1, 2));
+          }
+          audio.thud(h.hue, h.x / W);
+          if (h.target.energy <= 0.02) { h.target.alive = 0; h.target.fade = 1; }
+          h.target = null;
+        }
+      } else {
+        h.angle += rf(-0.9, 0.9) * dt * 2.4;
+        ax += Math.cos(h.angle) * 40; ay += Math.sin(h.angle) * 40;
+      }
+      h.energy -= dt * 0.032;
+    }
+
+    // pointer pushes hunters off course too, but weakly — they resist the current
+    if (pointer.active) {
+      const dx = h.x - pointer.x, dy = h.y - pointer.y;
+      const dist = Math.hypot(dx, dy);
+      if (dist < 160 && dist > 0.5) {
+        const w = 1 - dist / 160;
+        ax += (dx / dist) * 55 * w; ay += (dy / dist) * 55 * w;
+      }
+    }
+
+    h.vx += ax * dt; h.vy += ay * dt;
+    const sp = Math.hypot(h.vx, h.vy);
+    const maxSp = (h.dormant > 0 ? 26 : 96) * P.driftSpeed;
+    if (sp > maxSp) { h.vx = h.vx / sp * maxSp; h.vy = h.vy / sp * maxSp; }
+    h.vx *= 0.99; h.vy *= 0.99;
+    h.x += h.vx * dt; h.y += h.vy * dt;
+    if (sp > 1) h.angle = Math.atan2(h.vy, h.vx);
+
+    const m = 40;
+    if (h.x < -m) { h.x += W + m * 2; h.trail.length = 0; }
+    else if (h.x > W + m) { h.x -= W + m * 2; h.trail.length = 0; }
+    if (h.y < -m) { h.y += H + m * 2; h.trail.length = 0; }
+    else if (h.y > H + m) { h.y -= H + m * 2; h.trail.length = 0; }
+
+    const t = h.trail, last = t[0];
+    if (!last || Math.hypot(last.x - h.x, last.y - h.y) > 5) {
+      t.unshift({ x: h.x, y: h.y });
+      if (t.length > h.tmax) t.length = h.tmax;
+    }
+
+    h.energy = clamp(h.energy, 0, 1.2);
+    if (h.energy <= 0.06 && h.dormant <= 0) h.dormant = rf(7, 14);
+    if (h.energy <= 0 && rnd() < dt * 0.02) { h.alive = 0; h.fade = 1; }
+    if (hunters.length > cap) { h.alive = 0; h.fade = 1; }
+  }
+}
+
+function updateMotes(dt) {
+  for (let i = motes.length - 1; i >= 0; i--) {
+    const m = motes[i];
+    m.life -= dt;
+    if (m.life <= 0) { motes.splice(i, 1); continue; }
+    m.x += m.vx * dt; m.y += m.vy * dt;
+    m.vx *= 0.965; m.vy *= 0.965;
+    if (pointer.active) {
+      const dx = m.x - pointer.x, dy = m.y - pointer.y;
+      const dist = Math.hypot(dx, dy);
+      if (dist < 170 && dist > 0.5) {
+        const w = 1 - dist / 170;
+        m.vx += (-dy / dist * 60 + pointer.vx * 1.4) * w * dt;
+        m.vy += (dx / dist * 60 + pointer.vy * 1.4) * w * dt;
+      }
+    }
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   RENDERING
+   ══════════════════════════════════════════════════════════════════════ */
+const trailFade = reduceMotion ? 0.30 : 0.11;
+let bgGrad = null, vignette = null;
+
+function buildBackground() {
+  bgGrad = ctx.createRadialGradient(W * 0.5, H * 0.42, 0, W * 0.5, H * 0.42, Math.max(W, H) * 0.8);
+  bgGrad.addColorStop(0, P.water[0]);
+  bgGrad.addColorStop(1, P.water[1]);
+  vignette = ctx.createRadialGradient(W * 0.5, H * 0.5, Math.min(W, H) * 0.28, W * 0.5, H * 0.5, Math.max(W, H) * 0.78);
+  vignette.addColorStop(0, 'rgba(0,0,0,0)');
+  vignette.addColorStop(1, 'rgba(0,0,0,0.62)');
+}
+
+const hsla = (h, s, l, a) => 'hsla(' + (h | 0) + ',' + s + '%,' + l + '%,' + a + ')';
+
+function render(alphaT) {
+  /* --- persistent trail layer (soft wakes) --------------------------- */
+  tctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  tctx.globalCompositeOperation = 'destination-out';
+  tctx.fillStyle = 'rgba(0,0,0,' + trailFade + ')';
+  tctx.fillRect(0, 0, W, H);
+  tctx.globalCompositeOperation = 'lighter';
+  drawTrails(tctx);
+
+  /* --- emissive buffer for the bloom pass ---------------------------- */
+  gctx.setTransform(1, 0, 0, 1, 0, 0);
+  gctx.clearRect(0, 0, glow.width, glow.height);
+  gctx.setTransform(DPR * GS, 0, 0, DPR * GS, 0, 0);
+  gctx.globalCompositeOperation = 'lighter';
+  // the two soft haze layers live here rather than at full resolution: they are
+  // low-frequency by nature, so half-res + blur is indistinguishable and cheap
+  drawNutrientField(gctx);
+  drawWaterDepth(gctx);
+  drawEmissive(gctx);
+
+  /* --- main composite ------------------------------------------------ */
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, W, H);
+  drawSnow();
+
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.drawImage(trailC, 0, 0, trailC.width, trailC.height, 0, 0, W, H);
+
+  drawPulses(ctx);
+  drawBeacons(ctx);
+  drawBlooms(ctx);
+  drawMotes(ctx);
+  drawDrifters(ctx);
+  drawHunters(ctx);
+
+  // bloom pass: blur the emissive buffer at its own (half) resolution, then
+  // add the upscale back over the scene
+  let src = glow;
+  if (blurOK) {
+    bctx.setTransform(1, 0, 0, 1, 0, 0);
+    bctx.clearRect(0, 0, blurC.width, blurC.height);
+    bctx.filter = 'blur(' + (reduceMotion ? 3 : 4.5) + 'px)';
+    bctx.drawImage(glow, 0, 0);
+    bctx.filter = 'none';
+    src = blurC;
+  }
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.globalAlpha = reduceMotion ? 0.44 : 0.60;
+  ctx.drawImage(src, 0, 0, src.width, src.height, 0, 0, W, H);
+  ctx.globalAlpha = 1;
+
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.fillStyle = vignette;
+  ctx.fillRect(0, 0, W, H);
+
+  drawPointerCurrent();
+  ctx.globalCompositeOperation = 'source-over';
+}
+
+/* subtle depth: slow horizontal light banding, parallaxed by depth ----- */
+function drawWaterDepth(c) {
+  const t = simTime;
+  c.globalCompositeOperation = 'lighter';
+  for (let i = 0; i < 3; i++) {
+    const y = ((t * (7 + i * 4) + i * H * 0.37) % (H + 260)) - 130;
+    const g = c.createLinearGradient(0, y - 130, 0, y + 130);
+    const hue = P.bloomHue + i * 24;
+    g.addColorStop(0, hsla(hue, 80, 50, 0));
+    g.addColorStop(0.5, hsla(hue, 80, 50, 0.048));
+    g.addColorStop(1, hsla(hue, 80, 50, 0));
+    c.fillStyle = g;
+    c.fillRect(0, y - 130, W, 260);
+  }
+}
+
+/* nutrient field: smooth volumetric haze, bilinearly upscaled from the grid */
+function drawNutrientField(c) {
+  if (!fieldImg || fieldC.width !== NX || fieldC.height !== NY) return;
+  const px = fieldImg.data;
+  const hue = P.bloomHue + 6;
+  // resolve the hue once per frame into rgb, then modulate alpha per cell
+  const rgb = hueToRGB(hue, 0.72, 0.52);
+  for (let i = 0, p = 0; i < nutrient.length; i++, p += 4) {
+    const a = clamp((nutrient[i] - 0.26) * 160, 0, 36);
+    px[p] = rgb[0]; px[p + 1] = rgb[1]; px[p + 2] = rgb[2]; px[p + 3] = a;
+  }
+  fctx.putImageData(fieldImg, 0, 0);
+  c.globalCompositeOperation = 'lighter';
+  c.imageSmoothingEnabled = true;
+  // 'high' resampling of a tiny source across a large area is startlingly
+  // expensive on software rasterisers; plain bilinear looks the same here
+  c.imageSmoothingQuality = 'low';
+  // draw slightly inset-and-oversized so the bilinear edge clamp isn't visible
+  c.drawImage(fieldC, 0, 0, NX, NY, -CELL * 0.5, -CELL * 0.5, NX * CELL, NY * CELL);
+}
+function hueToRGB(h, s, l) {
+  h = ((h % 360) + 360) / 360;
+  const q = l < 0.5 ? l * (1 + s) : l + s - l * s, p = 2 * l - q;
+  const f = (t) => {
+    if (t < 0) t += 1; if (t > 1) t -= 1;
+    if (t < 1 / 6) return p + (q - p) * 6 * t;
+    if (t < 1 / 2) return q;
+    if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+    return p;
+  };
+  return [Math.round(f(h + 1 / 3) * 255), Math.round(f(h) * 255), Math.round(f(h - 1 / 3) * 255)];
+}
+
+/* marine snow: slow particulate at several depths — cheap parallax ------ */
+function drawSnow() {
+  ctx.globalCompositeOperation = 'lighter';
+  const t = simTime;
+  for (let i = 0; i < snow.length; i++) {
+    const s = snow[i];
+    const par = 0.25 + s.z * 0.75;
+    let x = s.x + Math.sin(t * 0.13 * par + s.p) * 26 * par - pointer.px * 0.012 * par;
+    let y = (s.y + t * 5.5 * par) % (H + 40) - 20;
+    if (x < -20) x += W + 40; else if (x > W + 20) x -= W + 40;
+    ctx.fillStyle = hsla(P.driftHue + s.h, 60, 78, 0.05 + s.z * 0.14);
+    ctx.beginPath();
+    ctx.arc(x, y, s.r * (0.4 + s.z), 0, TAU);
+    ctx.fill();
+  }
+  ctx.globalCompositeOperation = 'source-over';
+}
+
+function drawTrails(c) {
+  for (let i = 0; i < drifters.length; i++) {
+    const d = drifters[i], t = d.trail;
+    if (t.length < 2) continue;
+    const a = (d.alive ? 1 : Math.max(0, d.fade)) * (0.18 + d.energy * 0.42) * (d.disrupt > 0 ? 0.35 : 1);
+    if (a <= 0.005) continue;
+    c.lineCap = 'round'; c.lineJoin = 'round';
+    c.strokeStyle = hsla(d.hue, 96, 56, a);
+    c.lineWidth = (0.7 + d.r * 0.32 + d.energy * 1.1) * d.z;
+    c.beginPath();
+    c.moveTo(t[0].x, t[0].y);
+    for (let k = 1; k < t.length - 1; k++) {
+      const mx = (t[k].x + t[k + 1].x) * 0.5, my = (t[k].y + t[k + 1].y) * 0.5;
+      c.quadraticCurveTo(t[k].x, t[k].y, mx, my);
+    }
+    c.stroke();
+  }
+  for (let i = 0; i < hunters.length; i++) {
+    const h = hunters[i], t = h.trail;
+    if (t.length < 2) continue;
+    const a = (h.alive ? 1 : Math.max(0, h.fade)) * (h.dormant > 0 ? 0.08 : 0.20);
+    c.strokeStyle = hsla(h.hue, 88, 58, a);
+    c.lineWidth = 1.6 * h.z;
+    c.beginPath();
+    c.moveTo(t[0].x, t[0].y);
+    for (let k = 1; k < t.length; k++) c.lineTo(t[k].x, t[k].y);
+    c.stroke();
+  }
+}
+
+/* the emissive buffer only receives soft light blobs — cheap and stable  */
+function drawEmissive(c) {
+  for (let i = 0; i < blooms.length; i++) {
+    const b = blooms[i];
+    const a = (b.alive ? 1 : Math.max(0, b.fade));
+    const lum = (0.10 + b.energy * 0.36 + b.open * 0.34 + b.excite * 0.32) * a * (b.dormant > 0 ? 0.25 : 1) * (b.disrupt > 0 ? 0.4 : 1);
+    if (lum <= 0.01) continue;
+    const r = b.r * (1.9 + b.open * 1.5) * b.z;
+    const g = c.createRadialGradient(b.x, b.y, 0, b.x, b.y, r);
+    g.addColorStop(0, hsla(b.hue, 95, 66, clamp(lum, 0, 0.9)));
+    g.addColorStop(0.45, hsla(b.hue, 95, 52, clamp(lum * 0.35, 0, 0.5)));
+    g.addColorStop(1, hsla(b.hue, 95, 45, 0));
+    c.fillStyle = g;
+    c.beginPath(); c.arc(b.x, b.y, r, 0, TAU); c.fill();
+  }
+  for (let i = 0; i < drifters.length; i++) {
+    const d = drifters[i];
+    const a = (d.alive ? 1 : Math.max(0, d.fade));
+    const lum = (0.09 + d.energy * 0.36 + d.excite * 0.26 + d.feed * 0.2) * a * (d.disrupt > 0 ? 0.35 : 1);
+    const r = (7 + d.energy * 13 + d.excite * 8) * d.z;
+    const g = c.createRadialGradient(d.x, d.y, 0, d.x, d.y, r);
+    g.addColorStop(0, hsla(d.hue, 98, 62, clamp(lum, 0, 0.7)));
+    g.addColorStop(1, hsla(d.hue, 95, 55, 0));
+    c.fillStyle = g;
+    c.beginPath(); c.arc(d.x, d.y, r, 0, TAU); c.fill();
+  }
+  for (let i = 0; i < hunters.length; i++) {
+    const h = hunters[i];
+    const a = (h.alive ? 1 : Math.max(0, h.fade)) * (h.dormant > 0 ? 0.25 : 1);
+    const r = (14 + h.strike * 26) * h.z;
+    const g = c.createRadialGradient(h.x, h.y, 0, h.x, h.y, r);
+    g.addColorStop(0, hsla(h.hue, 92, 62, clamp((0.24 + h.strike * 0.5) * a, 0, 0.8)));
+    g.addColorStop(1, hsla(h.hue, 92, 50, 0));
+    c.fillStyle = g;
+    c.beginPath(); c.arc(h.x, h.y, r, 0, TAU); c.fill();
+  }
+  for (let i = 0; i < pulses.length; i++) {
+    const p = pulses[i];
+    if (p.life <= 0 || ringOffscreen(p.x, p.y, p.r)) continue;
+    c.strokeStyle = hsla(p.hue, 92, 70, clamp(p.life * p.strength * 0.62, 0, 0.8));
+    c.lineWidth = (p.kind === 'global' ? 5 : 3.5) + p.strength * 4;
+    c.beginPath(); c.arc(p.x, p.y, p.r, 0, TAU); c.stroke();
+  }
+  for (let i = 0; i < beacons.length; i++) {
+    const b = beacons[i];
+    const a = clamp(b.life / b.max, 0, 1);
+    const r = 30 + Math.sin(b.phase * 5) * 6;
+    const g = c.createRadialGradient(b.x, b.y, 0, b.x, b.y, r);
+    g.addColorStop(0, hsla(P.bloomHue + 34, 96, 74, 0.7 * a));
+    g.addColorStop(1, hsla(P.bloomHue + 34, 96, 60, 0));
+    c.fillStyle = g;
+    c.beginPath(); c.arc(b.x, b.y, r, 0, TAU); c.fill();
+  }
+}
+
+function ringOffscreen(x, y, r) {
+  // nearest and farthest points of the viewport from the ring centre
+  const dx = Math.max(0, Math.max(-x, x - W)), dy = Math.max(0, Math.max(-y, y - H));
+  const near = Math.hypot(dx, dy);
+  const far = Math.max(Math.hypot(x, y), Math.hypot(W - x, y), Math.hypot(x, H - y), Math.hypot(W - x, H - y));
+  return near > r + 4 || far < r - 4;      // entirely outside, or entirely inside
+}
+function drawPulses(c) {
+  c.globalCompositeOperation = 'lighter';
+  for (let i = 0; i < pulses.length; i++) {
+    const p = pulses[i];
+    const a = clamp(p.life * p.life * p.strength, 0, 1);
+    if (a < 0.01 || ringOffscreen(p.x, p.y, p.r)) continue;
+    // Wide thin arcs are the single most expensive thing this scene can draw, so
+    // only the two *narrative* wavefronts get a crisp ring on the full-res canvas;
+    // bloom and relay waves are carried by the blurred emissive buffer instead.
+    if (p.kind === 'disrupt') {
+      c.strokeStyle = hsla(p.hue, 90, 60, a * 0.5);
+      c.setLineDash([7, 9]);
+      c.lineWidth = 1.6;
+      c.beginPath(); c.arc(p.x, p.y, p.r, 0, TAU); c.stroke();
+      c.setLineDash([]);
+    } else if (p.kind === 'global') {
+      c.strokeStyle = hsla(p.hue, 92, 76, a * 0.5);
+      c.lineWidth = 2.4;
+      c.beginPath(); c.arc(p.x, p.y, p.r, 0, TAU); c.stroke();
+    }
+  }
+}
+
+function drawBeacons(c) {
+  c.globalCompositeOperation = 'lighter';
+  for (let i = 0; i < beacons.length; i++) {
+    const b = beacons[i];
+    const a = clamp(b.life / b.max, 0, 1);
+    c.save();
+    c.translate(b.x, b.y);
+    c.rotate(b.phase * 1.4);
+    c.strokeStyle = hsla(P.bloomHue + 34, 96, 78, 0.75 * a);
+    c.lineWidth = 1.4;
+    for (let k = 0; k < 3; k++) {
+      const r = 9 + k * 6 + Math.sin(b.phase * 5 - k) * 2;
+      c.beginPath();
+      c.arc(0, 0, r, k * 1.9, k * 1.9 + 2.4);
+      c.stroke();
+    }
+    c.fillStyle = hsla(P.bloomHue + 34, 96, 86, 0.9 * a);
+    c.beginPath(); c.arc(0, 0, 2.6, 0, TAU); c.fill();
+    c.restore();
+  }
+}
+
+function drawBlooms(c) {
+  for (let i = 0; i < blooms.length; i++) {
+    const b = blooms[i];
+    const a = (b.alive ? 1 : Math.max(0, b.fade));
+    if (a <= 0.01) continue;
+    const dim = (b.dormant > 0 ? 0.35 : 1) * (b.disrupt > 0 ? 0.5 : 1);
+    const scale = b.z;
+    const R = b.r * scale;
+    const open = b.open;
+    const lit = clamp(0.25 + b.energy * 0.6 + b.excite * 0.4, 0, 1.3) * dim * a;
+
+    c.save();
+    c.translate(b.x, b.y);
+    c.rotate(b.rot);
+
+    // stalk / holdfast — reads as anchored
+    c.globalCompositeOperation = 'source-over';
+    c.strokeStyle = hsla(b.hue, 60, 26, 0.5 * a);
+    c.lineWidth = 1.6 * scale;
+    c.beginPath();
+    c.moveTo(0, 0);
+    c.quadraticCurveTo(R * 0.5, R * 1.6, Math.sin(b.drift) * R * 0.8, R * 2.6);
+    c.stroke();
+
+    c.globalCompositeOperation = 'lighter';
+    // petals
+    const n = b.petals;
+    for (let k = 0; k < n; k++) {
+      const ang = (k / n) * TAU;
+      const spread = lerp(0.42, 1.5, open);
+      const len = R * lerp(1.15, 2.25, open);
+      c.save();
+      c.rotate(ang);
+      c.beginPath();
+      c.moveTo(0, 0);
+      c.quadraticCurveTo(R * spread, -len * 0.42, 0, -len);
+      c.quadraticCurveTo(-R * spread, -len * 0.42, 0, 0);
+      const g = c.createLinearGradient(0, 0, 0, -len);
+      g.addColorStop(0, hsla(b.hue, 92, 60, 0.42 * lit));
+      g.addColorStop(0.6, hsla(b.hue + 12, 92, 56, 0.20 * lit));
+      g.addColorStop(1, hsla(b.hue + 26, 92, 70, 0.05 * lit));
+      c.fillStyle = g;
+      c.fill();
+      c.restore();
+    }
+    // outline every petal in a single stroke — one call instead of one per petal
+    c.beginPath();
+    for (let k = 0; k < n; k++) {
+      const ang = (k / n) * TAU;
+      const spread = lerp(0.42, 1.5, open);
+      const len = R * lerp(1.15, 2.25, open);
+      const ca = Math.cos(ang), sa = Math.sin(ang);
+      const rot = (x, y) => [x * ca - y * sa, x * sa + y * ca];
+      const p0 = rot(0, 0), p1 = rot(R * spread, -len * 0.42), p2 = rot(0, -len);
+      const p3 = rot(-R * spread, -len * 0.42);
+      c.moveTo(p0[0], p0[1]);
+      c.quadraticCurveTo(p1[0], p1[1], p2[0], p2[1]);
+      c.quadraticCurveTo(p3[0], p3[1], p0[0], p0[1]);
+    }
+    c.strokeStyle = hsla(b.hue + 18, 95, 76, 0.34 * lit);
+    c.lineWidth = 0.85 * scale;
+    c.stroke();
+    // core
+    const cr = R * (0.52 + open * 0.24);
+    const cg = c.createRadialGradient(0, 0, 0, 0, 0, cr);
+    cg.addColorStop(0, hsla(b.hue + 30, 100, 90, 0.95 * lit));
+    cg.addColorStop(0.5, hsla(b.hue, 96, 62, 0.55 * lit));
+    cg.addColorStop(1, hsla(b.hue, 96, 50, 0));
+    c.fillStyle = cg;
+    c.beginPath(); c.arc(0, 0, cr, 0, TAU); c.fill();
+
+    // energy ring — how full the bloom is, readable at a glance
+    if (b.energy > 0.05 && b.dormant <= 0) {
+      c.strokeStyle = hsla(b.hue + 40, 96, 78, 0.5 * a * dim);
+      c.lineWidth = 1.5 * scale;
+      c.beginPath();
+      c.arc(0, 0, R * 0.78, -Math.PI / 2, -Math.PI / 2 + TAU * clamp(b.energy, 0, 1));
+      c.stroke();
+    }
+    c.restore();
+  }
+}
+
+function drawMotes(c) {
+  c.globalCompositeOperation = 'lighter';
+  for (let i = 0; i < motes.length; i++) {
+    const m = motes[i];
+    const a = clamp(m.life / m.max, 0, 1);
+    c.fillStyle = hsla(m.hue, 95, 78, a * 0.75);
+    c.beginPath(); c.arc(m.x, m.y, m.size * (0.4 + a * 0.8), 0, TAU); c.fill();
+  }
+}
+
+function drawDrifters(c) {
+  c.globalCompositeOperation = 'lighter';
+  for (let i = 0; i < drifters.length; i++) {
+    const d = drifters[i];
+    const a = (d.alive ? 1 : Math.max(0, d.fade));
+    if (a <= 0.01) continue;
+    const dim = d.disrupt > 0 ? 0.45 : 1;
+    const ang = Math.atan2(d.vy, d.vx);
+    const R = d.r * d.z;
+    const lit = clamp(0.3 + d.energy * 0.7 + d.excite * 0.4 + d.feed * 0.3, 0, 1.4) * a * dim;
+
+    c.save();
+    c.translate(d.x, d.y);
+    c.rotate(ang);
+
+    // two trailing filaments
+    c.strokeStyle = hsla(d.hue, 92, 70, 0.28 * lit);
+    c.lineWidth = 0.8 * d.z;
+    const wob = Math.sin(simTime * 9 + d.wander) * R * 0.8;
+    c.beginPath();
+    c.moveTo(-R * 0.6, -R * 0.35);
+    c.quadraticCurveTo(-R * 2.6, -R * 0.4 + wob, -R * 4.4, wob * 0.6);
+    c.moveTo(-R * 0.6, R * 0.35);
+    c.quadraticCurveTo(-R * 2.6, R * 0.4 - wob, -R * 4.4, -wob * 0.6);
+    c.stroke();
+
+    // teardrop body
+    c.beginPath();
+    c.moveTo(R * 2.0, 0);
+    c.quadraticCurveTo(R * 0.4, -R * 1.05, -R * 1.5, 0);
+    c.quadraticCurveTo(R * 0.4, R * 1.05, R * 2.0, 0);
+    const g = c.createLinearGradient(R * 2, 0, -R * 1.5, 0);
+    g.addColorStop(0, hsla(d.hue + 20, 100, 82, 0.8 * lit));
+    g.addColorStop(0.55, hsla(d.hue, 96, 62, 0.5 * lit));
+    g.addColorStop(1, hsla(d.hue - 12, 96, 48, 0.08 * lit));
+    c.fillStyle = g;
+    c.fill();
+
+    // energy nucleus
+    c.fillStyle = hsla(d.hue + 40, 100, 92, clamp(d.energy, 0, 1) * 0.95 * a * dim);
+    c.beginPath(); c.arc(R * 0.55, 0, R * (0.24 + d.energy * 0.42), 0, TAU); c.fill();
+    c.restore();
+
+    // feeding flash: a small ring on energy transfer
+    if (d.feed > 0.05) {
+      c.strokeStyle = hsla(d.hue + 30, 96, 82, d.feed * 0.5 * a);
+      c.lineWidth = 1.2;
+      c.beginPath(); c.arc(d.x, d.y, R * (2.2 + (1 - d.feed) * 5), 0, TAU); c.stroke();
+    }
+  }
+}
+
+function drawHunters(c) {
+  for (let i = 0; i < hunters.length; i++) {
+    const h = hunters[i];
+    const a = (h.alive ? 1 : Math.max(0, h.fade));
+    if (a <= 0.01) continue;
+    const dim = h.dormant > 0 ? 0.32 : 1;
+    const R = h.r * h.z;
+    c.save();
+    c.translate(h.x, h.y);
+    c.rotate(h.angle);
+
+    // dark body first — a real silhouette against the glow
+    c.globalCompositeOperation = 'source-over';
+    c.beginPath();
+    c.moveTo(R * 2.1, 0);
+    c.lineTo(-R * 0.7, -R * 1.0);
+    c.lineTo(-R * 1.7, 0);
+    c.lineTo(-R * 0.7, R * 1.0);
+    c.closePath();
+    c.fillStyle = 'rgba(4,6,10,' + (0.86 * a) + ')';
+    c.fill();
+
+    // rim light + spines
+    c.globalCompositeOperation = 'lighter';
+    c.strokeStyle = hsla(h.hue, 96, 62, (0.62 + h.strike * 0.38) * a * dim);
+    c.lineWidth = 1.5 * h.z;
+    c.stroke();
+
+    c.strokeStyle = hsla(h.hue + 10, 96, 70, (0.34 + h.strike * 0.5) * a * dim);
+    c.lineWidth = 1.1 * h.z;
+    c.beginPath();
+    for (let k = -1; k <= 1; k += 2) {
+      c.moveTo(-R * 0.5, k * R * 0.75);
+      c.lineTo(-R * 2.4, k * R * 1.5);
+    }
+    c.moveTo(R * 0.2, 0); c.lineTo(-R * 2.6, 0);
+    c.stroke();
+
+    // sensor eye
+    c.fillStyle = hsla(h.hue + 18, 100, 78, (0.55 + h.strike * 0.45) * a * dim);
+    c.beginPath(); c.arc(R * 0.9, 0, R * 0.22, 0, TAU); c.fill();
+    c.restore();
+
+    // strike shock
+    if (h.strike > 0.02) {
+      c.globalCompositeOperation = 'lighter';
+      c.strokeStyle = hsla(h.hue, 96, 70, h.strike * 0.42 * a);
+      c.lineWidth = 2;
+      c.beginPath(); c.arc(h.x, h.y, R * (1.6 + (1 - h.strike) * 5.5), 0, TAU); c.stroke();
+    }
+  }
+  c.globalCompositeOperation = 'lighter';
+}
+
+function drawPointerCurrent() {
+  if (!pointer.active) return;
+  ctx.globalCompositeOperation = 'lighter';
+  const sp = Math.min(1, Math.hypot(pointer.vx, pointer.vy) / 500);
+  const r = 26 + sp * 26;
+  const g = ctx.createRadialGradient(pointer.x, pointer.y, 0, pointer.x, pointer.y, r * 2.4);
+  g.addColorStop(0, hsla(P.driftHue + 20, 90, 70, 0.10 + sp * 0.10));
+  g.addColorStop(1, hsla(P.driftHue + 20, 90, 60, 0));
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(pointer.x, pointer.y, r * 2.4, 0, TAU); ctx.fill();
+  ctx.strokeStyle = hsla(P.driftHue + 20, 90, 78, 0.18 + sp * 0.2);
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.arc(pointer.x, pointer.y, r, 0, TAU); ctx.stroke();
+  if (pointer.down) {
+    ctx.strokeStyle = hsla(P.bloomHue + 20, 92, 74, 0.35);
+    ctx.beginPath(); ctx.arc(pointer.x, pointer.y, r * 1.5, 0, TAU); ctx.stroke();
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   AUDIO — optional, created only after an explicit user gesture
+   ══════════════════════════════════════════════════════════════════════ */
+const audio = (function () {
+  let actx = null, bus = null, on = false, last = 0, voices = 0;
+  function ensure() {
+    if (actx) return true;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return false;
+    try {
+      actx = new AC();
+      bus = actx.createGain();
+      bus.gain.value = 0.10;
+      const lp = actx.createBiquadFilter();
+      lp.type = 'lowpass'; lp.frequency.value = 3600;
+      bus.connect(lp); lp.connect(actx.destination);
+    } catch (e) { actx = null; return false; }
+    return true;
+  }
+  function voice(freq, dur, type, gain) {
+    if (!on || !actx || voices > 10) return;
+    const t = actx.currentTime;
+    if (t - last < 0.035) return;
+    last = t;
+    voices++;
+    const o = actx.createOscillator(), g = actx.createGain(), pan = actx.createStereoPanner ? actx.createStereoPanner() : null;
+    o.type = type; o.frequency.setValueAtTime(freq, t);
+    o.frequency.exponentialRampToValueAtTime(Math.max(40, freq * 0.72), t + dur);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(gain, t + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g);
+    if (pan) { g.connect(pan); pan.connect(bus); } else g.connect(bus);
+    o.start(t); o.stop(t + dur + 0.02);
+    o.onended = function () { voices--; };
+    return pan;
+  }
+  // pentatonic so overlapping events stay consonant
+  const SCALE = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21];
+  const note = (i) => 220 * Math.pow(2, SCALE[((i % SCALE.length) + SCALE.length) % SCALE.length] / 12);
+  return {
+    toggle() {
+      if (!on) { if (!ensure()) return false; if (actx.state === 'suspended') actx.resume(); on = true; }
+      else { on = false; }
+      return on;
+    },
+    isOn() { return on; },
+    resume() { if (actx && actx.state === 'suspended') actx.resume(); },
+    ping(hue, e, pan) {
+      const p = voice(note(Math.round(hue / 24) + 3) * 2, 1.1, 'sine', 0.10 + e * 0.05);
+      if (p) p.pan.value = clamp(pan * 2 - 1, -1, 1);
+    },
+    blip(hue, pan) {
+      const p = voice(note(Math.round(hue / 18) + 7) * 3, 0.30, 'triangle', 0.05);
+      if (p) p.pan.value = clamp(pan * 2 - 1, -1, 1);
+    },
+    thud(hue, pan) {
+      const p = voice(78, 0.42, 'sawtooth', 0.07);
+      if (p) p.pan.value = clamp(pan * 2 - 1, -1, 1);
+    },
+    swell() { voice(note(0) * 0.5, 1.8, 'sine', 0.13); }
+  };
+})();
+
+/* ══════════════════════════════════════════════════════════════════════
+   UI
+   ══════════════════════════════════════════════════════════════════════ */
+const el = (id) => document.getElementById(id);
+const vPreset = el('v-preset'), vSeed = el('v-seed'), vPop = el('v-pop'),
+      vEnergy = el('v-energy'), vTime = el('v-time'), vBar = el('v-bar'),
+      vB = el('v-blooms'), vD = el('v-drifters'), vH = el('v-hunters'),
+      cdBar = el('cooldown').firstElementChild, desc = el('scene-desc'), flash = el('flash');
+
+let flashTimer = 0;
+function say(msg) {
+  flash.textContent = msg;
+  flash.classList.add('on');
+  clearTimeout(flashTimer);
+  flashTimer = setTimeout(() => flash.classList.remove('on'), 1000);
+}
+
+let descTimer = 0;
+function updateHUD(force) {
+  const nb = blooms.length, nd = drifters.length, nh = hunters.length;
+  const pop = nb + nd + nh;
+  let energy = 0;
+  for (let i = 0; i < blooms.length; i++) energy += blooms[i].energy;
+  for (let i = 0; i < drifters.length; i++) energy += drifters[i].energy;
+  for (let i = 0; i < hunters.length; i++) energy += hunters[i].energy;
+
+  vPreset.textContent = P.name;
+  vSeed.textContent = '#' + seed;
+  vPop.textContent = String(pop);
+  vEnergy.textContent = energy.toFixed(1);
+  vB.textContent = String(nb); vD.textContent = String(nd); vH.textContent = String(nh);
+  const s = Math.floor(simTime);
+  vTime.textContent = String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+  vBar.style.width = clamp(energy / Math.max(1, pop * 1.1), 0, 1) * 100 + '%';
+  cdBar.style.width = (1 - pulseCooldown / PULSE_CD) * 100 + '%';
+
+  if (force || simTime - descTimer > 4) {
+    descTimer = simTime;
+    desc.textContent =
+      'Signal Garden, preset ' + (presetIndex + 1) + ', ' + P.name + ': ' + P.desc + '. ' +
+      'Seed ' + seed + '. ' + nb + ' anchored blooms absorbing nutrient light, ' +
+      nd + ' drifters carrying energy between them, ' + nh + ' hunters pursuing charged drifters. ' +
+      'Total stored energy ' + energy.toFixed(1) + '. Elapsed simulation time ' + vTime.textContent +
+      (paused ? '. Simulation paused.' : '.');
+  }
+}
+
+/* ── controls ────────────────────────────────────────────────────────── */
+function setPreset(i, announce) {
+  presetIndex = ((i % 3) + 3) % 3;
+  P = PRESETS[presetIndex];
+  for (let k = 0; k < 3; k++) el('b-p' + (k + 1)).setAttribute('aria-pressed', String(k === presetIndex));
+  buildBackground();
+  regenerate(seed, false);
+  if (announce) say(P.name);
+}
+function setPaused(v) {
+  paused = v;
+  const b = el('b-pause');
+  b.setAttribute('aria-pressed', String(paused));
+  b.textContent = paused ? 'Resume' : 'Pause';
+  updateHUD(true);
+  say(paused ? 'Paused' : 'Running');
+}
+function reseed() {
+  regenerate((seed * 1103515245 + 12345) >>> 8 & 0xffff || 7, false);
+  say('Seed #' + seed);
+}
+function globalPulse() {
+  if (pulseCooldown > 0) { say('Recharging'); return; }
+  pulseCooldown = PULSE_CD;
+  emitPulse(W / 2, H / 2, Math.hypot(W, H) * 0.62, 1.0, P.bloomHue + 20, 'global', 0);
+  for (let i = 0; i < blooms.length; i++) blooms[i].cool -= 1.2;
+  audio.swell();
+  say('Global pulse');
+}
+function plantBeacon(x, y) {
+  if (beacons.length > 5) beacons.shift();
+  beacons.push({ x, y, life: 9, max: 9, phase: 0 });
+  emitPulse(x, y, 260, 0.8, P.bloomHue + 30, 'beacon', 0);
+  drawNutrient(x, y, 0.22, 74);
+  audio.ping(P.bloomHue + 30, 0.6, x / W);
+}
+
+el('b-p1').addEventListener('click', () => setPreset(0, true));
+el('b-p2').addEventListener('click', () => setPreset(1, true));
+el('b-p3').addEventListener('click', () => setPreset(2, true));
+el('b-pause').addEventListener('click', () => setPaused(!paused));
+el('b-seed').addEventListener('click', reseed);
+el('b-pulse').addEventListener('click', globalPulse);
+el('b-audio').addEventListener('click', function () {
+  const on = audio.toggle();
+  this.setAttribute('aria-pressed', String(on));
+  this.textContent = on ? 'Audio on' : 'Audio off';
+  say(on ? 'Audio on' : 'Audio off');
+});
+
+/* ── keyboard ────────────────────────────────────────────────────────── */
+window.addEventListener('keydown', function (e) {
+  const ae = document.activeElement;
+  const onButton = ae && ae.tagName === 'BUTTON';
+  if (onButton && (e.code === 'Space' || e.code === 'Enter')) return;  // let the button act
+  switch (e.code) {
+    case 'Space': e.preventDefault(); globalPulse(); break;
+    case 'KeyP': setPaused(!paused); break;
+    case 'KeyR': reseed(); break;
+    case 'Digit1': case 'Numpad1': setPreset(0, true); break;
+    case 'Digit2': case 'Numpad2': setPreset(1, true); break;
+    case 'Digit3': case 'Numpad3': setPreset(2, true); break;
+    case 'KeyM': el('b-audio').click(); break;
+    case 'KeyB': plantBeacon(W * 0.5, H * 0.5); break;   // keyboard route to a beacon
+    default: return;
+  }
+});
+
+/* ── pointer / touch ─────────────────────────────────────────────────── */
+function localPos(e) {
+  const r = canvas.getBoundingClientRect();
+  return { x: (e.clientX - r.left) * (W / r.width), y: (e.clientY - r.top) * (H / r.height) };
+}
+canvas.addEventListener('pointerdown', function (e) {
+  const p = localPos(e);
+  pointer.down = true; pointer.active = true; pointer.dragged = false;
+  pointer.sx = p.x; pointer.sy = p.y;
+  pointer.x = p.x; pointer.y = p.y; pointer.px = p.x; pointer.py = p.y;
+  // capture can legitimately fail (stale or synthetic pointer ids) — never let it throw
+  try { canvas.setPointerCapture && canvas.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+  audio.resume();
+  e.preventDefault();
+});
+canvas.addEventListener('pointermove', function (e) {
+  const p = localPos(e);
+  pointer.px = pointer.x; pointer.py = pointer.y;
+  pointer.x = p.x; pointer.y = p.y;
+  pointer.active = true;
+  if (pointer.down) {
+    if (Math.hypot(p.x - pointer.sx, p.y - pointer.sy) > 12) pointer.dragged = true;
+    if (pointer.dragged) {
+      drawNutrient(p.x, p.y, 0.09, 54);
+      if (rnd() < 0.35) addMote(p.x + rf(-14, 14), p.y + rf(-14, 14), P.bloomHue + 20,
+        rf(-10, 10), rf(-10, 10), rf(0.6, 1.4), 1.2);
+    }
+  }
+});
+function endPointer(e) {
+  if (pointer.down && !pointer.dragged) plantBeacon(pointer.x, pointer.y);
+  pointer.down = false;
+}
+canvas.addEventListener('pointerup', endPointer);
+canvas.addEventListener('pointercancel', function () { pointer.down = false; });
+canvas.addEventListener('pointerleave', function () { pointer.down = false; pointer.active = false; });
+canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+
+/* ── resize (preserves the world) ────────────────────────────────────── */
+let resizeTimer = 0;
+function resize() {
+  const rect = canvas.getBoundingClientRect();
+  const nw = Math.max(320, Math.round(rect.width || window.innerWidth));
+  const nh = Math.max(240, Math.round(rect.height || window.innerHeight));
+  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  const sx = W > 0 ? nw / W : 1, sy = H > 0 ? nh / H : 1;
+  const first = canvas.width === 0;
+
+  W = nw; H = nh;
+  canvas.width = Math.round(W * DPR); canvas.height = Math.round(H * DPR);
+  trailC.width = canvas.width; trailC.height = canvas.height;
+  GS = W > 1500 ? 0.42 : 0.5;
+  glow.width = Math.max(1, Math.round(W * DPR * GS));
+  glow.height = Math.max(1, Math.round(H * DPR * GS));
+  blurC.width = glow.width; blurC.height = glow.height;
+
+  buildBackground();
+
+  if (!first && (sx !== 1 || sy !== 1)) {
+    // rescale the living world instead of resetting it
+    const move = (o) => { o.x *= sx; o.y *= sy; if (o.hx != null) { o.hx *= sx; o.hy *= sy; } };
+    blooms.forEach(move); hunters.forEach(move); motes.forEach(move); beacons.forEach(move);
+    drifters.forEach((d) => { move(d); d.trail.forEach((t) => { t.x *= sx; t.y *= sy; }); });
+    hunters.forEach((h) => h.trail.forEach((t) => { t.x *= sx; t.y *= sy; }));
+    pulses.forEach((p) => { p.x *= sx; p.y *= sy; });
+    // rebuild the nutrient field at the new grid size, preserving its shape
+    const oldN = nutrient, oldNX = NX, oldNY = NY;
+    buildField();
+    for (let y = 0; y < NY; y++) for (let x = 0; x < NX; x++) {
+      const ox = clamp(Math.round(x * oldNX / NX), 0, oldNX - 1);
+      const oy = clamp(Math.round(y * oldNY / NY), 0, oldNY - 1);
+      nutrient[y * NX + x] = oldN[oy * oldNX + ox];
+    }
+    tctx.setTransform(1, 0, 0, 1, 0, 0);
+    tctx.clearRect(0, 0, trailC.width, trailC.height);
+  }
+}
+window.addEventListener('resize', function () {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(resize, 90);
+});
+
+/* ── main loop ───────────────────────────────────────────────────────── */
+function frame(t) {
+  requestAnimationFrame(frame);
+  if (!lastT) lastT = t;
+  let dt = (t - lastT) / 1000;
+  lastT = t;
+  if (dt > 0.25) dt = 0.25;                 // tab-return guard
+
+  if (!paused) {
+    acc += dt;
+    let steps = 0;
+    while (acc >= DT && steps < MAX_STEPS) { step(DT); acc -= DT; steps++; }
+    if (acc > DT * MAX_STEPS) acc = 0;
+  } else {
+    acc = 0;
+  }
+
+  // pointer velocity decays so a parked cursor stops dragging the water
+  pointer.vx = (pointer.x - pointer.px) * 60;
+  pointer.vy = (pointer.y - pointer.py) * 60;
+  pointer.px += (pointer.x - pointer.px) * 0.35;
+  pointer.py += (pointer.y - pointer.py) * 0.35;
+
+  render();
+  updateHUD(false);
+}
+
+/* ── boot ────────────────────────────────────────────────────────────── */
+// optional deep link: index.html#2  or  index.html#preset=2&seed=90210
+function readHash() {
+  let hash = '';
+  try { hash = (window.location && window.location.hash || '').replace(/^#/, ''); } catch (e) { hash = ''; }
+  if (!hash) return;
+  const m = /^([123])$/.exec(hash);
+  if (m) { presetIndex = +m[1] - 1; return; }
+  const pm = /preset=([123])/.exec(hash);
+  if (pm) presetIndex = +pm[1] - 1;
+  const sm = /seed=(\d+)/.exec(hash);
+  if (sm) seed = (+sm[1]) & 0xffff || 1337;
+}
+
+resize();
+readHash();
+setPreset(presetIndex, false); // builds palette + generates the world from the current seed
+updateHUD(true);
+requestAnimationFrame(frame);
+
+// expose a tiny handle for manual/automated inspection
+window.SignalGarden = {
+  state: () => ({
+    seed, preset: P.name, presetIndex, paused, simTime,
+    blooms: blooms.length, drifters: drifters.length, hunters: hunters.length,
+    pulses: pulses.length, motes: motes.length
+  }),
+  regenerate, setPreset, globalPulse, step, plantBeacon,
+  renderOnce: () => render(),        // lets a test force a paint without waiting for rAF
+  _internals: () => ({ blooms, drifters, hunters, pulses, nutrient })
+};
+})();
+</script>
+</body>
+</html>

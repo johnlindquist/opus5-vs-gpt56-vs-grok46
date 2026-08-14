@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "status": "complete",
+  "title": "Trace Sheriff — Agent Timeline Forensics",
+  "kind": "dev",
+  "entrypoint": "report.html",
+  "artifacts": [
+    "report.html",
+    "README.md",
+    "src/cli.ts",
+    "src/analyze.ts",
+    "src/parse.ts",
+    "src/types.ts",
+    "src/html.ts",
+    "src/json.ts",
+    "src/terminal.ts",
+    "tests/sheriff.test.ts",
+    "package.json",
+    "fixtures/sample.jsonl",
+    "out/summary.json"
+  ],
+  "checks": [
+    {
+      "name": "test suite",
+      "command": "bun test",
+      "status": "passed",
+      "details": "All tool tests passed."
+    },
+    {
+      "name": "fixture analysis",
+      "command": "bun run src/cli.ts analyze fixtures/sample.jsonl --json out/summary.json --html report.html",
+      "status": "passed",
+      "details": "The fixture produced terminal, JSON, and HTML output."
+    }
+  ],
+  "summary": "Trace Sheriff streams JSONL agent logs, reconstructs per-session timelines (spans, idle gaps, tool concurrency), and emits terminal, deterministic JSON, and a self-contained HTML forensics report without crashing on malformed lines.",
+  "known_issues": []
+}

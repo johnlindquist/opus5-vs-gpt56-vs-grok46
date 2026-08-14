@@ -1,0 +1,1361 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Kinetic Poster Foundry — Type as Physics</title>
+  <style>
+    :root {
+      --paper: #071014;
+      --ink: #f1ffbb;
+      --muted: rgba(226, 242, 232, .58);
+      --line: rgba(226, 242, 232, .15);
+      --glass: rgba(8, 14, 18, .78);
+      --accent: #c8ff3d;
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #030708;
+      color: #f4f8f2;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      display: grid;
+      place-items: center;
+    }
+
+    button, input, select { font: inherit; }
+
+    #app {
+      position: relative;
+      width: 100vw;
+      height: 100dvh;
+      min-height: 540px;
+      overflow: hidden;
+      background: #030708;
+      isolation: isolate;
+    }
+
+    #poster {
+      display: block;
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+      cursor: crosshair;
+      outline: none;
+    }
+
+    #poster:focus-visible {
+      box-shadow: inset 0 0 0 2px var(--accent);
+    }
+
+    .topbar {
+      position: absolute;
+      z-index: 4;
+      top: 20px;
+      left: 22px;
+      right: 22px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      pointer-events: none;
+    }
+
+    .identity {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .mark {
+      width: 32px;
+      height: 32px;
+      border: 1px solid rgba(255,255,255,.28);
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      color: var(--accent);
+      font: 700 10px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+      box-shadow: 0 0 24px color-mix(in srgb, var(--accent) 30%, transparent);
+    }
+
+    .titleblock h1 {
+      margin: 0;
+      font-size: 11px;
+      line-height: 1.1;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      font-weight: 720;
+    }
+
+    .titleblock p {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font: 9px/1.2 ui-monospace, SFMono-Regular, Menlo, monospace;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    .status {
+      padding: 7px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(0,0,0,.22);
+      color: var(--muted);
+      font: 9px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      backdrop-filter: blur(12px);
+    }
+
+    .status::before {
+      content: "";
+      display: inline-block;
+      width: 5px;
+      height: 5px;
+      margin-right: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+      vertical-align: 1px;
+    }
+
+    .panel {
+      position: absolute;
+      z-index: 5;
+      left: 20px;
+      bottom: 20px;
+      width: min(410px, calc(100vw - 40px));
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: var(--radius);
+      background: var(--glass);
+      box-shadow: 0 22px 70px rgba(0,0,0,.46);
+      backdrop-filter: blur(20px) saturate(125%);
+      overflow: hidden;
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 42px;
+      padding: 0 12px 0 14px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .panel-head span {
+      font: 680 9px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.75);
+    }
+
+    .icon-button {
+      width: 28px;
+      height: 28px;
+      border: 0;
+      border-radius: 8px;
+      color: var(--muted);
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .icon-button:hover, .icon-button:focus-visible {
+      color: white;
+      background: rgba(255,255,255,.08);
+      outline: none;
+    }
+
+    .panel-body {
+      padding: 12px;
+      transition: max-height .28s ease, opacity .2s ease, padding .28s ease;
+      max-height: 530px;
+      overflow: auto;
+      scrollbar-width: thin;
+    }
+
+    .panel.collapsed .panel-body {
+      max-height: 0;
+      opacity: 0;
+      padding-top: 0;
+      padding-bottom: 0;
+      overflow: hidden;
+    }
+
+    .phrase-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    label {
+      display: block;
+      min-width: 0;
+      color: var(--muted);
+      font-size: 9px;
+      line-height: 1;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+    }
+
+    input[type="text"], select {
+      width: 100%;
+      height: 32px;
+      margin-top: 6px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 0 9px;
+      color: #f7faf6;
+      background: rgba(255,255,255,.055);
+      outline: none;
+    }
+
+    input[type="text"] {
+      font-size: 12px;
+      letter-spacing: .04em;
+    }
+
+    input[type="text"]:focus, select:focus {
+      border-color: color-mix(in srgb, var(--accent) 70%, transparent);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent);
+    }
+
+    select {
+      font-size: 10px;
+      appearance: none;
+      padding-right: 22px;
+      background-image:
+        linear-gradient(45deg, transparent 50%, rgba(255,255,255,.55) 50%),
+        linear-gradient(135deg, rgba(255,255,255,.55) 50%, transparent 50%);
+      background-position: calc(100% - 12px) 13px, calc(100% - 8px) 13px;
+      background-size: 4px 4px, 4px 4px;
+      background-repeat: no-repeat;
+    }
+
+    .export-button {
+      align-self: end;
+      height: 32px;
+      border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+      border-radius: 8px;
+      padding: 0 12px;
+      background: var(--accent);
+      color: #071014;
+      font: 750 9px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .export-button:hover, .export-button:focus-visible {
+      filter: brightness(1.08);
+      outline: 2px solid rgba(255,255,255,.5);
+      outline-offset: 2px;
+    }
+
+    .preset-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 5px;
+      margin-bottom: 12px;
+    }
+
+    .preset {
+      height: 32px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 0 5px;
+      color: var(--muted);
+      background: rgba(255,255,255,.035);
+      font: 650 8px/1.1 ui-monospace, SFMono-Regular, Menlo, monospace;
+      letter-spacing: .03em;
+      cursor: pointer;
+    }
+
+    .preset:hover, .preset:focus-visible {
+      color: white;
+      border-color: rgba(255,255,255,.3);
+      outline: none;
+    }
+
+    .preset.active {
+      color: var(--accent);
+      border-color: color-mix(in srgb, var(--accent) 52%, transparent);
+      background: color-mix(in srgb, var(--accent) 10%, transparent);
+    }
+
+    .select-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 7px;
+      margin-bottom: 12px;
+    }
+
+    .range-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 11px 16px;
+      padding-top: 2px;
+    }
+
+    .range-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    output {
+      color: rgba(255,255,255,.78);
+      font: 9px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+      letter-spacing: 0;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 14px;
+      margin: 5px 0 0;
+      appearance: none;
+      background: transparent;
+      cursor: ew-resize;
+    }
+
+    input[type="range"]::-webkit-slider-runnable-track {
+      height: 2px;
+      background: rgba(255,255,255,.18);
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      width: 10px;
+      height: 10px;
+      margin-top: -4px;
+      appearance: none;
+      border: 2px solid var(--accent);
+      border-radius: 50%;
+      background: #101518;
+      box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 40%, transparent);
+    }
+
+    input[type="range"]::-moz-range-track {
+      height: 2px;
+      background: rgba(255,255,255,.18);
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 8px;
+      height: 8px;
+      border: 2px solid var(--accent);
+      border-radius: 50%;
+      background: #101518;
+    }
+
+    .panel-foot {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid var(--line);
+      color: rgba(255,255,255,.38);
+      font: 8px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+    }
+
+    .toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    .toggle input {
+      accent-color: var(--accent);
+      width: 12px;
+      height: 12px;
+      margin: 0;
+    }
+
+    .edge-note {
+      position: absolute;
+      z-index: 2;
+      right: 20px;
+      bottom: 22px;
+      color: rgba(255,255,255,.32);
+      font: 8px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+      letter-spacing: .12em;
+      text-align: right;
+      text-transform: uppercase;
+      pointer-events: none;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0,0,0,0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @media (max-width: 720px), (max-height: 650px) {
+      .topbar { top: 12px; left: 14px; right: 14px; }
+      .panel { left: 12px; bottom: 12px; width: min(385px, calc(100vw - 24px)); }
+      .edge-note { display: none; }
+      .select-grid { grid-template-columns: 1fr 1fr; }
+      .range-grid { gap: 8px 12px; }
+      .panel-body { max-height: min(460px, calc(100dvh - 90px)); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .panel-body { transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <main id="app">
+    <canvas id="poster" tabindex="0" aria-label="Interactive kinetic poster canvas"></canvas>
+
+    <header class="topbar" aria-hidden="true">
+      <div class="identity">
+        <div class="mark">KPF</div>
+        <div class="titleblock">
+          <h1>Kinetic Poster Foundry</h1>
+          <p>Type as physics / Series 001</p>
+        </div>
+      </div>
+      <div class="status" id="status">Live simulation</div>
+    </header>
+
+    <section class="panel" id="panel" aria-label="Poster controls">
+      <div class="panel-head">
+        <span>Composition controls</span>
+        <button class="icon-button" id="collapse" type="button" aria-label="Collapse controls" aria-expanded="true">⌄</button>
+      </div>
+      <div class="panel-body">
+        <div class="phrase-row">
+          <label>
+            Phrase
+            <input id="phrase" type="text" maxlength="96" value="FRONTIER / NIGHT" autocomplete="off" spellcheck="false">
+          </label>
+          <button class="export-button" id="export" type="button">Export PNG</button>
+        </div>
+
+        <div class="preset-row" aria-label="Poster presets">
+          <button class="preset active" type="button" data-preset="0" aria-pressed="true">1 · Electric<br>ribbon</button>
+          <button class="preset" type="button" data-preset="1" aria-pressed="false">2 · Chrome<br>pulse</button>
+          <button class="preset" type="button" data-preset="2" aria-pressed="false">3 · Soft<br>ink</button>
+          <button class="preset" type="button" data-preset="3" aria-pressed="false">4 · Signal<br>grid</button>
+        </div>
+
+        <div class="select-grid">
+          <label>
+            Font
+            <select id="font">
+              <option value="grotesk">Grotesk</option>
+              <option value="editorial">Editorial</option>
+              <option value="mono">Monospace</option>
+              <option value="impact">Condensed</option>
+            </select>
+          </label>
+          <label>
+            Layout
+            <select id="layout">
+              <option value="auto">Auto split</option>
+              <option value="single">One line</option>
+              <option value="stack">Two lines</option>
+              <option value="stagger">Staggered</option>
+            </select>
+          </label>
+          <label>
+            Align
+            <select id="align">
+              <option value="left">Left</option>
+              <option value="center">Center</option>
+              <option value="right">Right</option>
+            </select>
+          </label>
+          <label>
+            Palette
+            <select id="palette">
+              <option value="acid">Acid night</option>
+              <option value="chrome">Cold chrome</option>
+              <option value="ink">Warm ink</option>
+              <option value="signal">Signal red</option>
+              <option value="cobalt">Cobalt mist</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="range-grid">
+          <label>
+            <span class="range-label"><span>Density</span><output id="densityOut">54</output></span>
+            <input id="density" type="range" min="20" max="92" value="54">
+          </label>
+          <label>
+            <span class="range-label"><span>Type size</span><output id="sizeOut">238</output></span>
+            <input id="size" type="range" min="100" max="330" value="238">
+          </label>
+          <label>
+            <span class="range-label"><span>Spring</span><output id="springOut">0.036</output></span>
+            <input id="spring" type="range" min="8" max="80" value="36">
+          </label>
+          <label>
+            <span class="range-label"><span>Damping</span><output id="dampingOut">0.88</output></span>
+            <input id="damping" type="range" min="72" max="96" value="88">
+          </label>
+          <label>
+            <span class="range-label"><span>Trails</span><output id="trailOut">76%</output></span>
+            <input id="trail" type="range" min="0" max="94" value="76">
+          </label>
+          <label>
+            <span class="range-label"><span>Glow</span><output id="glowOut">24</output></span>
+            <input id="glow" type="range" min="0" max="48" value="24">
+          </label>
+          <label>
+            <span class="range-label"><span>Margins</span><output id="marginOut">120</output></span>
+            <input id="margin" type="range" min="50" max="250" value="120">
+          </label>
+          <label>
+            <span class="range-label"><span>Line weight</span><output id="weightOut">0.72</output></span>
+            <input id="weight" type="range" min="20" max="150" value="72">
+          </label>
+        </div>
+
+        <div class="panel-foot">
+          <span>Move: wind · Drag: vortex · Release: ripple<br>Space: impulse · R: reset · P: pause</span>
+          <label class="toggle"><input id="grid" type="checkbox" checked> Grid</label>
+        </div>
+      </div>
+    </section>
+
+    <div class="edge-note" aria-hidden="true">1600 × 900 master<br>Deterministic field / 07.27.26</div>
+    <p class="sr-only" id="a11yStatus" role="status" aria-live="polite"></p>
+  </main>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const W = 1600;
+      const H = 900;
+      const canvas = document.getElementById("poster");
+      const ctx = canvas.getContext("2d", { alpha: false });
+      const maskCanvas = document.createElement("canvas");
+      maskCanvas.width = W;
+      maskCanvas.height = H;
+      const maskCtx = maskCanvas.getContext("2d", { willReadFrequently: true });
+      const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      const fonts = {
+        grotesk: '900 1px Arial, Helvetica, sans-serif',
+        editorial: '700 1px Georgia, "Times New Roman", serif',
+        mono: '800 1px "Courier New", Courier, monospace',
+        impact: '400 1px Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif'
+      };
+
+      const palettes = {
+        acid: {
+          bg: "#071014", bg2: "#11241f", ink: "#eaffb0", edge: "#a8ff38",
+          hot: "#f0ff53", cool: "#62ffd5", grid: "rgba(179,255,204,.12)", panel: "#c8ff3d"
+        },
+        chrome: {
+          bg: "#080b13", bg2: "#192238", ink: "#f8fbff", edge: "#a8c9ff",
+          hot: "#ffffff", cool: "#7095df", grid: "rgba(174,204,255,.13)", panel: "#bdd2ff"
+        },
+        ink: {
+          bg: "#e8e0cf", bg2: "#c8bda9", ink: "#171515", edge: "#352e2b",
+          hot: "#7c3028", cool: "#282421", grid: "rgba(37,29,27,.12)", panel: "#ff7a55"
+        },
+        signal: {
+          bg: "#11090a", bg2: "#2a1112", ink: "#fff1dc", edge: "#ff513d",
+          hot: "#ff3b2f", cool: "#ffb84b", grid: "rgba(255,89,62,.14)", panel: "#ff513d"
+        },
+        cobalt: {
+          bg: "#071224", bg2: "#0c3161", ink: "#dff5ff", edge: "#51b8ff",
+          hot: "#77d7ff", cool: "#646cff", grid: "rgba(99,193,255,.13)", panel: "#65ccff"
+        }
+      };
+
+      const presets = [
+        {
+          name: "Electric ribbon", palette: "acid", font: "grotesk", layout: "auto", align: "left",
+          density: 54, size: 238, spring: 36, damping: 88, trail: 76, glow: 24,
+          margin: 120, weight: 72, lineMode: "ribbon", turbulence: .48
+        },
+        {
+          name: "Chrome pulse", palette: "chrome", font: "impact", layout: "single", align: "center",
+          density: 66, size: 206, spring: 52, damping: 91, trail: 60, glow: 36,
+          margin: 90, weight: 108, lineMode: "chrome", turbulence: .23
+        },
+        {
+          name: "Soft ink", palette: "ink", font: "editorial", layout: "stack", align: "left",
+          density: 42, size: 226, spring: 24, damping: 84, trail: 28, glow: 5,
+          margin: 150, weight: 115, lineMode: "ink", turbulence: .16
+        },
+        {
+          name: "Signal grid", palette: "signal", font: "mono", layout: "stagger", align: "left",
+          density: 72, size: 194, spring: 62, damping: 92, trail: 46, glow: 14,
+          margin: 104, weight: 48, lineMode: "grid", turbulence: .09
+        }
+      ];
+
+      const state = {
+        phrase: "FRONTIER / NIGHT",
+        font: "grotesk",
+        layout: "auto",
+        align: "left",
+        palette: "acid",
+        density: reduceMotion ? 34 : 54,
+        size: 238,
+        spring: reduceMotion ? 55 : 36,
+        damping: 88,
+        trail: reduceMotion ? 5 : 76,
+        glow: reduceMotion ? 10 : 24,
+        margin: 120,
+        weight: 72,
+        grid: true,
+        lineMode: "ribbon",
+        turbulence: reduceMotion ? .04 : .48,
+        preset: 0,
+        paused: false
+      };
+
+      let particles = [];
+      let links = [];
+      let ripples = [];
+      let dust = [];
+      let cssW = 0;
+      let cssH = 0;
+      let renderScale = 1;
+      let lastTime = performance.now();
+      let rebuildTimer = 0;
+      let frame = 0;
+      let settleBoost = 0;
+
+      const pointer = {
+        x: W * .5, y: H * .5, px: W * .5, py: H * .5,
+        vx: 0, vy: 0, active: false, dragging: false, inside: false
+      };
+
+      function seeded(seed) {
+        let s = seed >>> 0;
+        return () => {
+          s = Math.imul(1664525, s) + 1013904223 >>> 0;
+          return s / 4294967296;
+        };
+      }
+
+      function hashText(text) {
+        let h = 2166136261;
+        for (let i = 0; i < text.length; i++) {
+          h ^= text.charCodeAt(i);
+          h = Math.imul(h, 16777619);
+        }
+        return h >>> 0;
+      }
+
+      function fitLines(raw) {
+        const text = raw.trim().replace(/\s+/g, " ");
+        if (!text) return ["TYPE SOMETHING"];
+        const clipped = text.slice(0, 72);
+        if (state.layout === "single") return [clipped];
+
+        if (state.layout === "auto" && clipped.includes("/")) {
+          const at = clipped.indexOf("/");
+          return [clipped.slice(0, at + 1).trim(), clipped.slice(at + 1).trim()].filter(Boolean);
+        }
+
+        if (state.layout === "auto" && clipped.length <= 18) return [clipped];
+
+        const words = clipped.split(" ");
+        if (words.length === 1) {
+          const mid = Math.ceil(clipped.length / 2);
+          return [clipped.slice(0, mid), clipped.slice(mid)];
+        }
+
+        let best = 1;
+        let diff = Infinity;
+        for (let i = 1; i < words.length; i++) {
+          const a = words.slice(0, i).join(" ").length;
+          const b = words.slice(i).join(" ").length;
+          if (Math.abs(a - b) < diff) {
+            diff = Math.abs(a - b);
+            best = i;
+          }
+        }
+        return [words.slice(0, best).join(" "), words.slice(best).join(" ")];
+      }
+
+      function fontString(size) {
+        return fonts[state.font].replace("1px", `${size}px`);
+      }
+
+      function drawMask() {
+        maskCtx.clearRect(0, 0, W, H);
+        maskCtx.fillStyle = "#fff";
+        maskCtx.textBaseline = "middle";
+        maskCtx.textAlign = state.align;
+
+        const lines = fitLines(state.phrase);
+        let size = state.size;
+        const margin = state.margin;
+        const usable = W - margin * 2;
+        const maxHeight = H - margin * 2;
+        const lineHeightFactor = state.font === "editorial" ? .9 : .82;
+
+        const measureAt = (s) => {
+          maskCtx.font = fontString(s);
+          return Math.max(...lines.map(line => maskCtx.measureText(line).width));
+        };
+        const measured = measureAt(size);
+        if (measured > usable) size *= usable / measured;
+        const heightNeeded = size * (lines.length === 1 ? 1 : (1 + lineHeightFactor));
+        if (heightNeeded > maxHeight) size *= maxHeight / heightNeeded;
+        size = Math.max(36, size);
+        maskCtx.font = fontString(size);
+
+        let x = margin;
+        if (state.align === "center") x = W / 2;
+        if (state.align === "right") x = W - margin;
+
+        const lineHeight = size * lineHeightFactor;
+        const totalHeight = lineHeight * (lines.length - 1);
+        let y = H / 2 - totalHeight / 2;
+        if (state.layout === "single") y = H * .52;
+        if (state.layout === "stagger") y = H / 2 - totalHeight / 2;
+
+        lines.forEach((line, i) => {
+          let lx = x;
+          if (state.layout === "stagger" && lines.length > 1) {
+            const nudge = Math.min(140, usable * .09);
+            if (state.align === "left") lx += i * nudge;
+            else if (state.align === "right") lx -= i * nudge;
+            else lx += (i ? nudge : -nudge);
+          }
+          maskCtx.fillText(line, lx, y + i * lineHeight);
+        });
+
+        return { lines, size, x, y, lineHeight };
+      }
+
+      function rebuild(keepMotion = false) {
+        clearTimeout(rebuildTimer);
+        const metrics = drawMask();
+        const data = maskCtx.getImageData(0, 0, W, H).data;
+        const screenFactor = Math.min(1, Math.max(.48, (cssW * cssH) / (1050 * 600)));
+        const effectiveDensity = state.density * screenFactor * (reduceMotion ? .7 : 1);
+        const step = Math.max(5, Math.round(17 - effectiveDensity * .13));
+        const maxParticles = reduceMotion ? 1250 : 2800;
+        const rng = seeded(0x4b504600 ^ hashText(state.phrase) ^ (state.font.charCodeAt(0) << 10));
+        const old = particles;
+        const next = [];
+
+        for (let y = 20; y < H - 20 && next.length < maxParticles; y += step) {
+          for (let x = 20; x < W - 20 && next.length < maxParticles; x += step) {
+            const jitterX = Math.floor((rng() - .5) * step * .55);
+            const jitterY = Math.floor((rng() - .5) * step * .55);
+            const sx = Math.max(0, Math.min(W - 1, x + jitterX));
+            const sy = Math.max(0, Math.min(H - 1, y + jitterY));
+            if (data[(sy * W + sx) * 4 + 3] > 100) {
+              const prev = keepMotion && old.length ? old[next.length % old.length] : null;
+              next.push({
+                x: prev ? prev.x : sx + (rng() - .5) * 22,
+                y: prev ? prev.y : sy + (rng() - .5) * 22,
+                hx: sx, hy: sy,
+                vx: prev ? prev.vx * .4 : (rng() - .5) * 2,
+                vy: prev ? prev.vy * .4 : (rng() - .5) * 2,
+                phase: rng() * Math.PI * 2,
+                size: .65 + rng() * 1.5
+              });
+            }
+          }
+        }
+        particles = next;
+        links = buildLinks(step);
+        buildDust(rng);
+        settleBoost = 25;
+        updateA11y(metrics.lines);
+      }
+
+      function buildLinks(step) {
+        const cellSize = step * 1.75;
+        const cells = new Map();
+        particles.forEach((p, i) => {
+          const key = `${Math.floor(p.hx / cellSize)},${Math.floor(p.hy / cellSize)}`;
+          if (!cells.has(key)) cells.set(key, []);
+          cells.get(key).push(i);
+        });
+
+        const result = [];
+        particles.forEach((p, i) => {
+          const cx = Math.floor(p.hx / cellSize);
+          const cy = Math.floor(p.hy / cellSize);
+          let nearest = [];
+          for (let oy = -1; oy <= 1; oy++) {
+            for (let ox = -1; ox <= 1; ox++) {
+              const list = cells.get(`${cx + ox},${cy + oy}`) || [];
+              list.forEach(j => {
+                if (j <= i) return;
+                const q = particles[j];
+                const dx = q.hx - p.hx;
+                const dy = q.hy - p.hy;
+                const d = Math.hypot(dx, dy);
+                if (d < step * 1.65) nearest.push({ j, d });
+              });
+            }
+          }
+          nearest.sort((a, b) => a.d - b.d);
+          nearest.slice(0, state.lineMode === "grid" ? 3 : 2).forEach(n => {
+            result.push({ a: i, b: n.j, rest: n.d });
+          });
+        });
+        return result.slice(0, 5600);
+      }
+
+      function buildDust(rng) {
+        dust = Array.from({ length: reduceMotion ? 25 : 70 }, () => ({
+          x: rng() * W,
+          y: rng() * H,
+          r: rng() * 1.3 + .2,
+          a: rng() * .4 + .08
+        }));
+      }
+
+      function scheduleRebuild(delay = 100) {
+        clearTimeout(rebuildTimer);
+        rebuildTimer = setTimeout(() => rebuild(true), delay);
+      }
+
+      function updateA11y(lines) {
+        const preset = presets[state.preset]?.name || "Custom";
+        document.getElementById("a11yStatus").textContent =
+          `Current poster phrase: ${lines.join(" / ")}. Preset: ${preset}. ${particles.length} responsive type particles.`;
+      }
+
+      function resize() {
+        const rect = canvas.getBoundingClientRect();
+        cssW = Math.max(1, rect.width);
+        cssH = Math.max(1, rect.height);
+        const dpr = Math.min(devicePixelRatio || 1, 2);
+        canvas.width = Math.round(cssW * dpr);
+        canvas.height = Math.round(cssH * dpr);
+        renderScale = Math.min(canvas.width / W, canvas.height / H);
+        if (!particles.length) rebuild();
+      }
+
+      function screenToPoster(e) {
+        const r = canvas.getBoundingClientRect();
+        const scale = Math.min(r.width / W, r.height / H);
+        const ox = (r.width - W * scale) / 2;
+        const oy = (r.height - H * scale) / 2;
+        return {
+          x: (e.clientX - r.left - ox) / scale,
+          y: (e.clientY - r.top - oy) / scale
+        };
+      }
+
+      function pointerForce(dt) {
+        if (!pointer.inside) return;
+        const radius = pointer.dragging ? 235 : 150;
+        const radius2 = radius * radius;
+        for (const p of particles) {
+          const dx = p.x - pointer.x;
+          const dy = p.y - pointer.y;
+          const d2 = dx * dx + dy * dy;
+          if (d2 > radius2 || d2 < .1) continue;
+          const d = Math.sqrt(d2);
+          const falloff = (1 - d / radius) ** 2;
+          if (pointer.dragging) {
+            const power = 1.45 * falloff * dt;
+            p.vx += (-dy / d) * power + pointer.vx * .022 * falloff;
+            p.vy += (dx / d) * power + pointer.vy * .022 * falloff;
+          } else {
+            p.vx += pointer.vx * .012 * falloff * dt;
+            p.vy += pointer.vy * .012 * falloff * dt;
+            p.vx += (dx / d) * .035 * falloff * dt;
+            p.vy += (dy / d) * .035 * falloff * dt;
+          }
+        }
+      }
+
+      function simulate(dt, now) {
+        if (state.paused) return;
+        const stepDt = Math.min(2, dt / 16.667);
+        pointerForce(stepDt);
+        const spring = state.spring / 1000 * (reduceMotion ? 1.25 : 1);
+        const damping = state.damping / 100;
+        const t = now * .001;
+        const turbulence = state.turbulence * (reduceMotion ? .15 : 1);
+
+        for (const p of particles) {
+          const dx = p.hx - p.x;
+          const dy = p.hy - p.y;
+          const breathe = Math.sin(t * 1.7 + p.phase) * turbulence;
+          p.vx += (dx * spring + breathe * .08) * stepDt;
+          p.vy += (dy * spring + Math.cos(t * 1.25 + p.phase) * turbulence * .08) * stepDt;
+
+          for (const ripple of ripples) {
+            const rx = p.x - ripple.x;
+            const ry = p.y - ripple.y;
+            const dist = Math.hypot(rx, ry) || 1;
+            const band = Math.abs(dist - ripple.radius);
+            if (band < 52) {
+              const f = (1 - band / 52) * ripple.power;
+              p.vx += (rx / dist) * f * stepDt;
+              p.vy += (ry / dist) * f * stepDt;
+            }
+          }
+
+          p.vx *= Math.pow(damping, stepDt);
+          p.vy *= Math.pow(damping, stepDt);
+          if (settleBoost > 0) {
+            p.vx += dx * .015 * stepDt;
+            p.vy += dy * .015 * stepDt;
+          }
+          p.x += p.vx * stepDt;
+          p.y += p.vy * stepDt;
+        }
+
+        ripples.forEach(r => {
+          r.radius += r.speed * stepDt;
+          r.life -= .014 * stepDt;
+          r.power *= .986;
+        });
+        ripples = ripples.filter(r => r.life > 0 && r.radius < 1800);
+        pointer.vx *= .78;
+        pointer.vy *= .78;
+        settleBoost = Math.max(0, settleBoost - stepDt);
+      }
+
+      function setTransform(target, outCtx) {
+        const cw = outCtx.canvas.width;
+        const ch = outCtx.canvas.height;
+        const scale = Math.min(cw / W, ch / H);
+        const ox = (cw - W * scale) / 2;
+        const oy = (ch - H * scale) / 2;
+        target.setTransform(scale, 0, 0, scale, ox, oy);
+        return { scale, ox, oy };
+      }
+
+      function background(target, pal, fadeOnly = false) {
+        const alpha = fadeOnly ? Math.max(.045, 1 - state.trail / 100) : 1;
+        target.save();
+        target.setTransform(1, 0, 0, 1, 0, 0);
+        const grad = target.createRadialGradient(
+          target.canvas.width * .67, target.canvas.height * .42, 0,
+          target.canvas.width * .55, target.canvas.height * .5, target.canvas.width * .8
+        );
+        grad.addColorStop(0, pal.bg2);
+        grad.addColorStop(.56, pal.bg);
+        grad.addColorStop(1, pal.bg);
+        target.globalAlpha = alpha;
+        target.fillStyle = grad;
+        target.fillRect(0, 0, target.canvas.width, target.canvas.height);
+        target.restore();
+      }
+
+      function drawGrid(target, pal) {
+        if (!state.grid) return;
+        target.save();
+        target.lineWidth = 1;
+        target.strokeStyle = pal.grid;
+        target.setLineDash([2, 10]);
+        for (let x = 80; x < W; x += 160) {
+          target.beginPath();
+          target.moveTo(x, 54);
+          target.lineTo(x, H - 54);
+          target.stroke();
+        }
+        for (let y = 90; y < H; y += 90) {
+          target.beginPath();
+          target.moveTo(54, y);
+          target.lineTo(W - 54, y);
+          target.stroke();
+        }
+        target.setLineDash([]);
+        target.strokeStyle = pal.edge;
+        target.globalAlpha = .55;
+        target.lineWidth = 1.2;
+        const m = 42, l = 28;
+        [[m,m,1,1], [W-m,m,-1,1], [m,H-m,1,-1], [W-m,H-m,-1,-1]].forEach(([x,y,sx,sy]) => {
+          target.beginPath();
+          target.moveTo(x, y + sy * l);
+          target.lineTo(x, y);
+          target.lineTo(x + sx * l, y);
+          target.stroke();
+        });
+        target.restore();
+      }
+
+      function drawPoster(target, exporting = false) {
+        const pal = palettes[state.palette];
+        background(target, pal, !exporting && frame > 1);
+        setTransform(target, target);
+        drawGrid(target, pal);
+
+        target.save();
+        target.globalCompositeOperation = state.palette === "ink" ? "multiply" : "screen";
+
+        if (state.lineMode !== "grid") {
+          target.globalAlpha = state.lineMode === "ink" ? .055 : .075;
+          target.drawImage(maskCanvas, 0, 0);
+        }
+
+        if (state.glow > 0) {
+          target.shadowBlur = state.glow;
+          target.shadowColor = pal.edge;
+        }
+
+        const baseWidth = state.weight / 100;
+        target.lineCap = state.lineMode === "grid" ? "square" : "round";
+        target.lineJoin = "round";
+
+        if (state.lineMode === "chrome") {
+          target.lineWidth = baseWidth * 4.2;
+          target.strokeStyle = pal.cool;
+          target.globalAlpha = .12;
+          drawLinks(target, true);
+        }
+
+        target.lineWidth = baseWidth;
+        target.strokeStyle = pal.edge;
+        target.globalAlpha = state.lineMode === "ink" ? .36 : state.lineMode === "grid" ? .32 : .24;
+        drawLinks(target, state.lineMode === "ribbon");
+
+        if (state.lineMode === "ribbon") {
+          target.lineWidth = baseWidth * .4;
+          target.strokeStyle = pal.cool;
+          target.globalAlpha = .5;
+          drawLinks(target, false, 2.2);
+        }
+
+        target.shadowBlur = state.glow * .72;
+        particles.forEach((p, i) => {
+          const speed = Math.min(1, Math.hypot(p.vx, p.vy) / 7);
+          target.globalAlpha = .52 + speed * .42;
+          target.fillStyle = i % 9 === 0 ? pal.hot : (i % 4 === 0 ? pal.cool : pal.ink);
+          let r = p.size * (state.lineMode === "grid" ? .72 : 1);
+          if (state.lineMode === "chrome") r *= 1.2;
+          if (state.lineMode === "ink") r *= 1.7;
+          target.beginPath();
+          if (state.lineMode === "grid") {
+            target.rect(p.x - r, p.y - r, r * 2, r * 2);
+          } else {
+            target.arc(p.x, p.y, r, 0, Math.PI * 2);
+          }
+          target.fill();
+        });
+        target.restore();
+
+        target.save();
+        ripples.forEach(r => {
+          target.beginPath();
+          target.arc(r.x, r.y, r.radius, 0, Math.PI * 2);
+          target.lineWidth = 1.2;
+          target.strokeStyle = pal.edge;
+          target.globalAlpha = Math.max(0, r.life) * .22;
+          target.stroke();
+        });
+        target.restore();
+
+        drawEditorial(target, pal);
+        target.setTransform(1, 0, 0, 1, 0, 0);
+      }
+
+      function drawLinks(target, curved = false, offset = 0) {
+        target.beginPath();
+        for (const link of links) {
+          const a = particles[link.a];
+          const b = particles[link.b];
+          if (!a || !b) continue;
+          target.moveTo(a.x + offset, a.y);
+          if (curved) {
+            const mx = (a.x + b.x) * .5;
+            const my = (a.y + b.y) * .5 + Math.sin(a.phase + frame * .008) * 2.5;
+            target.quadraticCurveTo(mx, my, b.x + offset, b.y);
+          } else {
+            target.lineTo(b.x + offset, b.y);
+          }
+        }
+        target.stroke();
+      }
+
+      function drawEditorial(target, pal) {
+        target.save();
+        target.fillStyle = pal.ink;
+        target.globalAlpha = .58;
+        target.font = '10px "Courier New", monospace';
+        target.textBaseline = "alphabetic";
+        target.textAlign = "left";
+        target.fillText(`KPF / ${String(state.preset + 1).padStart(2, "0")}`, 58, H - 42);
+        target.textAlign = "right";
+        target.fillText(`${particles.length} NODES · ${state.paused ? "HOLD" : "LIVE"}`, W - 58, H - 42);
+
+        dust.forEach(d => {
+          target.globalAlpha = d.a * .4;
+          target.fillRect(d.x, d.y, d.r, d.r);
+        });
+        target.restore();
+      }
+
+      function loop(now) {
+        const dt = now - lastTime;
+        lastTime = now;
+        simulate(dt, now);
+        drawPoster(ctx);
+        frame++;
+        requestAnimationFrame(loop);
+      }
+
+      function addRipple(x, y, power = 1) {
+        ripples.push({ x, y, radius: 5, speed: 18, life: 1, power });
+      }
+
+      function impulse(strength = 16) {
+        const cx = W / 2;
+        const cy = H / 2;
+        particles.forEach(p => {
+          const dx = p.x - cx;
+          const dy = p.y - cy;
+          const d = Math.hypot(dx, dy) || 1;
+          const wave = .55 + Math.sin(d * .017) * .45;
+          p.vx += (dx / d) * strength * wave;
+          p.vy += (dy / d) * strength * wave;
+        });
+        addRipple(cx, cy, strength * .08);
+      }
+
+      function resetSmooth() {
+        particles.forEach(p => {
+          p.vx *= .2;
+          p.vy *= .2;
+        });
+        settleBoost = 70;
+        ripples = [];
+      }
+
+      function updateTheme() {
+        const pal = palettes[state.palette];
+        document.documentElement.style.setProperty("--accent", pal.panel);
+        document.documentElement.style.setProperty("--muted",
+          state.palette === "ink" ? "rgba(242,236,223,.62)" : "rgba(226,242,232,.58)");
+      }
+
+      function syncControls() {
+        const ids = ["font", "layout", "align", "palette", "density", "size", "spring",
+          "damping", "trail", "glow", "margin", "weight", "grid"];
+        ids.forEach(id => {
+          const el = document.getElementById(id);
+          if (!el) return;
+          el[el.type === "checkbox" ? "checked" : "value"] = state[id];
+        });
+        updateOutputs();
+        updateTheme();
+        document.querySelectorAll(".preset").forEach((btn, i) => {
+          const active = i === state.preset;
+          btn.classList.toggle("active", active);
+          btn.setAttribute("aria-pressed", String(active));
+        });
+      }
+
+      function updateOutputs() {
+        const values = {
+          densityOut: state.density,
+          sizeOut: state.size,
+          springOut: (state.spring / 1000).toFixed(3),
+          dampingOut: (state.damping / 100).toFixed(2),
+          trailOut: `${state.trail}%`,
+          glowOut: state.glow,
+          marginOut: state.margin,
+          weightOut: (state.weight / 100).toFixed(2)
+        };
+        Object.entries(values).forEach(([id, value]) => {
+          document.getElementById(id).value = value;
+        });
+      }
+
+      function applyPreset(index, announce = true) {
+        const p = presets[index];
+        Object.assign(state, p, { preset: index });
+        if (reduceMotion) {
+          state.density = Math.min(state.density, 42);
+          state.trail = Math.min(state.trail, 8);
+          state.turbulence *= .15;
+        }
+        syncControls();
+        rebuild(true);
+        impulse(reduceMotion ? 2 : 7);
+        document.getElementById("status").textContent = state.paused ? "Simulation paused" : p.name;
+        if (announce) updateA11y(fitLines(state.phrase));
+      }
+
+      function bindControls() {
+        document.querySelectorAll(".preset").forEach(button => {
+          button.addEventListener("click", () => applyPreset(Number(button.dataset.preset)));
+        });
+
+        const phrase = document.getElementById("phrase");
+        phrase.addEventListener("input", () => {
+          state.phrase = phrase.value;
+          state.preset = -1;
+          syncControls();
+          scheduleRebuild(130);
+        });
+
+        ["font", "layout", "align"].forEach(id => {
+          document.getElementById(id).addEventListener("change", e => {
+            state[id] = e.target.value;
+            state.preset = -1;
+            syncControls();
+            rebuild(true);
+          });
+        });
+
+        document.getElementById("palette").addEventListener("change", e => {
+          state.palette = e.target.value;
+          state.preset = -1;
+          syncControls();
+        });
+
+        ["density", "size", "margin"].forEach(id => {
+          document.getElementById(id).addEventListener("input", e => {
+            state[id] = Number(e.target.value);
+            state.preset = -1;
+            updateOutputs();
+            scheduleRebuild(id === "density" ? 80 : 120);
+          });
+        });
+
+        ["spring", "damping", "trail", "glow", "weight"].forEach(id => {
+          document.getElementById(id).addEventListener("input", e => {
+            state[id] = Number(e.target.value);
+            state.preset = -1;
+            updateOutputs();
+          });
+        });
+
+        document.getElementById("grid").addEventListener("change", e => {
+          state.grid = e.target.checked;
+        });
+
+        document.getElementById("collapse").addEventListener("click", e => {
+          const panel = document.getElementById("panel");
+          const collapsed = panel.classList.toggle("collapsed");
+          e.currentTarget.textContent = collapsed ? "⌃" : "⌄";
+          e.currentTarget.setAttribute("aria-expanded", String(!collapsed));
+          e.currentTarget.setAttribute("aria-label", collapsed ? "Expand controls" : "Collapse controls");
+        });
+
+        document.getElementById("export").addEventListener("click", exportPNG);
+      }
+
+      function bindCanvas() {
+        canvas.addEventListener("pointerenter", () => pointer.inside = true);
+        canvas.addEventListener("pointerleave", () => {
+          if (!pointer.dragging) pointer.inside = false;
+        });
+        canvas.addEventListener("pointerdown", e => {
+          if (e.button !== 0) return;
+          const pos = screenToPoster(e);
+          Object.assign(pointer, { x: pos.x, y: pos.y, px: pos.x, py: pos.y, dragging: true, active: true, inside: true });
+          canvas.setPointerCapture(e.pointerId);
+          canvas.focus({ preventScroll: true });
+        });
+        canvas.addEventListener("pointermove", e => {
+          const pos = screenToPoster(e);
+          pointer.px = pointer.x;
+          pointer.py = pointer.y;
+          pointer.x = pos.x;
+          pointer.y = pos.y;
+          pointer.vx = pointer.vx * .45 + (pointer.x - pointer.px) * .55;
+          pointer.vy = pointer.vy * .45 + (pointer.y - pointer.py) * .55;
+          pointer.inside = true;
+        });
+        const release = e => {
+          if (!pointer.dragging) return;
+          pointer.dragging = false;
+          pointer.active = false;
+          addRipple(pointer.x, pointer.y, reduceMotion ? .28 : .82);
+          try { canvas.releasePointerCapture(e.pointerId); } catch (_) {}
+        };
+        canvas.addEventListener("pointerup", release);
+        canvas.addEventListener("pointercancel", release);
+      }
+
+      function togglePause() {
+        state.paused = !state.paused;
+        document.getElementById("status").textContent = state.paused ? "Simulation paused" : "Live simulation";
+        updateA11y(fitLines(state.phrase));
+      }
+
+      function bindKeys() {
+        addEventListener("keydown", e => {
+          const editing = /INPUT|SELECT|TEXTAREA|BUTTON/.test(document.activeElement?.tagName || "");
+          if (editing) return;
+          if (e.code === "Space") {
+            e.preventDefault();
+            impulse(reduceMotion ? 3 : 16);
+          } else if (e.key.toLowerCase() === "r") {
+            resetSmooth();
+          } else if (e.key.toLowerCase() === "p") {
+            togglePause();
+          } else if (/^[1-4]$/.test(e.key)) {
+            applyPreset(Number(e.key) - 1);
+          }
+        });
+      }
+
+      function exportPNG() {
+        const out = document.createElement("canvas");
+        out.width = W;
+        out.height = H;
+        const outCtx = out.getContext("2d", { alpha: false });
+        background(outCtx, palettes[state.palette], false);
+        drawPoster(outCtx, true);
+        out.toBlob(blob => {
+          if (!blob) return;
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          const slug = (state.phrase.trim() || "kinetic-poster")
+            .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40);
+          a.href = url;
+          a.download = `${slug || "kinetic-poster"}-1600x900.png`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          setTimeout(() => URL.revokeObjectURL(url), 2000);
+          document.getElementById("status").textContent = "PNG exported";
+        }, "image/png");
+      }
+
+      addEventListener("resize", resize);
+      bindControls();
+      bindCanvas();
+      bindKeys();
+      syncControls();
+      resize();
+      rebuild();
+      requestAnimationFrame(loop);
+      setTimeout(() => {
+        if (!reduceMotion) impulse(6);
+      }, 450);
+    })();
+  </script>
+</body>
+</html>

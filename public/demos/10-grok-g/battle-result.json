@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "status": "complete",
+  "title": "The Haunted Queue — Refactor an Async Scheduler",
+  "kind": "dev",
+  "entrypoint": "report.html",
+  "artifacts": [
+    "report.html",
+    "README.md",
+    "legacy/queue.ts",
+    "src/job-queue.ts",
+    "src/types.ts",
+    "src/errors.ts",
+    "src/backoff.ts",
+    "src/index.ts",
+    "src/job-queue.test.ts",
+    "demo.ts",
+    "out/demo.txt"
+  ],
+  "checks": [
+    {
+      "name": "test suite",
+      "command": "bun test",
+      "status": "passed",
+      "details": "All queue semantics tests passed."
+    },
+    {
+      "name": "deterministic demonstration",
+      "command": "bun run demo.ts",
+      "status": "passed",
+      "details": "The mixed-priority demonstration completed without unresolved jobs."
+    }
+  ],
+  "summary": "Replaced the tangled legacy JobQueue with a typed state machine that preserves the public surface, enforces unique live IDs, FIFO-within-priority, correct retry backoff, AbortError cancellation (including backoff timers), and drain that waits for pending, running, and retry-waiting work.",
+  "known_issues": []
+}

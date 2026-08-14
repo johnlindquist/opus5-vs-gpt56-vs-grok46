@@ -1,0 +1,2000 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sand Alchemist — Elemental Cellular Automata</title>
+<style>
+  :root{
+    --bg:#07080c;
+    --panel:#10131b;
+    --panel-2:#161a25;
+    --line:#262c3b;
+    --line-2:#39415a;
+    --ink:#e7ecf5;
+    --ink-dim:#93a0b8;
+    --ink-faint:#5d6880;
+    --accent:#ffb454;
+    --accent-2:#5ad1ff;
+    --focus:#ffd88a;
+    --radius:10px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    background:
+      radial-gradient(1200px 700px at 50% -10%, #141a29 0%, #080a10 55%, #05060a 100%);
+    color:var(--ink);
+    font:13px/1.45 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing:antialiased;
+    overflow:hidden;
+  }
+  .app{
+    height:100vh;
+    display:grid;
+    grid-template-columns:270px 1fr;
+    gap:14px;
+    padding:14px;
+  }
+
+  /* ---------- side panel ---------- */
+  .panel{
+    background:linear-gradient(180deg,var(--panel) 0%, #0c0e15 100%);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    display:flex;
+    flex-direction:column;
+    min-height:0;
+    box-shadow:0 10px 40px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.04);
+  }
+  .brand{
+    padding:12px 14px 10px;
+    border-bottom:1px solid var(--line);
+  }
+  .brand h1{
+    margin:0;
+    font-size:14px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    font-weight:650;
+    color:var(--ink);
+  }
+  .brand p{
+    margin:3px 0 0;
+    font-size:11px;
+    color:var(--ink-faint);
+    letter-spacing:.05em;
+  }
+  .scroll{overflow-y:auto; overflow-x:hidden; min-height:0; flex:1; scrollbar-width:thin; scrollbar-color:var(--line-2) transparent}
+  .scroll::-webkit-scrollbar{width:9px}
+  .scroll::-webkit-scrollbar-thumb{background:var(--line-2); border-radius:9px; border:3px solid transparent; background-clip:padding-box}
+
+  .sec{padding:11px 12px; border-bottom:1px solid var(--line)}
+  .sec:last-child{border-bottom:none}
+  .sec h2{
+    margin:0 0 8px;
+    font-size:10px;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+    font-weight:700;
+  }
+
+  input[type=search]{
+    width:100%;
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    color:var(--ink);
+    border-radius:7px;
+    padding:6px 8px;
+    font:inherit;
+    font-size:12px;
+    margin-bottom:8px;
+  }
+  input[type=search]::placeholder{color:var(--ink-faint)}
+
+  .palette{display:grid; grid-template-columns:repeat(2,1fr); gap:5px}
+  .swatch{
+    display:flex; align-items:center; gap:6px;
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    border-radius:7px;
+    padding:5px 5px;
+    color:var(--ink-dim);
+    font:inherit; font-size:11px;
+    cursor:pointer;
+    text-align:left;
+    min-width:0;
+    transition:border-color .12s, color .12s, background .12s;
+  }
+  .swatch .chip{
+    width:13px; height:13px; flex:0 0 13px;
+    border-radius:3px;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.16);
+  }
+  .swatch .nm{overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .swatch .kb{margin-left:auto; font-size:9px; color:var(--ink-faint); font-variant-numeric:tabular-nums}
+  .swatch:hover{border-color:var(--line-2); color:var(--ink)}
+  .swatch[aria-pressed="true"]{
+    border-color:var(--accent);
+    color:#fff;
+    background:linear-gradient(180deg, rgba(255,180,84,.16), rgba(255,180,84,.05));
+  }
+  .swatch[hidden]{display:none}
+
+  .row{display:flex; gap:5px; flex-wrap:wrap}
+  .btn{
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    color:var(--ink-dim);
+    border-radius:7px;
+    padding:6px 9px;
+    font:inherit; font-size:11px;
+    cursor:pointer;
+    transition:border-color .12s,color .12s,background .12s;
+  }
+  .btn:hover{border-color:var(--line-2); color:var(--ink)}
+  .btn.primary{border-color:var(--line-2); color:var(--ink)}
+  .btn[aria-pressed="true"]{
+    border-color:var(--accent-2);
+    color:#fff;
+    background:linear-gradient(180deg, rgba(90,209,255,.16), rgba(90,209,255,.05));
+  }
+  .btn.wide{flex:1}
+
+  .field{display:flex; align-items:center; gap:8px; margin-top:7px}
+  .field label{font-size:11px; color:var(--ink-dim); flex:0 0 62px}
+  .field output{font-size:11px; color:var(--ink); font-variant-numeric:tabular-nums; flex:0 0 46px; text-align:right}
+  input[type=range]{
+    -webkit-appearance:none; appearance:none;
+    flex:1; height:3px; border-radius:3px; background:var(--line-2); outline:none;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none; appearance:none;
+    width:13px; height:13px; border-radius:50%;
+    background:var(--accent); border:2px solid #1b1408; cursor:pointer;
+  }
+  input[type=range]::-moz-range-thumb{
+    width:11px; height:11px; border-radius:50%;
+    background:var(--accent); border:2px solid #1b1408; cursor:pointer;
+  }
+
+  .summary{
+    margin:8px 0 0;
+    font-size:11px;
+    line-height:1.5;
+    color:var(--ink-dim);
+    background:rgba(90,209,255,.05);
+    border-left:2px solid rgba(90,209,255,.35);
+    padding:7px 9px;
+    border-radius:0 6px 6px 0;
+  }
+  .keys{margin:0; font-size:11px; color:var(--ink-faint); line-height:1.7}
+  .keys b{color:var(--ink-dim); font-weight:600; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:10px}
+
+  /* ---------- stage ---------- */
+  .stage{
+    position:relative;
+    min-width:0; min-height:0;
+    display:flex; flex-direction:column; gap:10px;
+  }
+  .frame{
+    position:relative;
+    flex:1; min-height:0;
+    display:flex; align-items:center; justify-content:center;
+    background:#04050a;
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:10px;
+    box-shadow:0 18px 60px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.05);
+  }
+  .frame::after{
+    content:"";
+    position:absolute; inset:10px;
+    border-radius:8px;
+    pointer-events:none;
+    box-shadow:inset 0 0 90px rgba(0,0,0,.75), inset 0 0 2px rgba(255,255,255,.12);
+  }
+  #view{
+    display:block;
+    max-width:100%; max-height:100%;
+    width:auto; height:auto;
+    aspect-ratio:16/9;
+    border-radius:6px;
+    background:#05060b;
+    cursor:crosshair;
+    touch-action:none;
+    image-rendering:pixelated;
+  }
+  #view:focus-visible{outline:2px solid var(--focus); outline-offset:3px}
+
+  .hud{
+    display:flex; gap:14px; flex-wrap:wrap; align-items:center;
+    padding:8px 12px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    font-size:11px;
+    font-variant-numeric:tabular-nums;
+  }
+  .hud .k{color:var(--ink-faint); letter-spacing:.1em; text-transform:uppercase; font-size:9px; margin-right:5px}
+  .hud .v{color:var(--ink); font-weight:600}
+  .hud .sep{width:1px; height:14px; background:var(--line)}
+  .hud .dot{width:8px;height:8px;border-radius:2px;display:inline-block;vertical-align:-1px;margin-right:5px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.2)}
+
+  :focus-visible{outline:2px solid var(--focus); outline-offset:2px; border-radius:4px}
+
+  .sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+  @media (max-width:1080px){
+    .app{grid-template-columns:238px 1fr}
+    .palette{grid-template-columns:repeat(2,1fr)}
+  }
+  @media (max-width:820px){
+    .app{grid-template-columns:1fr; grid-template-rows:auto 1fr; overflow:auto; height:auto; min-height:100vh}
+    .panel{max-height:44vh}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ================= SIDE PANEL ================= -->
+  <aside class="panel">
+    <div class="brand">
+      <h1>Sand Alchemist</h1>
+      <p>Elemental cellular automata lab</p>
+    </div>
+
+    <div class="scroll">
+
+      <section class="sec" aria-labelledby="h-mat">
+        <h2 id="h-mat">Materials</h2>
+        <label class="sr" for="matSearch">Search materials</label>
+        <input type="search" id="matSearch" placeholder="Search materials  ( / )" autocomplete="off" spellcheck="false">
+        <div class="palette" id="palette" role="group" aria-label="Material palette"></div>
+      </section>
+
+      <section class="sec" aria-labelledby="h-brush">
+        <h2 id="h-brush">Brush</h2>
+        <div class="field">
+          <label for="brush">Size</label>
+          <input type="range" id="brush" min="1" max="40" step="1" value="6">
+          <output id="brushOut">6</output>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <button class="btn wide" id="btnErase" aria-pressed="false" title="Eraser (E) — right-drag also erases">Eraser</button>
+          <button class="btn wide" id="btnReplace" aria-pressed="false" title="Only paint into empty space">Additive</button>
+        </div>
+      </section>
+
+      <section class="sec" aria-labelledby="h-sim">
+        <h2 id="h-sim">Simulation</h2>
+        <div class="row">
+          <button class="btn wide primary" id="btnPlay" aria-pressed="false">Pause</button>
+          <button class="btn wide" id="btnStep" title="Advance one tick while paused">Step</button>
+        </div>
+        <div class="row" style="margin-top:5px">
+          <button class="btn wide" id="btnReset" title="Restore the selected preset (R)">Reset</button>
+          <button class="btn wide" id="btnClear" title="Empty the world">Clear</button>
+        </div>
+        <div class="field">
+          <label for="speed">Speed</label>
+          <input type="range" id="speed" min="0" max="8" step="1" value="4">
+          <output id="speedOut">1.00×</output>
+        </div>
+        <div class="field">
+          <label for="seed">Seed</label>
+          <input type="range" id="seed" min="1" max="999" step="1" value="137">
+          <output id="seedOut">137</output>
+        </div>
+      </section>
+
+      <section class="sec" aria-labelledby="h-scene">
+        <h2 id="h-scene">Scenes</h2>
+        <div class="row" id="presets" role="group" aria-label="Preset scenes"></div>
+        <p class="summary" id="presetSummary" role="status" aria-live="polite"></p>
+      </section>
+
+      <section class="sec" aria-labelledby="h-view">
+        <h2 id="h-view">Presentation</h2>
+        <div class="row">
+          <button class="btn wide" id="btnBloom" aria-pressed="true">Bloom</button>
+          <button class="btn wide" id="btnParticles" aria-pressed="true">Embers</button>
+        </div>
+        <div class="row" style="margin-top:5px">
+          <button class="btn wide" id="btnHeat" aria-pressed="false" title="Tint every cell by its temperature">Heat view</button>
+          <button class="btn wide" id="btnMotion" aria-pressed="false" title="Disable decorative motion and secondary particles">Reduced motion</button>
+        </div>
+      </section>
+
+      <section class="sec" aria-labelledby="h-keys">
+        <h2 id="h-keys">Controls</h2>
+        <p class="keys">
+          <b>1–9</b> pick material · <b>0</b> eraser<br>
+          <b>drag</b> paint · <b>right-drag</b> erase<br>
+          <b>Shift+click</b> line from last point<br>
+          <b>wheel</b> or <b>[ ]</b> brush size<br>
+          <b>Space</b> pause · <b>.</b> single tick<br>
+          <b>R</b> reset preset · <b>C</b> clear<br>
+          <b>F1–F4</b> scenes · <b>/</b> search<br>
+          <b>Tab</b> to canvas, then <b>arrows</b> to move the cursor and <b>Enter</b> to paint
+        </p>
+      </section>
+
+    </div>
+  </aside>
+
+  <!-- ================= STAGE ================= -->
+  <main class="stage">
+    <div class="frame">
+      <canvas id="view" width="1600" height="900" tabindex="0"
+        role="application"
+        aria-label="Sand Alchemist simulation canvas. Use arrow keys to move the paint cursor and Enter to paint the selected material."></canvas>
+    </div>
+    <div class="hud" role="status" aria-live="off">
+      <span><span class="k">FPS</span><span class="v" id="sFps">–</span></span>
+      <span class="sep"></span>
+      <span><span class="k">Active</span><span class="v" id="sActive">0</span></span>
+      <span class="sep"></span>
+      <span><span class="k">Filled</span><span class="v" id="sFilled">0</span></span>
+      <span class="sep"></span>
+      <span><span class="k">Material</span><span class="v" id="sMat"><span class="dot" id="sDot"></span>Sand</span></span>
+      <span class="sep"></span>
+      <span><span class="k">Brush</span><span class="v" id="sBrush">6</span></span>
+      <span class="sep"></span>
+      <span><span class="k">Seed</span><span class="v" id="sSeed">137</span></span>
+      <span class="sep"></span>
+      <span><span class="k">Scene</span><span class="v" id="sScene">Volcano</span></span>
+      <span class="sep"></span>
+      <span><span class="k">Tick</span><span class="v" id="sTick">0</span></span>
+    </div>
+  </main>
+</div>
+
+<script>
+"use strict";
+/* =========================================================================
+   SAND ALCHEMIST
+   A falling-sand cellular automaton with a coherent temperature field.
+
+   World model
+   -----------
+   Fixed logical grid: GW x GH cells (400 x 225), presented at 1600x900 via a
+   4x nearest-neighbour upscale. The world resolution never changes, so a
+   browser resize only rescales the *view* (CSS) and the world is preserved
+   bit-for-bit. See README for the rationale.
+
+   Per-cell state (4 bytes total):
+     mat   Uint8   material id
+     aux   Uint8   material-specific counter (fire life, plant vigour, ...)
+     temp  Int16   temperature in degrees C
+     stamp Uint16  tick number of last update (prevents double-updating)
+   ========================================================================= */
+
+/* ------------------------------ constants ------------------------------ */
+const GW = 400, GH = 225, SCALE = 4;
+const VW = GW * SCALE, VH = GH * SCALE;
+const CHUNK = 16;
+const CW = Math.ceil(GW / CHUNK), CH = Math.ceil(GH / CHUNK);
+const AMBIENT = 20;
+/* Chill budget handed to ice that forms *by freezing*. It is zero on purpose:
+   painted and preset ice actively chills (budget 255), but ice that appears
+   because water froze is inert, so a freeze front reaches only as far as the
+   original ice can carry cold by conduction. Give it any positive value and
+   every frozen cell becomes a fresh refrigerator, and the whole world ices
+   over within a minute. */
+const FREEZE_CHILL = 0;
+
+/* material ids */
+const EMPTY=0, SAND=1, WATER=2, STONE=3, WOOD=4, PLANT=5, FIRE=6, OIL=7,
+      ICE=8, STEAM=9, LAVA=10, SALT=11, BRINE=12, ASH=13, SMOKE=14,
+      GLASS=15, ACID=16, WALL=17;
+const NMAT = 18;
+
+/* phase kinds */
+const K_NONE=0, K_POWDER=1, K_LIQUID=2, K_GAS=3, K_SOLID=4;
+
+/* Material table.
+   c      base colour
+   v      per-cell colour variance
+   kind   movement class
+   d      density (movement/displacement ordering)
+   disp   lateral dispersion attempts for liquids
+   cond   thermal conductivity 0..1
+   flam   flammability 0..1 (chance/tick to catch from an adjacent flame)
+   burn   fire lifetime granted when this material ignites
+   emis   emissive strength for the bloom pass
+*/
+const M = new Array(NMAT);
+function def(id, o){ M[id] = Object.assign({
+  id, name:"?", c:[0,0,0], v:0, kind:K_NONE, d:1, disp:0, cond:.14,
+  flam:0, burn:0, emis:0, key:"", desc:""
+}, o); }
+
+def(EMPTY,{name:"Empty",   c:[8,9,14],     v:0,  kind:K_NONE,  d:0.10, cond:.30, key:"0",
+  desc:"Vacant air. Carries heat quickly and drifts back toward 20°C."});
+def(SAND, {name:"Sand",    c:[214,174,96], v:22, kind:K_POWDER,d:2.60, cond:.10, key:"1",
+  desc:"Granular powder. Falls, slides down slopes and piles into cones. Above 1250°C it fuses into glass."});
+def(WATER,{name:"Water",   c:[52,116,222], v:12, kind:K_LIQUID,d:1.00, disp:10, cond:.22, key:"2",
+  desc:"Flows, seeks the lowest level and self-levels. Boils to steam at 100°C, freezes to ice at 0°C."});
+def(STONE,{name:"Stone",   c:[110,116,132],v:16, kind:K_SOLID, d:5.00, cond:.13, key:"3",
+  desc:"Static rock. Stores heat and glows dull orange while cooling from lava."});
+def(WOOD, {name:"Wood",    c:[124,84,46],  v:16, kind:K_SOLID, d:4.00, cond:.06, flam:.030, burn:150, key:"4",
+  desc:"Static fuel. Ignites from flame or 320°C, burns long and leaves ash."});
+def(PLANT,{name:"Plant",   c:[74,178,86],  v:22, kind:K_SOLID, d:3.00, cond:.08, flam:.20, burn:46, key:"5",
+  desc:"Grows into empty space when it can drink adjacent water and is rooted on soil, stone, wood or plant. Very flammable."});
+def(FIRE, {name:"Fire",    c:[255,150,44], v:34, kind:K_GAS,   d:0.06, cond:.34, emis:1.0, key:"6",
+  desc:"Rises and flickers, holds itself near 780°C, ignites fuel and expires when its life runs out or its fuel is gone."});
+def(OIL,  {name:"Oil",     c:[92,68,52],   v:12, kind:K_LIQUID,d:0.80, disp:6, cond:.14, flam:.60, burn:80, key:"7",
+  desc:"Lighter than water, so it floats on top of it. Catches fire on the smallest spark and burns fast and hot."});
+def(ICE,  {name:"Ice",     c:[168,214,238],v:14, kind:K_SOLID, d:0.92, cond:.20, key:"8",
+  desc:"Static. Pins itself to -12°C, chilling everything nearby, and melts back to water above 0°C."});
+def(STEAM,{name:"Steam",   c:[196,208,224],v:14, kind:K_GAS,   d:0.30, cond:.24, emis:.14, key:"⇧9",
+  desc:"Rises through liquids and air, cools as it climbs and condenses back to water below 90°C."});
+def(LAVA, {name:"Lava",    c:[236,96,26],  v:20, kind:K_LIQUID,d:3.60, disp:2, cond:.24, emis:1.0, key:"9",
+  desc:"Sluggish molten rock held near 1300°C. Ignites fuel, flashes water to steam, and freezes into stone below 640°C."});
+def(SALT, {name:"Salt",    c:[236,236,240],v:12, kind:K_POWDER,d:2.20, cond:.12, key:"⇧1",
+  desc:"Powder. Dissolves into adjacent water to make brine, and melts ice on contact (a de-icer)."});
+def(BRINE,{name:"Brine",   c:[86,148,196], v:12, kind:K_LIQUID,d:1.12, disp:10, cond:.21, key:"⇧2",
+  desc:"Salt water. Denser than fresh water and does not freeze until -14°C. Boiling it leaves the salt behind."});
+def(ASH,  {name:"Ash",     c:[92,88,88],   v:16, kind:K_POWDER,d:1.70, cond:.10, key:"⇧3",
+  desc:"Inert powder left by fire. Piles like sand but drifts more loosely."});
+def(SMOKE,{name:"Smoke",   c:[64,64,72],   v:12, kind:K_GAS,   d:0.22, cond:.26, key:"⇧4",
+  desc:"Rises, spreads and fades away after a while."});
+def(GLASS,{name:"Glass",   c:[176,214,220],v:10, kind:K_SOLID, d:4.50, cond:.16, key:"⇧5",
+  desc:"Fused sand. Static and transparent-looking; melts back to lava above 1500°C."});
+def(ACID, {name:"Acid",    c:[150,226,60], v:16, kind:K_LIQUID,d:1.05, disp:7, cond:.18, emis:.22, key:"⇧6",
+  desc:"Eats sand, stone, wood, plant, glass and ash, venting smoke and consuming itself as it works."});
+def(WALL, {name:"Wall",    c:[46,50,62],   v:6,  kind:K_SOLID, d:9.00, cond:.05, key:"⇧7",
+  desc:"Indestructible container. Immune to acid, heat and every reaction."});
+
+/* number-key order — the first nine materials */
+const QUICK = [SAND, WATER, STONE, WOOD, PLANT, FIRE, OIL, ICE, LAVA];
+/* palette display order */
+const PAL_ORDER = [SAND, WATER, STONE, WOOD, PLANT, FIRE, OIL, ICE, LAVA,
+                   STEAM, SALT, BRINE, ASH, SMOKE, GLASS, ACID, WALL, EMPTY];
+
+const KIND = new Uint8Array(NMAT), DENS = new Float32Array(NMAT),
+      COND = new Float32Array(NMAT), FLAM = new Float32Array(NMAT),
+      BURN = new Uint16Array(NMAT), EMIS = new Float32Array(NMAT);
+for (let i=0;i<NMAT;i++){
+  KIND[i]=M[i].kind; DENS[i]=M[i].d; COND[i]=M[i].cond;
+  FLAM[i]=M[i].flam; BURN[i]=M[i].burn; EMIS[i]=M[i].emis;
+}
+const BURNABLE = new Uint8Array(NMAT);
+for (let i=0;i<NMAT;i++) BURNABLE[i] = FLAM[i] > 0 ? 1 : 0;
+
+/* ------------------------------ world state ---------------------------- */
+const N = GW * GH;
+const mat   = new Uint8Array(N);
+const aux   = new Uint8Array(N);
+let   temp  = new Int16Array(N);
+let   temp2 = new Int16Array(N);
+const stamp = new Uint16Array(N);
+
+/* chunk activity — cells only update inside awake chunks */
+let chunkA = new Uint8Array(CW * CH);   // awake this tick
+let chunkB = new Uint8Array(CW * CH);   // awake next tick
+
+let tick = 1;
+let activeCells = 0, filledCells = 0;
+
+/* --------------------------- seeded randomness -------------------------- */
+/* One PRNG drives both scene generation and the simulation, so a given seed
+   plus a given input history reproduces exactly. */
+let rngState = 0;
+function srand(s){ rngState = (s >>> 0) || 1; }
+function rnd(){
+  rngState |= 0; rngState = (rngState + 0x6D2B79F5) | 0;
+  let t = Math.imul(rngState ^ (rngState >>> 15), 1 | rngState);
+  t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+}
+function rint(n){ return (rnd() * n) | 0; }
+
+/* stable per-cell colour noise (fixed, so materials do not shimmer) */
+const noise = new Int8Array(N);
+(function(){ srand(90210); for (let i=0;i<N;i++) noise[i] = ((rnd()*255)|0) - 128; })();
+
+/* ------------------------------- helpers -------------------------------- */
+function idx(x,y){ return y*GW + x; }
+function inb(x,y){ return x>=0 && x<GW && y>=0 && y<GH; }
+
+function wake(x,y){
+  const cx = (x/CHUNK)|0, cy = (y/CHUNK)|0;
+  chunkB[cy*CW+cx] = 1;
+  const lx = x - cx*CHUNK, ly = y - cy*CHUNK;
+  if (lx===0        && cx>0)    chunkB[cy*CW+cx-1] = 1;
+  if (lx===CHUNK-1  && cx<CW-1) chunkB[cy*CW+cx+1] = 1;
+  if (ly===0        && cy>0)    chunkB[(cy-1)*CW+cx] = 1;
+  if (ly===CHUNK-1  && cy<CH-1) chunkB[(cy+1)*CW+cx] = 1;
+}
+function wakeAll(){ chunkA.fill(1); chunkB.fill(1); }
+
+/* write a cell; wakes the neighbourhood so settled regions restart */
+function setCell(i, m, t, a){
+  mat[i] = m;
+  aux[i] = a === undefined ? defaultAux(m) : a;
+  if (t !== undefined) temp[i] = t;
+  const y = (i/GW)|0, x = i - y*GW;
+  wake(x,y);
+  if (x>0) wake(x-1,y); if (x<GW-1) wake(x+1,y);
+  if (y>0) wake(x,y-1); if (y<GH-1) wake(x,y+1);
+}
+function defaultAux(m){
+  switch(m){
+    case LAVA:  return 255;
+    case ICE:   return 255;
+    case FIRE:  return 40 + rint(45);
+    case STEAM: return 150 + rint(90);
+    case SMOKE: return 90 + rint(90);
+    case PLANT: return 10;
+    case ACID:  return 70;
+    default:    return 0;
+  }
+}
+function swapCells(i,j){
+  const m=mat[i]; mat[i]=mat[j]; mat[j]=m;
+  const a=aux[i]; aux[i]=aux[j]; aux[j]=a;
+  const t=temp[i]; temp[i]=temp[j]; temp[j]=t;
+}
+
+/* Can material `a` push into a cell holding `b`?  `up` marks upward motion,
+   which lets gases bubble through liquids. */
+function canPass(a, b, up){
+  if (b === EMPTY) return true;
+  if (b === WALL) return false;
+  const ka = KIND[a], kb = KIND[b];
+  if (ka === K_POWDER)  return (kb===K_LIQUID || kb===K_GAS) && DENS[a] > DENS[b];
+  if (ka === K_LIQUID)  return kb===K_GAS || (kb===K_LIQUID && DENS[a] > DENS[b]+0.05);
+  if (ka === K_GAS)     return (kb===K_GAS && DENS[a] < DENS[b]-0.02) || (up && kb===K_LIQUID);
+  return false;
+}
+
+/* move cell i (at x,y) to (nx,ny) if allowed; stamps the destination */
+function tryMove(i, x, y, nx, ny){
+  if (nx<0 || nx>=GW || ny<0 || ny>=GH) return false;
+  const j = ny*GW + nx;
+  if (!canPass(mat[i], mat[j], ny < y)) return false;
+  swapCells(i, j);
+  stamp[j] = tick;
+  wake(x,y); wake(nx,ny);
+  activeCells++;
+  return true;
+}
+
+/* ======================= temperature field ============================== */
+/* Explicit diffusion over the whole grid every tick. Cheap (N simple ops) and
+   it is what wakes sleeping chunks when heat arrives from elsewhere. */
+function diffuseHeat(){
+  const src = temp, dst = temp2;
+  for (let y=0; y<GH; y++){
+    const row = y*GW;
+    for (let x=0; x<GW; x++){
+      const i = row + x;
+      const m = mat[i];
+      const t = src[i];
+      if (m === WALL){ dst[i] = AMBIENT; continue; }
+      let sum = 0, n = 0;
+      if (x>0)    { sum += src[i-1];  n++; }
+      if (x<GW-1) { sum += src[i+1];  n++; }
+      if (y>0)    { sum += src[i-GW]; n++; }
+      if (y<GH-1) { sum += src[i+GW]; n++; }
+      // out-of-bounds sides act as ambient air
+      const missing = 4 - n;
+      sum += missing * AMBIENT; n = 4;
+      let nt = t + COND[m] * (sum / n - t);
+      // gentle relaxation toward ambient so the world does not cook forever
+      nt += (AMBIENT - nt) * (m === EMPTY ? 0.035 : 0.008);
+      if (nt > 2400) nt = 2400; else if (nt < -260) nt = -260;
+      dst[i] = nt;
+      /* Wake on temperature *change*, not on absolute temperature. Waking any
+         cell that merely differs from ambient means a large cold lake or hot
+         rock mass never sleeps at all, which costs more than the sleeping
+         optimisation saves. Once a thermal gradient reaches steady state it
+         stops changing and the region can rest. */
+      const d = nt - t;
+      if (d > 0.6 || d < -0.6) wake(x,y);
+    }
+  }
+  const t = temp; temp = temp2; temp2 = t;
+}
+
+/* clamp a cell toward a driven temperature (heat/cold sources) */
+function drive(i, target, rate){
+  temp[i] += (target - temp[i]) * rate;
+}
+
+/* Latent heat of a phase change, dumped into (or pulled out of) the four
+   neighbours. This is what stops a freeze front from being a free, endlessly
+   self-propagating chain: every cell that turns to ice warms the water beside
+   it, so the front stalls unless something keeps carrying that heat away.
+   Boiling works the same way in reverse and is why water quenches lava. */
+function latent(x, y, delta, bound){
+  for (let d=0; d<4; d++){
+    const nx = x + (d===0?-1:d===1?1:0), ny = y + (d===2?-1:d===3?1:0);
+    if (nx<0||nx>=GW||ny<0||ny>=GH) continue;
+    const j = ny*GW+nx;
+    if (mat[j] === WALL) continue;
+    const was = temp[j];
+    let t = was + delta;
+    /* `bound` stops a phase change from overshooting into nonsense — boiling
+       must never chill its neighbour below freezing (water beside lava does
+       not turn to ice), and freezing must not cook the water beside it. */
+    if (bound !== undefined){
+      if (delta < 0 && t < bound) t = was < bound ? was : bound;
+      else if (delta > 0 && t > bound) t = was > bound ? was : bound;
+    }
+    temp[j] = t > 2400 ? 2400 : (t < -260 ? -260 : t);
+    wake(nx, ny);
+  }
+}
+
+/* Radiative coupling. Diffusion alone is far too slow for contact reactions
+   (a log touching a flame would take thousands of ticks to reach its ignition
+   point), so flames, lava and ice also push their four neighbours directly
+   toward a driving temperature. This is what makes "fire heats what it
+   touches" and "ice chills what it touches" legible in a few seconds. */
+function radiate(x, y, target, rate){
+  for (let d=0; d<4; d++){
+    const nx = x + (d===0?-1:d===1?1:0), ny = y + (d===2?-1:d===3?1:0);
+    if (nx<0||nx>=GW||ny<0||ny>=GH) continue;
+    const j = ny*GW+nx;
+    if (mat[j] === WALL) continue;
+    const t = temp[j] + (target - temp[j]) * rate;
+    temp[j] = t > 2400 ? 2400 : (t < -260 ? -260 : t);
+    wake(nx, ny);
+  }
+}
+
+/* ============================ cell behaviours =========================== */
+
+/* Try to ignite the eight neighbours. Returns true if any unburnt fuel is
+   still in contact, which flames use to decide whether to sit on their meal
+   or drift upward. */
+function neighborsIgnite(x, y, chance){
+  let fuel = false;
+  for (let dy=-1; dy<=1; dy++){
+    const ny = y+dy; if (ny<0||ny>=GH) continue;
+    for (let dx=-1; dx<=1; dx++){
+      if (!dx && !dy) continue;
+      const nx = x+dx; if (nx<0||nx>=GW) continue;
+      const j = ny*GW+nx, mj = mat[j];
+      if (!BURNABLE[mj]) continue;
+      fuel = true;
+      if (rnd() < FLAM[mj]*chance){
+        setCell(j, FIRE, Math.max(temp[j], 620), Math.min(255, BURN[mj] + rint(30)));
+      }
+    }
+  }
+  return fuel;
+}
+
+function hasNeighbor(x, y, m){
+  if (y>0    && mat[(y-1)*GW+x]===m) return true;
+  if (y<GH-1 && mat[(y+1)*GW+x]===m) return true;
+  if (x>0    && mat[y*GW+x-1]===m)   return true;
+  if (x<GW-1 && mat[y*GW+x+1]===m)   return true;
+  return false;
+}
+
+/* --- powders: fall, then slide diagonally ------------------------------- */
+function movePowder(i, x, y, m){
+  if (tryMove(i,x,y,x,y+1)) return true;
+  const dir = rnd() < .5 ? -1 : 1;
+  if (tryMove(i,x,y,x+dir,y+1)) return true;
+  if (tryMove(i,x,y,x-dir,y+1)) return true;
+  // sand submerged in a liquid also creeps sideways so piles settle flat-ish
+  if (m===ASH && rnd()<.18){
+    if (tryMove(i,x,y,x+dir,y)) return true;
+  }
+  return false;
+}
+
+/* --- liquids: fall, spill diagonally, then flow along the surface -------- */
+function moveLiquid(i, x, y, m){
+  if (tryMove(i,x,y,x,y+1)) return true;
+  const dir = rnd() < .5 ? -1 : 1;
+  if (tryMove(i,x,y,x+dir,y+1)) return true;
+  if (tryMove(i,x,y,x-dir,y+1)) return true;
+  /* Surface flow.
+     Walking only over open cells leaves standing mounds as a *fixed point*:
+     on a broad dome every surface cell has its own liquid on both sides at
+     the same row, so nothing can ever move and the dome never relaxes.
+     So the walk is allowed to wade through its own liquid until it finds an
+     opening — that is the hydrostatic "water finds its level" behaviour —
+     and once it is over open ground it runs to the furthest reachable cell
+     (or the first hole) so spreading still looks fast. */
+  const disp = M[m].disp;
+  if (disp > 0){
+    let best = -1, bx = x;
+    for (let s=1; s<=disp; s++){
+      const nx = x + dir*s;
+      if (nx<0||nx>=GW) break;
+      const j = y*GW+nx, mj = mat[j];
+      if (mj === m){                    // our own liquid: wade onward
+        if (best >= 0) break;           // unless we already found room closer in
+        continue;
+      }
+      if (!canPass(m, mj, false)) break;
+      best = j; bx = nx;
+      if (y<GH-1 && canPass(m, mat[j+GW], false)) break;   // a hole: take it
+    }
+    if (best >= 0 && bx !== x){
+      swapCells(i, best);
+      stamp[best] = tick;
+      wake(x,y); wake(bx,y);
+      activeCells++;
+      return true;
+    }
+  }
+  return false;
+}
+
+/* --- gases: rise, wander ------------------------------------------------ */
+function moveGas(i, x, y, m){
+  const dir = rnd() < .5 ? -1 : 1;
+  if (rnd() < .82 && tryMove(i,x,y,x,y-1)) return true;
+  if (tryMove(i,x,y,x+dir,y-1)) return true;
+  if (tryMove(i,x,y,x-dir,y-1)) return true;
+  if (rnd() < .6 && tryMove(i,x,y,x+dir,y)) return true;
+  return false;
+}
+
+/* ------------------------------ per material ---------------------------- */
+function updateCell(i, x, y, m){
+  const t = temp[i];
+
+  switch(m){
+
+  case SAND:
+    // vitrification point sits above what an open flame can drive sand to,
+    // so only direct lava contact turns a beach into glass
+    if (t > 950 && rnd() < .30){ setCell(i, GLASS, t); return; }
+    movePowder(i,x,y,m);
+    return;
+
+  case ASH:
+    movePowder(i,x,y,m);
+    return;
+
+  case SALT:
+    // dissolve into adjacent water -> brine (salt is consumed)
+    for (let d=0; d<4; d++){
+      const nx = x + (d===0?-1:d===1?1:0), ny = y + (d===2?-1:d===3?1:0);
+      if (!inb(nx,ny)) continue;
+      const j = ny*GW+nx;
+      if (mat[j] === WATER && rnd() < .30){
+        setCell(j, BRINE, temp[j]);
+        setCell(i, EMPTY, t);
+        return;
+      }
+      // salt melts ice: a de-icer, modelled as a direct phase change
+      if (mat[j] === ICE && rnd() < .16){
+        setCell(j, WATER, Math.max(temp[j], -6));
+        setCell(i, EMPTY, t);
+        return;
+      }
+    }
+    movePowder(i,x,y,m);
+    return;
+
+  case WATER: {
+    if (t >= 100){ setCell(i, STEAM, 108); latent(x,y,-26,12); activeCells++; return; }
+    if (t <= 0 && rnd() < .30){ setCell(i, ICE, -1, FREEZE_CHILL); latent(x,y,22,60); activeCells++; return; }
+    moveLiquid(i,x,y,m);
+    return;
+  }
+
+  case BRINE: {
+    if (t >= 104){
+      // boiling brine leaves its salt behind
+      if (rnd() < .28) setCell(i, SALT, Math.max(t,110));
+      else             setCell(i, STEAM, 108);
+      latent(x,y,-26,12);
+      activeCells++; return;
+    }
+    if (t <= -14 && rnd() < .30){ setCell(i, ICE, -15, FREEZE_CHILL); latent(x,y,22,60); activeCells++; return; }
+    moveLiquid(i,x,y,m);
+    return;
+  }
+
+  case ICE: {
+    /* Ice carries a finite chill budget in aux, exactly mirroring lava's heat
+       budget. Without it a single ice cube is a free refrigerator that will
+       eventually convert every drop of water in the world, because each cell
+       it freezes becomes another unbounded cold source. Ice formed *by*
+       freezing inherits only a small budget (FREEZE_CHILL), so a freeze front
+       runs a short distance and then stalls against its own latent heat. */
+    const chill = aux[i];
+    if (chill > 0){
+      drive(i, -22, 0.40);
+      radiate(x, y, -20, 0.10);
+      if (rnd() < .35) aux[i] = chill - 1;
+    }
+    if (temp[i] > 0 && rnd() < .10){ setCell(i, WATER, 1); latent(x,y,-22,-60); activeCells++; }
+    else if (chill > 0 || temp[i] > -6) wake(x,y);   // deep-frozen ice may rest
+    return;
+  }
+
+  case STEAM: {
+    let a = aux[i];
+    if (temp[i] < 90 && rnd() < .035){ setCell(i, WATER, Math.max(temp[i],4)); latent(x,y,10,60); activeCells++; return; }
+    if (a <= 1){ setCell(i, WATER, Math.max(temp[i],4)); latent(x,y,10,60); activeCells++; return; }
+    aux[i] = a - 1;
+    drive(i, 108, 0.05);
+    moveGas(i,x,y,m);
+    wake(x,y);
+    return;
+  }
+
+  case SMOKE: {
+    let a = aux[i];
+    if (a <= 1){ setCell(i, EMPTY, temp[i]); activeCells++; return; }
+    aux[i] = a - 1;
+    moveGas(i,x,y,m);
+    wake(x,y);
+    return;
+  }
+
+  case OIL:
+    if (t > 300 && rnd() < .25){ setCell(i, FIRE, Math.max(t,700), BURN[OIL]); return; }
+    moveLiquid(i,x,y,m);
+    return;
+
+  case ACID: {
+    let a = aux[i];
+    for (let d=0; d<4; d++){
+      const nx = x + (d===0?-1:d===1?1:0), ny = y + (d===2?-1:d===3?1:0);
+      if (!inb(nx,ny)) continue;
+      const j = ny*GW+nx, mj = mat[j];
+      if ((mj===SAND||mj===STONE||mj===WOOD||mj===PLANT||mj===GLASS||mj===ASH) && rnd() < .10){
+        setCell(j, SMOKE, temp[j]);
+        a -= 22;
+        break;
+      }
+    }
+    if (a <= 0){ setCell(i, SMOKE, t); return; }
+    aux[i] = a;
+    moveLiquid(i,x,y,m);
+    return;
+  }
+
+  case LAVA: {
+    /* Lava carries a finite heat budget in aux rather than being an infinite
+       source. Without it a large molten pool reheats itself every tick and can
+       never crust over; with it, a flow stays incandescent for roughly twelve
+       seconds of real time and then cools through glowing stone to grey. */
+    const heat = aux[i];
+    if (heat > 0){
+      drive(i, 1320, 0.16);
+      radiate(x, y, 1150, 0.12);
+      if (rnd() < .35) aux[i] = heat - 1;
+    }
+    // quench against water / ice / steam: the coolant flashes off, lava skins over
+    for (let d=0; d<4; d++){
+      const nx = x + (d===0?-1:d===1?1:0), ny = y + (d===2?-1:d===3?1:0);
+      if (!inb(nx,ny)) continue;
+      const j = ny*GW+nx, mj = mat[j];
+      if (mj===WATER || mj===BRINE || mj===ICE){
+        setCell(j, STEAM, 130);
+        temp[i] -= 240;
+        if (rnd() < .55){ setCell(i, STONE, Math.max(temp[i], 500)); return; }
+      }
+    }
+    neighborsIgnite(x, y, 1.35);
+    if (temp[i] < 640){ setCell(i, STONE, temp[i]); activeCells++; return; }
+    if (rnd() < .42) moveLiquid(i,x,y,m);   // deliberately sluggish
+    wake(x,y);
+    return;
+  }
+
+  case FIRE: {
+    let a = aux[i];
+    drive(i, 820, 0.45);
+    radiate(x, y, 900, 0.13);
+    const fuel = neighborsIgnite(x, y, 1.0);
+
+    // fire needs air; drowned flame dies at once
+    if (hasNeighbor(x,y,WATER) || hasNeighbor(x,y,BRINE) || hasNeighbor(x,y,ICE)){
+      setCell(i, STEAM, 120); activeCells++; return;
+    }
+    if (a <= 1){
+      if (rnd() < .22)      setCell(i, SMOKE, temp[i]);
+      else if (rnd() < .10) setCell(i, ASH,   temp[i]);
+      else                  setCell(i, EMPTY, temp[i]);
+      activeCells++; return;
+    }
+    aux[i] = a - 1;
+    // A flame clings to whatever it is eating and only drifts up once the
+    // fuel beside it is gone — otherwise flames float off their own fire.
+    if (rnd() < (fuel ? .10 : .55)) moveGas(i,x,y,m);
+    wake(x,y);
+    return;
+  }
+
+  case WOOD: {
+    if (t > 430 && rnd() < .07){ setCell(i, FIRE, Math.max(t,650), BURN[WOOD]); }
+    return;
+  }
+
+  case PLANT: {
+    if (t > 150 && rnd() < .30){ setCell(i, FIRE, Math.max(t,600), BURN[PLANT]); return; }
+    if (t < -6 && rnd() < .02){ setCell(i, ICE, t, FREEZE_CHILL); return; }
+    let vigour = aux[i];
+    if (vigour === 0) return;
+    if (rnd() > .07) return;                     // growth is rare per tick
+
+    // rooted?  needs solid support somewhere in the neighbourhood
+    let rooted = false;
+    for (let dy=-1; dy<=1 && !rooted; dy++)
+      for (let dx=-1; dx<=1; dx++){
+        if (!dx && !dy) continue;
+        const nx=x+dx, ny=y+dy; if (!inb(nx,ny)) continue;
+        const mj = mat[ny*GW+nx];
+        if (mj===PLANT||mj===WOOD||mj===SAND||mj===STONE||mj===GLASS){ rooted = true; break; }
+      }
+    if (!rooted) return;
+
+    // Drink. Roots reach two cells, so a plant on a dry bank can still tap the
+    // pond beside it rather than needing to stand in the water itself.
+    let water = -1;
+    for (let dy=-2; dy<=2 && water<0; dy++){
+      const ny = y+dy; if (ny<0||ny>=GH) continue;
+      for (let dx=-2; dx<=2; dx++){
+        if (!dx && !dy) continue;
+        const nx = x+dx; if (nx<0||nx>=GW) continue;
+        const j = ny*GW+nx;
+        if (mat[j]===WATER || mat[j]===BRINE){ water = j; break; }
+      }
+    }
+    if (water < 0) return;
+
+    // prefer upward growth, then sideways
+    const opts = [[0,-1],[0,-1],[0,-1],[-1,-1],[1,-1],[-1,0],[1,0]];
+    const pick = opts[rint(opts.length)];
+    const nx = x+pick[0], ny = y+pick[1];
+    if (!inb(nx,ny)) return;
+    const j = ny*GW+nx;
+    const mj = mat[j];
+    // grow into open air, or creep along the shallows into water now and then
+    if (mj !== EMPTY && !((mj===WATER||mj===BRINE) && rnd()<.25)) return;
+    if (j === water) return;
+
+    setCell(water, EMPTY, temp[water]);
+    setCell(j, PLANT, temp[i], vigour - 1);
+    aux[i] = vigour - 1;
+    activeCells++;
+    return;
+  }
+
+  /* Melting points sit above the temperature lava can drive a neighbour to
+     (~1320°C asymptote), so a lava flow vitrifies sand but never chain-melts
+     the rock it is sitting in. */
+  case GLASS:
+    if (t > 1520 && rnd() < .10) setCell(i, LAVA, t);
+    return;
+
+  case STONE:
+    if (t > 1420 && rnd() < .06) setCell(i, LAVA, t);
+    return;
+
+  default:
+    return;
+  }
+}
+
+/* ------------------------------ one tick -------------------------------- */
+function stepSim(){
+  tick = (tick + 1) & 0xffff;
+  if (tick === 0) { tick = 1; stamp.fill(0); }
+  activeCells = 0;
+
+  runEmitters();
+  diffuseHeat();
+
+  // swap chunk buffers: what was flagged last tick is what we scan now
+  const tmp = chunkA; chunkA = chunkB; chunkB = tmp; chunkB.fill(0);
+
+  // bottom-to-top rows; the horizontal sweep direction alternates with both
+  // tick parity and row parity, which cancels any lasting directional bias
+  for (let y = GH-1; y >= 0; y--){
+    const cy = (y/CHUNK)|0, crow = cy*CW, row = y*GW;
+    const ltr = ((tick + y) & 1) === 0;
+    if (ltr){
+      for (let x=0; x<GW; x++){
+        if (!chunkA[crow + ((x/CHUNK)|0)]) { x = (((x/CHUNK)|0)+1)*CHUNK - 1; continue; }
+        const i = row+x, m = mat[i];
+        if (m === EMPTY || m === WALL) continue;
+        if (stamp[i] === tick) continue;
+        stamp[i] = tick;
+        updateCell(i, x, y, m);
+      }
+    } else {
+      for (let x=GW-1; x>=0; x--){
+        if (!chunkA[crow + ((x/CHUNK)|0)]) { x = ((x/CHUNK)|0)*CHUNK; continue; }
+        const i = row+x, m = mat[i];
+        if (m === EMPTY || m === WALL) continue;
+        if (stamp[i] === tick) continue;
+        stamp[i] = tick;
+        updateCell(i, x, y, m);
+      }
+    }
+  }
+
+  spawnParticles();
+  stepParticles();
+}
+
+/* ------------------------------ emitters -------------------------------- */
+/* Presets can install sources so the attract scene keeps producing events.
+   An emitter may declare a cap ({mat, max}) and then only runs while the world
+   holds fewer than `max` cells of that material — without it a spring simply
+   floods its terrarium and a lava vent paves the whole world. */
+const census = new Int32Array(NMAT);
+function recount(){
+  census.fill(0);
+  for (let i=0;i<N;i++) census[mat[i]]++;
+  filledCells = N - census[EMPTY] - census[WALL];
+}
+
+let emitters = [];
+function runEmitters(){
+  if ((tick % 30) === 0 || filledCells === 0) recount();
+  for (let e=0; e<emitters.length; e++){
+    const em = emitters[e];
+    if (em.after && tick < em.after) continue;      // scheduled to start later
+    if (em.every && (tick % em.every) !== 0) continue;
+    if (em.cap && census[em.cap.mat] >= em.cap.max) continue;
+    for (let y=em.y; y<em.y+em.h; y++){
+      for (let x=em.x; x<em.x+em.w; x++){
+        if (!inb(x,y)) continue;
+        if (rnd() > em.rate) continue;
+        const i = y*GW+x;
+        const m = mat[i];
+        if (m === EMPTY || (em.push && KIND[m] === K_GAS) || (em.ignite && BURNABLE[m])){
+          setCell(i, em.mat, em.temp);
+        }
+      }
+    }
+  }
+}
+
+/* ========================= decorative particles ========================== */
+/* Fixed-capacity pool — indices are recycled, nothing is ever allocated in
+   the animation loop, so overlay memory is constant. */
+const PMAX = 420;
+const pX=new Float32Array(PMAX), pY=new Float32Array(PMAX),
+      pVX=new Float32Array(PMAX), pVY=new Float32Array(PMAX),
+      pL=new Float32Array(PMAX), pL0=new Float32Array(PMAX),
+      pT=new Uint8Array(PMAX);
+let pAlive = 0, pHead = 0;
+
+function emit(x,y,vx,vy,life,type){
+  let i;
+  if (pAlive < PMAX){ i = pAlive++; }
+  else { i = pHead; pHead = (pHead+1) % PMAX; }   // recycle the oldest slot
+  pX[i]=x; pY[i]=y; pVX[i]=vx; pVY[i]=vy;
+  pL[i]=life; pL0[i]=life; pT[i]=type;
+}
+function spawnParticles(){
+  if (!opt.particles) return;
+  const budget = opt.reduced ? 3 : 12;
+  for (let k=0;k<budget;k++){
+    const i = rint(N), m = mat[i];
+    if (m!==FIRE && m!==LAVA && m!==STEAM) continue;
+    const y=(i/GW)|0, x=i-y*GW;
+    if (m===STEAM){
+      if (rnd()<.45) emit(x, y, (rnd()-.5)*.16, -.20-rnd()*.16, 34+rint(28), 1);
+    } else {
+      emit(x, y, (rnd()-.5)*.26, -.30-rnd()*.34, 26+rint(34), 0);
+    }
+  }
+}
+function stepParticles(){
+  let w = 0;
+  for (let i=0;i<pAlive;i++){
+    let l = pL[i] - 1;
+    if (l <= 0) continue;
+    let x = pX[i] + pVX[i], y = pY[i] + pVY[i];
+    if (x<0||x>=GW||y<0||y>=GH) continue;
+    // compacting write — keeps the live prefix dense
+    pX[w]=x; pY[w]=y;
+    pVX[w]=pVX[i]*0.985 + (rnd()-.5)*0.02;
+    pVY[w]=pVY[i]*0.985 - 0.004;
+    pL[w]=l; pL0[w]=pL0[i]; pT[w]=pT[i];
+    w++;
+  }
+  pAlive = w; pHead = 0;
+}
+
+/* ============================== rendering =============================== */
+const view = document.getElementById('view');
+const vctx = view.getContext('2d', { alpha:false });
+
+const cellCv = document.createElement('canvas'); cellCv.width=GW; cellCv.height=GH;
+const cellCtx = cellCv.getContext('2d');
+const img = cellCtx.createImageData(GW, GH);
+const buf32 = new Uint32Array(img.data.buffer);
+
+const glowCv = document.createElement('canvas'); glowCv.width=GW; glowCv.height=GH;
+const glowCtx = glowCv.getContext('2d');
+const gimg = glowCtx.createImageData(GW, GH);
+const gbuf32 = new Uint32Array(gimg.data.buffer);
+
+const glowLo = document.createElement('canvas'); glowLo.width=GW>>2; glowLo.height=GH>>2;
+const glowLoCtx = glowLo.getContext('2d');
+
+/* pre-baked colour lookup: [material][variant] -> packed ABGR */
+const VARIANTS = 32;
+const LUT = new Uint32Array(NMAT * VARIANTS);
+(function buildLUT(){
+  for (let m=0;m<NMAT;m++){
+    const [r,g,b] = M[m].c, v = M[m].v;
+    for (let k=0;k<VARIANTS;k++){
+      const f = (k/(VARIANTS-1) - .5) * 2 * v;
+      const rr = Math.max(0,Math.min(255, r+f))|0;
+      const gg = Math.max(0,Math.min(255, g+f))|0;
+      const bb = Math.max(0,Math.min(255, b+f))|0;
+      LUT[m*VARIANTS+k] = (255<<24) | (bb<<16) | (gg<<8) | rr;
+    }
+  }
+})();
+
+function pack(r,g,b){
+  return (255<<24) |
+    ((b<0?0:b>255?255:b)<<16) |
+    ((g<0?0:g>255?255:g)<<8) |
+    (r<0?0:r>255?255:r);
+}
+
+function renderCells(time){
+  const flick = opt.reduced ? 0 : Math.sin(time*0.006);
+  for (let i=0;i<N;i++){
+    const m = mat[i];
+    const t = temp[i];
+
+    if (opt.heatView){
+      // diverging cold-blue -> neutral -> hot-orange ramp
+      let r,g,b;
+      if (t < AMBIENT){
+        const k = Math.min(1, (AMBIENT - t)/60);
+        r = 30 + 20*(1-k); g = 60 + 60*(1-k); b = 90 + 150*k;
+      } else {
+        const k = Math.min(1, (t - AMBIENT)/900);
+        r = 40 + 215*k; g = 50 + 130*k*k; b = 70 - 60*k;
+      }
+      if (m === EMPTY){ r*=.42; g*=.42; b*=.42; }
+      buf32[i] = pack(r|0,g|0,b|0);
+      continue;
+    }
+
+    if (m === EMPTY){
+      // faint warm/cool haze in air so heat is legible without a debug view
+      const d = t - AMBIENT;
+      if (d > 12){
+        const k = Math.min(1, d/380);
+        buf32[i] = pack(8+52*k, 9+22*k, 14+6*k);
+      } else if (d < -8){
+        const k = Math.min(1, -d/45);
+        buf32[i] = pack(8+4*k, 9+10*k, 14+24*k);
+      } else {
+        buf32[i] = LUT[0*VARIANTS + 16];
+      }
+      continue;
+    }
+
+    const nz = noise[i];
+    let k = ((nz + 128) * VARIANTS) >> 8;
+
+    if (m === FIRE){
+      const life = aux[i] / 90;
+      const r = 255, g = 90 + 150*Math.min(1,life) + flick*16, b = 24 + 70*Math.max(0,life-.55);
+      buf32[i] = pack(r, g|0, b|0);
+      continue;
+    }
+    if (m === LAVA){
+      const k2 = Math.max(0, Math.min(1, (t - 620)/760));
+      buf32[i] = pack(150 + 105*k2 + nz*0.06, 30 + 130*k2*k2, 12 + 40*k2*k2*k2);
+      continue;
+    }
+    if (m === STONE && t > 340){
+      // cooling stone keeps a memory of the heat that made it
+      const k2 = Math.min(1, (t-340)/700);
+      const base = LUT[STONE*VARIANTS+k];
+      const br = base & 255, bg = (base>>8)&255, bb = (base>>16)&255;
+      buf32[i] = pack(br + (230-br)*k2, bg + (95-bg)*k2*k2, bb + (40-bb)*k2*k2*k2);
+      continue;
+    }
+    if (m === WATER || m === BRINE){
+      // shade deep water darker for a sense of volume
+      const cold = t < 8 ? Math.min(1,(8-t)/16) : 0;
+      const base = LUT[m*VARIANTS+k];
+      const br = base & 255, bg = (base>>8)&255, bb = (base>>16)&255;
+      buf32[i] = pack(br + (150-br)*cold*.5, bg + (196-bg)*cold*.4, bb + (226-bb)*cold*.35);
+      continue;
+    }
+    if (m === STEAM || m === SMOKE){
+      const a = aux[i] / (m===STEAM?240:180);
+      const base = LUT[m*VARIANTS+k];
+      const br = base & 255, bg = (base>>8)&255, bb = (base>>16)&255;
+      const f = 0.30 + 0.70*Math.min(1,a);
+      buf32[i] = pack(8 + (br-8)*f, 9 + (bg-9)*f, 14 + (bb-14)*f);
+      continue;
+    }
+    if (m === PLANT){
+      const base = LUT[PLANT*VARIANTS+k];
+      const vig = aux[i]/12;
+      const br=base&255, bg=(base>>8)&255, bb=(base>>16)&255;
+      buf32[i] = pack(br*(0.75+0.3*vig), bg*(0.78+0.28*vig), bb*(0.75+0.3*vig));
+      continue;
+    }
+    buf32[i] = LUT[m*VARIANTS+k];
+  }
+  cellCtx.putImageData(img, 0, 0);
+}
+
+function renderGlow(){
+  for (let i=0;i<N;i++){
+    const m = mat[i];
+    const e = EMIS[m];
+    const t = temp[i];
+    if (e === 0 && t < 380){ gbuf32[i] = 0; continue; }
+    let r=0,g=0,b=0;
+    if (m === FIRE){ r=255; g=140; b=40; }
+    else if (m === LAVA){ r=255; g=110; b=30; }
+    else if (m === ACID){ r=120; g=210; b=40; }
+    else if (m === STEAM){ r=90; g=110; b=130; }
+    else { // hot solids and hot air
+      const k = Math.min(1, (t-380)/800);
+      r = 210*k; g = 70*k*k; b = 24*k*k*k;
+    }
+    const s = Math.max(e, Math.min(1, (t-300)/900));
+    gbuf32[i] = pack(r*s, g*s, b*s);
+  }
+  glowCtx.putImageData(gimg, 0, 0);
+  glowLoCtx.clearRect(0,0,glowLo.width,glowLo.height);
+  glowLoCtx.drawImage(glowCv, 0, 0, glowLo.width, glowLo.height);
+}
+
+function drawParticles(){
+  if (!opt.particles || pAlive === 0) return;
+  vctx.globalCompositeOperation = 'lighter';
+  for (let i=0;i<pAlive;i++){
+    const a = pL[i] / pL0[i];
+    const x = pX[i]*SCALE, y = pY[i]*SCALE;
+    if (pT[i] === 0){
+      vctx.fillStyle = 'rgba(255,' + (140 + 70*a|0) + ',60,' + (a*0.55).toFixed(3) + ')';
+      const s = 1.4 + 2.4*a;
+      vctx.fillRect(x, y, s, s);
+    } else {
+      vctx.fillStyle = 'rgba(180,200,220,' + (a*0.16).toFixed(3) + ')';
+      const s = 2 + 5*(1-a);
+      vctx.fillRect(x, y, s, s);
+    }
+  }
+  vctx.globalCompositeOperation = 'source-over';
+}
+
+let cursorGX = GW>>1, cursorGY = GH>>1, cursorVisible = false;
+function drawCursor(){
+  if (!cursorVisible) return;
+  const r = brushSize;
+  vctx.save();
+  vctx.strokeStyle = 'rgba(255,255,255,.55)';
+  vctx.lineWidth = 1.5;
+  vctx.setLineDash([5,4]);
+  vctx.beginPath();
+  vctx.arc((cursorGX+.5)*SCALE, (cursorGY+.5)*SCALE, Math.max(2.5, r*SCALE*0.5), 0, 6.2832);
+  vctx.stroke();
+  vctx.restore();
+}
+
+function render(time){
+  vctx.imageSmoothingEnabled = false;
+  renderCells(time);
+  vctx.drawImage(cellCv, 0, 0, VW, VH);
+
+  if (opt.bloom && !opt.heatView){
+    renderGlow();
+    vctx.imageSmoothingEnabled = true;
+    vctx.globalCompositeOperation = 'lighter';
+    vctx.globalAlpha = 0.42;
+    vctx.drawImage(glowCv, 0, 0, VW, VH);
+    vctx.globalAlpha = opt.reduced ? 0.34 : 0.34 + 0.05*Math.sin(time*0.0022);
+    vctx.drawImage(glowLo, 0, 0, VW, VH);
+    vctx.globalAlpha = 1;
+    vctx.globalCompositeOperation = 'source-over';
+    vctx.imageSmoothingEnabled = false;
+  }
+
+  drawParticles();
+  drawCursor();
+}
+
+/* ============================== presets ================================= */
+function clearWorld(){
+  mat.fill(EMPTY); aux.fill(0); temp.fill(AMBIENT); temp2.fill(AMBIENT); stamp.fill(0);
+  emitters = []; census.fill(0); filledCells = 0;
+  pAlive = 0; pHead = 0;
+  wakeAll();
+}
+function fillRect(x0,y0,w,h,m,t){
+  for (let y=y0; y<y0+h; y++){
+    if (y<0||y>=GH) continue;
+    for (let x=x0; x<x0+w; x++){
+      if (x<0||x>=GW) continue;
+      const i = y*GW+x;
+      mat[i]=m; aux[i]=defaultAux(m); temp[i]= t===undefined?AMBIENT:t;
+    }
+  }
+}
+function border(){
+  fillRect(0,0,GW,2,WALL); fillRect(0,GH-2,GW,2,WALL);
+  fillRect(0,0,2,GH,WALL); fillRect(GW-2,0,2,GH,WALL);
+}
+/* smooth 1-D value noise for terrain silhouettes */
+function ridge(len, octaves, amp){
+  const out = new Float32Array(len);
+  for (let o=0;o<octaves;o++){
+    const step = 1 << (o+3);
+    const a = amp / (1<<o);
+    const pts = Math.ceil(len/step)+2;
+    const ctrl = new Float32Array(pts);
+    for (let i=0;i<pts;i++) ctrl[i] = (rnd()*2-1)*a;
+    for (let x=0;x<len;x++){
+      const p = x/step, i0 = p|0, f = p-i0;
+      const s = f*f*(3-2*f);
+      out[x] += ctrl[i0]*(1-s) + ctrl[i0+1]*s;
+    }
+  }
+  return out;
+}
+
+const PRESETS = {
+  volcano: {
+    label: "Volcano",
+    title: "Volcano",
+    summary: "A basalt cone erupts from a glowing magma chamber. Lava spills over the crater, flash-boils the meltwater lake on the left into steam and cools into fresh stone, while the right-hand slope of wood, plants and a spilled oil pool catches fire.",
+    build(){
+      border();
+      const g = ridge(GW, 3, 9);
+      const cond = ridge(GH, 2, 7);          // sinuous wobble of the conduit
+      // ground line with a volcanic cone in the middle
+      for (let x=2; x<GW-2; x++){
+        const cone = Math.max(0, 96 - Math.abs(x-200)*0.92);
+        let top = (GH - 34 - g[x] - cone) | 0;
+        if (top < 6) top = 6;
+        for (let y=top; y<GH-2; y++){
+          const i = y*GW+x;
+          // conduit: a wandering throat that widens with depth. Only the lower
+          // reach still holds melt; above that it is stone left glowing by it,
+          // which reads as a volcano rather than as a bar of orange.
+          const dv = Math.abs(x - (200 + cond[y]));
+          const ventW = 2.2 + Math.max(0, y-96)*0.052;
+          if (dv < ventW && y > top-1 && y < GH-40){
+            if (y > GH-104){ mat[i]=LAVA; temp[i]=1300; aux[i]=255; }
+            else { mat[i]=STONE; temp[i] = 1080 - (GH-104-y)*4; }
+            continue;
+          }
+          mat[i] = STONE; temp[i] = AMBIENT + Math.max(0, 700 - Math.abs(x-200)*6 - (GH-40-y)*3);
+          if (temp[i] < AMBIENT) temp[i] = AMBIENT;
+        }
+        // sandy apron away from the cone
+        if (Math.abs(x-200) > 108){
+          for (let y=top; y<top+7; y++) if (y<GH-2){ const i=y*GW+x; mat[i]=SAND; temp[i]=AMBIENT; }
+        }
+      }
+      // magma chamber
+      for (let y=GH-46; y<GH-8; y++)
+        for (let x=176; x<225; x++){
+          const dx=(x-200)/26, dy=(y-(GH-27))/17;
+          if (dx*dx+dy*dy < 1){ const i=y*GW+x; mat[i]=LAVA; temp[i]=1360; aux[i]=255; }
+        }
+      /* Meltwater lake on the left. Deliberately no ice here: a floe with a
+         full chill budget freezes this whole lake within a few seconds, and
+         this scene wants boiling, not freezing. Ice is demonstrated in the
+         Terrarium and Frozen Lake scenes instead. */
+      for (let x=10; x<112; x++)
+        for (let y=GH-52; y<GH-12; y++){
+          const i=y*GW+x;
+          if (mat[i]===EMPTY || mat[i]===SAND){
+            if (mat[i]===SAND && y>GH-20) continue;
+            mat[i]=WATER; temp[i]=14; aux[i]=0;
+          }
+        }
+      // forest on the right: thicker trunks, canopy and undergrowth for the
+      // fire chain to actually run through
+      for (let k=0;k<13;k++){
+        const bx = 254 + k*6 + rint(2);
+        let gy = GH-2;
+        for (let y=8;y<GH-2;y++){ if (mat[y*GW+bx]!==EMPTY){ gy=y; break; } }
+        const h = 16 + rint(20);
+        for (let y=gy-h; y<gy; y++) if (y>2){
+          for (let w=0; w<3; w++){ const i=y*GW+bx+w; if (bx+w<GW-2){ mat[i]=WOOD; temp[i]=AMBIENT; } }
+        }
+        for (let n=0;n<14;n++){
+          const px = bx-4+rint(11), py = gy-h-2+rint(7);
+          if (inb(px,py) && mat[py*GW+px]===EMPTY){ const i=py*GW+px; mat[i]=PLANT; aux[i]=10; }
+        }
+      }
+      // spilled oil pool in a rocky dip
+      for (let x=288; x<334; x++){
+        let gy = GH-2;
+        for (let y=8;y<GH-2;y++){ if (mat[y*GW+x]!==EMPTY){ gy=y; break; } }
+        for (let y=gy-9; y<gy; y++) if (y>2){ const i=y*GW+x; if (mat[i]===EMPTY){ mat[i]=OIL; temp[i]=AMBIENT; } }
+      }
+      /* A damp plant stand at the far east, separated from the grove by a
+         bare rock firebreak around x=336..354. Fire cannot cross the gap, so
+         this stand survives the first sweep and slowly recolonises the slope
+         instead of leaving bare rock for the rest of the session. */
+      for (let x=358; x<390; x++)
+        for (let y=GH-32; y<GH-20; y++){ const i=y*GW+x; if (mat[i]===EMPTY) { mat[i]=WATER; temp[i]=16; } }
+      for (let k=0;k<70;k++){
+        const px=356+rint(36), py=GH-36+rint(6);
+        if (inb(px,py) && mat[py*GW+px]===EMPTY){ const i=py*GW+px; mat[i]=PLANT; aux[i]=14; }
+      }
+      // A lava tongue already running down the western flank, so the
+      // lava-meets-water reaction is on screen within the first second.
+      for (let x=108; x<150; x++){
+        let gy = GH-2;
+        for (let y=8;y<GH-2;y++){ if (mat[y*GW+x]!==EMPTY){ gy=y; break; } }
+        for (let y=gy-4; y<gy; y++) if (y>2){ const i=y*GW+x; mat[i]=LAVA; temp[i]=1330; aux[i]=255; }
+      }
+      // Light only the western edge of the grove. Seeding the middle burns the
+      // whole stand out inside seven seconds and leaves the scene bare; from
+      // the edge a fire front sweeps across it over about a minute.
+      for (let k=0;k<12;k++){
+        const px = 258 + rint(10), py = GH-56 + rint(16);
+        if (inb(px,py)){ const i=py*GW+px; if (mat[i]===EMPTY||mat[i]===PLANT){ mat[i]=FIRE; aux[i]=90; temp[i]=820; } }
+      }
+      // the eruption itself, throttled so the cone builds rather than floods
+      emitters.push({x:194,y:GH-140,w:12,h:3,mat:LAVA,temp:1380,rate:0.05,push:true,
+                     cap:{mat:LAVA,max:2600}});
+    }
+  },
+
+  terrarium: {
+    label: "Terrarium",
+    title: "Terrarium",
+    summary: "A sealed glass vivarium. Sand beds soak up water from a dripping spring so plants climb the walls, a salt pan brines the shallows, and a small hearth on the right keeps a steam cycle running against the cold ice cap.",
+    build(){
+      border();
+      // glass shell
+      fillRect(30, 30, 340, 3, GLASS);
+      fillRect(30, 30, 3, GH-62, GLASS);
+      fillRect(367, 30, 3, GH-62, GLASS);
+      fillRect(30, GH-32, 340, 3, GLASS);
+      // soil floor with dunes
+      const g = ridge(GW, 3, 6);
+      for (let x=33; x<367; x++){
+        const top = (GH - 62 - g[x]) | 0;
+        for (let y=top; y<GH-32; y++){ const i=y*GW+x; mat[i]=SAND; temp[i]=AMBIENT; }
+        for (let y=top+16; y<GH-32; y++){ const i=y*GW+x; mat[i]=STONE; temp[i]=AMBIENT; }
+      }
+      // sunken pond
+      for (let x=120; x<250; x++)
+        for (let y=GH-78; y<GH-46; y++){
+          const dx=(x-185)/66, dy=(y-(GH-62))/17;
+          if (dx*dx+dy*dy<1){ const i=y*GW+x; mat[i]=WATER; temp[i]=18; }
+        }
+      // salt pan on the pond's west shore
+      fillRect(96, GH-72, 20, 6, SALT);
+      // planted beds
+      for (let k=0;k<44;k++){
+        const px = 40 + rint(320);
+        let gy=GH-33;
+        for (let y=40;y<GH-32;y++){ if (mat[y*GW+px]===SAND){ gy=y; break; } }
+        const i=(gy-1)*GW+px;
+        if (mat[i]===EMPTY){ mat[i]=PLANT; aux[i]=14; }
+      }
+      // ice cap and spring
+      fillRect(46, 33, 54, 11, ICE, -16);
+      fillRect(290, 33, 44, 9, ICE, -14);
+      // a fallen branch leaning against the east wall
+      fillRect(268, GH-96, 4, 34, WOOD);
+      fillRect(272, GH-96, 26, 3, WOOD);
+      fillRect(250, GH-74, 22, 3, WOOD);
+      // hearth
+      fillRect(320, GH-70, 22, 5, WOOD);
+      fillRect(324, GH-64, 14, 4, STONE, 300);
+      emitters.push({x:328,y:GH-74,w:6,h:2,mat:FIRE,temp:820,rate:0.10});
+      // Meltwater springs from the ice caps. Capped against the world's water
+      // census so the vivarium tops up but never drowns.
+      emitters.push({x:66,y:47,w:14,h:2,mat:WATER,temp:6,rate:0.030,cap:{mat:WATER,max:4100}});
+      emitters.push({x:300,y:45,w:20,h:2,mat:WATER,temp:8,rate:0.020,cap:{mat:WATER,max:4100}});
+    }
+  },
+
+  oilfire: {
+    label: "Oil Fire",
+    title: "Oil Fire",
+    summary: "A flooded refinery bay. Oil floats in a slick on top of the water exactly as it should and burns off fast once a pilot light takes hold at about six seconds, while wooden gantries char and collapse into it. A reservoir keeps topping the spill back up, and after about twelve seconds a suspended crucible overhead starts dripping lava onto the bay to re-light whatever is left.",
+    build(){
+      border();
+      fillRect(2, GH-16, GW-4, 14, STONE);
+      // containment walls
+      fillRect(60, GH-70, 4, 56, WALL);
+      fillRect(340, GH-70, 4, 56, WALL);
+      // water base
+      fillRect(64, GH-44, 276, 28, WATER, 16);
+      // oil slick above it — it will settle onto the water surface
+      fillRect(64, GH-64, 276, 18, OIL);
+      // gantries
+      fillRect(80, GH-84, 120, 4, WOOD);
+      fillRect(210, GH-96, 110, 4, WOOD);
+      fillRect(120, GH-84, 4, 20, WOOD);
+      fillRect(268, GH-96, 4, 32, WOOD);
+      // catwalk plants (they will burn)
+      for (let k=0;k<16;k++){
+        const px = 84 + rint(112), py = GH-85;
+        const i=py*GW+px; if (mat[i]===EMPTY){ mat[i]=PLANT; aux[i]=6; }
+      }
+      // reservoir tank that keeps topping the slick back up
+      fillRect(20, GH-96, 40, 4, STONE);
+      fillRect(20, GH-96, 4, 82, STONE);
+      fillRect(20, GH-92, 38, 58, OIL);
+      emitters.push({x:24,y:GH-90,w:32,h:2,mat:OIL,temp:AMBIENT,rate:0.020,
+                     cap:{mat:OIL,max:5400}});
+
+      /* A suspended crucible of lava with a hole in its floor. The drip keeps
+         re-lighting the bay, which matters because a burning slick over water
+         drowns its own flame as the last oil layer is eaten — without a
+         standing ignition source this scene puts itself out in ten seconds. */
+      fillRect(148, GH-128, 46, 3, STONE);
+      fillRect(148, GH-146, 3, 21, STONE);
+      fillRect(191, GH-146, 3, 21, STONE);
+      fillRect(167, GH-128,  2, 3, EMPTY);        // a narrow drip hole
+      /* The crucible starts EMPTY and only begins filling after ~13 s. Pre-
+         filling it dumps a torrent that incinerates the whole slick within the
+         first few seconds, so the scene's headline image -- oil floating on
+         water, burning -- is over before it can be seen. */
+      emitters.push({x:152,y:GH-142,w:38,h:2,mat:LAVA,temp:1370,rate:0.016,
+                     after:700, cap:{mat:LAVA,max:820}});
+
+      /* Pilot light down inside the slick. `ignite` lets an emitter seed flame
+         into fuel rather than only into empty space, and it keeps re-lighting
+         the spill as the reservoir tops it back up -- an oil fire flashes over
+         in about a second, so without it the bay is dark for the whole session.
+         It starts at ~6 s so that the scene first reads as oil *floating* on
+         water, and only then as oil burning. Igniting on tick zero means the
+         slick is already gone by the time anyone looks at it. */
+      emitters.push({x:120,y:GH-58,w:14,h:3,mat:FIRE,temp:850,rate:0.05,every:3,
+                     after:360, ignite:true});
+
+      // ice ballast on the right, to fight the fire
+      fillRect(346, GH-96, 40, 12, ICE, -16);
+    }
+  },
+
+  frozen: {
+    label: "Frozen Lake",
+    title: "Frozen Lake",
+    summary: "A deep lake under an ice sheet. Salt scattered on the ice melts it into brine, which stays liquid far below zero; a geothermal vent on the lake bed drives a slow steam column that re-freezes as it hits the cold roof.",
+    build(){
+      border();
+      const g = ridge(GW, 3, 5);
+      // shoreline banks
+      for (let x=2; x<GW-2; x++){
+        const bank = Math.max(0, 66 - Math.min(x, GW-x)*1.1);
+        const top = (GH - 30 - g[x] - bank)|0;
+        for (let y=top; y<GH-2; y++){ const i=y*GW+x; mat[i]=STONE; temp[i]=2; }
+        for (let y=top; y<top+5; y++){ const i=y*GW+x; if (y<GH-2){ mat[i]=SAND; temp[i]=0; } }
+      }
+      /* Lake body. It starts well above freezing and is warmed from below by
+         the vent, so the sheet stays a lid on open water instead of the whole
+         lake setting solid within a few seconds. */
+      for (let x=3; x<GW-3; x++)
+        for (let y=GH-96; y<GH-2; y++){
+          const i=y*GW+x;
+          if (mat[i]===EMPTY){ mat[i]=WATER; temp[i]= y > GH-40 ? 26 : 14; }
+        }
+      // ice sheet: a thin lid only
+      for (let x=3; x<GW-3; x++){
+        const th = 3 + ((x*7919) % 3);
+        for (let y=GH-96; y<GH-96+th; y++){
+          const i=y*GW+x;
+          if (mat[i]===WATER){ mat[i]=ICE; temp[i]=-18; }
+        }
+      }
+      // snow (salt) drifts scattered over the sheet
+      for (let k=0;k<520;k++){
+        const px = 8+rint(GW-16), py = GH-100 - rint(4);
+        if (inb(px,py) && mat[py*GW+px]===EMPTY){ const i=py*GW+px; mat[i]=SALT; temp[i]=-14; }
+      }
+      // a salt pile that will visibly eat a hole in the ice
+      fillRect(150, GH-104, 26, 6, SALT, -12);
+      // frozen trees on the banks
+      for (let k=0;k<7;k++){
+        const bx = 16 + k*8 + rint(3);
+        for (let y=GH-70; y<GH-40; y++) if (inb(bx,y) && mat[y*GW+bx]===EMPTY){ const i=y*GW+bx; mat[i]=WOOD; }
+      }
+      // geothermal vent
+      fillRect(196, GH-12, 14, 8, LAVA, 1350);
+      fillRect(190, GH-14, 6, 12, STONE, 500);
+      fillRect(210, GH-14, 6, 12, STONE, 500);
+      emitters.push({x:198,y:GH-12,w:10,h:2,mat:LAVA,temp:1380,rate:0.040,
+                     cap:{mat:LAVA,max:420}});
+      // A lantern on a stone plinth. Standing it on wood burns its own support
+      // away within seconds and leaves the flame hanging in the air.
+      fillRect(298, GH-104, 16, 5, STONE, 120);
+      fillRect(302, GH-108,  8, 4, WOOD);
+      emitters.push({x:302,y:GH-110,w:8,h:2,mat:FIRE,temp:800,rate:0.05,every:2});
+    }
+  }
+};
+const PRESET_KEYS = Object.keys(PRESETS);
+
+let currentPreset = 'volcano';
+let currentSeed = 137;
+
+function loadPreset(name, seed){
+  currentPreset = name;
+  if (seed !== undefined) currentSeed = seed;
+  clearWorld();
+  srand(currentSeed * 2654435761 % 2147483647 + PRESET_KEYS.indexOf(name)*7919 + 1);
+  PRESETS[name].build();
+  temp2.set(temp);
+  tick = 1; stamp.fill(0);
+  wakeAll();
+  const p = PRESETS[name];
+  el.presetSummary.textContent = p.title + " — " + p.summary;
+  el.sScene.textContent = p.label;
+  for (const b of presetBtns) b.setAttribute('aria-pressed', String(b.dataset.preset === name));
+  // reseed the simulation stream deterministically from the same seed
+  srand(currentSeed * 16807 % 2147483647 + 12345);
+}
+
+/* ================================ UI ==================================== */
+const el = {};
+for (const id of ['palette','matSearch','brush','brushOut','btnErase','btnReplace',
+  'btnPlay','btnStep','btnReset','btnClear','speed','speedOut','seed','seedOut',
+  'presets','presetSummary','btnBloom','btnParticles','btnHeat','btnMotion',
+  'sFps','sActive','sFilled','sMat','sDot','sBrush','sSeed','sScene','sTick']) {
+  el[id] = document.getElementById(id);
+}
+
+const opt = { bloom:true, particles:true, heatView:false, reduced:false };
+let selected = SAND;
+let brushSize = 6;
+let paused = false;
+let speedIdx = 4;
+const SPEEDS = [0.10, 0.20, 0.35, 0.6, 1.0, 1.5, 2.0, 3.0, 4.0];
+
+/* ---- palette ---- */
+const swatchBtns = [];
+for (const m of PAL_ORDER){
+  const b = document.createElement('button');
+  b.className = 'swatch';
+  b.type = 'button';
+  b.dataset.mat = m;
+  b.setAttribute('aria-pressed', String(m === selected));
+  b.title = M[m].name + " — " + M[m].desc;
+  const chip = document.createElement('span');
+  chip.className = 'chip';
+  chip.style.background = 'rgb(' + M[m].c.join(',') + ')';
+  const nm = document.createElement('span'); nm.className='nm'; nm.textContent = M[m].name;
+  const kb = document.createElement('span'); kb.className='kb'; kb.textContent = M[m].key;
+  b.append(chip, nm, kb);
+  b.addEventListener('click', () => selectMat(m));
+  el.palette.appendChild(b);
+  swatchBtns.push(b);
+}
+function selectMat(m){
+  selected = m;
+  eraseMode = (m === EMPTY);
+  el.btnErase.setAttribute('aria-pressed', String(eraseMode));
+  for (const b of swatchBtns) b.setAttribute('aria-pressed', String(+b.dataset.mat === m));
+  el.sMat.innerHTML = '';
+  const dot = document.createElement('span');
+  dot.className = 'dot';
+  dot.style.background = 'rgb(' + M[m].c.join(',') + ')';
+  el.sMat.append(dot, document.createTextNode(M[m].name));
+}
+el.matSearch.addEventListener('input', () => {
+  const q = el.matSearch.value.trim().toLowerCase();
+  for (const b of swatchBtns){
+    const m = +b.dataset.mat;
+    b.hidden = q.length > 0 && !M[m].name.toLowerCase().includes(q);
+  }
+});
+el.matSearch.addEventListener('keydown', e => {
+  if (e.key === 'Enter'){
+    const first = swatchBtns.find(b => !b.hidden);
+    if (first) selectMat(+first.dataset.mat);
+    e.preventDefault();
+  } else if (e.key === 'Escape'){
+    el.matSearch.value = '';
+    el.matSearch.dispatchEvent(new Event('input'));
+    view.focus();
+  }
+  e.stopPropagation();
+});
+
+/* ---- presets ---- */
+const presetBtns = [];
+PRESET_KEYS.forEach((k, i) => {
+  const b = document.createElement('button');
+  b.className = 'btn';
+  b.type = 'button';
+  b.dataset.preset = k;
+  b.textContent = PRESETS[k].label;
+  b.title = PRESETS[k].label + " (F" + (i+1) + ")";
+  b.setAttribute('aria-pressed','false');
+  b.addEventListener('click', () => loadPreset(k));
+  el.presets.appendChild(b);
+  presetBtns.push(b);
+});
+
+/* ---- toggles / sliders ---- */
+function toggle(btn, key, after){
+  btn.addEventListener('click', () => {
+    opt[key] = !opt[key];
+    btn.setAttribute('aria-pressed', String(opt[key]));
+    if (after) after();
+  });
+}
+toggle(el.btnBloom, 'bloom');
+toggle(el.btnParticles, 'particles', () => { if (!opt.particles) pAlive = 0; });
+toggle(el.btnHeat, 'heatView');
+toggle(el.btnMotion, 'reduced', () => { if (opt.reduced) pAlive = Math.min(pAlive, 40); });
+
+let eraseMode = false;
+let additive = false;
+el.btnErase.addEventListener('click', () => {
+  eraseMode = !eraseMode;
+  el.btnErase.setAttribute('aria-pressed', String(eraseMode));
+  if (eraseMode) selectMat(EMPTY);
+});
+el.btnReplace.addEventListener('click', () => {
+  additive = !additive;
+  el.btnReplace.setAttribute('aria-pressed', String(additive));
+  el.btnReplace.textContent = additive ? 'Additive only' : 'Additive';
+});
+
+el.brush.addEventListener('input', () => setBrush(+el.brush.value));
+function setBrush(v){
+  brushSize = Math.max(1, Math.min(40, v|0));
+  el.brush.value = brushSize;
+  el.brushOut.textContent = brushSize;
+  el.sBrush.textContent = brushSize;
+}
+el.speed.addEventListener('input', () => setSpeed(+el.speed.value));
+function setSpeed(v){
+  speedIdx = Math.max(0, Math.min(SPEEDS.length-1, v|0));
+  el.speed.value = speedIdx;
+  el.speedOut.textContent = SPEEDS[speedIdx].toFixed(2) + '×';
+}
+el.seed.addEventListener('input', () => {
+  currentSeed = +el.seed.value;
+  el.seedOut.textContent = currentSeed;
+  el.sSeed.textContent = currentSeed;
+  loadPreset(currentPreset, currentSeed);
+});
+
+el.btnPlay.addEventListener('click', () => setPaused(!paused));
+function setPaused(p){
+  paused = p;
+  el.btnPlay.textContent = paused ? 'Play' : 'Pause';
+  el.btnPlay.setAttribute('aria-pressed', String(paused));
+}
+el.btnStep.addEventListener('click', () => { setPaused(true); stepSim(); });
+el.btnReset.addEventListener('click', () => loadPreset(currentPreset));
+el.btnClear.addEventListener('click', () => { clearWorld(); border(); wakeAll(); });
+
+/* ============================ pointer input ============================= */
+let painting = false, paintErase = false;
+let lastGX = null, lastGY = null;
+
+function toGrid(ev){
+  const r = view.getBoundingClientRect();
+  const x = ((ev.clientX - r.left) / r.width  * GW) | 0;
+  const y = ((ev.clientY - r.top)  / r.height * GH) | 0;
+  return [Math.max(0,Math.min(GW-1,x)), Math.max(0,Math.min(GH-1,y))];
+}
+
+function paintDot(gx, gy, m){
+  const r = brushSize * 0.5;
+  const r2 = r*r;
+  const x0 = Math.max(0, Math.ceil(gx-r)), x1 = Math.min(GW-1, Math.floor(gx+r));
+  const y0 = Math.max(0, Math.ceil(gy-r)), y1 = Math.min(GH-1, Math.floor(gy+r));
+  for (let y=y0; y<=y1; y++){
+    for (let x=x0; x<=x1; x++){
+      const dx=x-gx, dy=y-gy;
+      if (brushSize > 1 && dx*dx+dy*dy > r2) continue;
+      const i = y*GW+x;
+      if (mat[i] === WALL && m !== EMPTY && m !== WALL) continue;
+      if (additive && m !== EMPTY && mat[i] !== EMPTY) continue;
+      // scatter loose materials a little so brush strokes look natural
+      if (m !== EMPTY && brushSize > 3 && (m===SAND||m===SALT||m===ASH||m===PLANT) && rnd() < .18) continue;
+      let t;
+      if (m===LAVA) t=1350; else if (m===FIRE) t=800; else if (m===ICE) t=-14;
+      else if (m===STEAM) t=115; else if (m===EMPTY) t=temp[i]; else t=AMBIENT;
+      setCell(i, m, t);
+    }
+  }
+}
+function paintLine(x0,y0,x1,y1,m){
+  const dx = Math.abs(x1-x0), dy = Math.abs(y1-y0);
+  const n = Math.max(dx,dy);
+  if (n === 0){ paintDot(x0,y0,m); return; }
+  for (let s=0; s<=n; s++){
+    const t = s/n;
+    paintDot(Math.round(x0+(x1-x0)*t), Math.round(y0+(y1-y0)*t), m);
+  }
+}
+
+view.addEventListener('contextmenu', e => e.preventDefault());
+view.addEventListener('pointerdown', e => {
+  view.focus();
+  view.setPointerCapture(e.pointerId);
+  const [gx,gy] = toGrid(e);
+  painting = true;
+  paintErase = (e.button === 2) || eraseMode;
+  const m = paintErase ? EMPTY : selected;
+  if (e.shiftKey && lastGX !== null) paintLine(lastGX,lastGY,gx,gy,m);
+  else paintDot(gx,gy,m);
+  lastGX = gx; lastGY = gy;
+  cursorGX = gx; cursorGY = gy; cursorVisible = true;
+  e.preventDefault();
+});
+view.addEventListener('pointermove', e => {
+  const [gx,gy] = toGrid(e);
+  cursorGX = gx; cursorGY = gy; cursorVisible = true;
+  if (!painting) return;
+  const m = paintErase ? EMPTY : selected;
+  paintLine(lastGX, lastGY, gx, gy, m);
+  lastGX = gx; lastGY = gy;
+});
+function endPaint(e){
+  if (!painting) return;
+  painting = false;
+  try { view.releasePointerCapture(e.pointerId); } catch(_){}
+}
+view.addEventListener('pointerup', endPaint);
+view.addEventListener('pointercancel', endPaint);
+view.addEventListener('pointerleave', () => { cursorVisible = false; });
+view.addEventListener('pointerenter', () => { cursorVisible = true; });
+
+view.addEventListener('wheel', e => {
+  e.preventDefault();
+  setBrush(brushSize + (e.deltaY < 0 ? 1 : -1) * (e.shiftKey ? 4 : 1));
+}, { passive:false });
+
+/* ============================== keyboard ================================ */
+window.addEventListener('keydown', e => {
+  const ae = document.activeElement;
+  const tag = ae && ae.tagName;
+  // Never steal keys from a form control: typing in the search field, or
+  // nudging a slider with the arrow keys, must not also fire shortcuts.
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+  // Space and Enter belong to a focused button (they activate it); handling
+  // them here as well would fire the button *and* the global shortcut.
+  if (tag === 'BUTTON' && (e.key === ' ' || e.key === 'Enter')) return;
+  if (e.ctrlKey || e.metaKey || e.altKey) return;   // leave browser chords alone
+
+  const k = e.key;
+
+  if (k === '/'){ el.matSearch.focus(); el.matSearch.select(); e.preventDefault(); return; }
+  if (k === ' '){ setPaused(!paused); e.preventDefault(); return; }
+  if (k === '.'){ setPaused(true); stepSim(); e.preventDefault(); return; }
+  if (k === 'r' || k === 'R'){ loadPreset(currentPreset); e.preventDefault(); return; }
+  if (k === 'c' || k === 'C'){ clearWorld(); border(); wakeAll(); e.preventDefault(); return; }
+  if (k === 'e' || k === 'E'){ el.btnErase.click(); e.preventDefault(); return; }
+  if (k === '[' ){ setBrush(brushSize-1); e.preventDefault(); return; }
+  if (k === ']' ){ setBrush(brushSize+1); e.preventDefault(); return; }
+  if (k === '0'){ selectMat(EMPTY); e.preventDefault(); return; }
+
+  if (k >= '1' && k <= '9'){ selectMat(QUICK[+k - 1]); e.preventDefault(); return; }
+  // shifted digits reach the second rank of the palette
+  const SHIFTED = { '!':SALT, '@':BRINE, '#':ASH, '$':SMOKE, '%':GLASS, '^':ACID, '&':WALL, '(':STEAM };
+  if (SHIFTED[k] !== undefined){ selectMat(SHIFTED[k]); e.preventDefault(); return; }
+
+  if (k === 'F1'||k === 'F2'||k === 'F3'||k === 'F4'){
+    const i = +k[1]-1;
+    if (PRESET_KEYS[i]) loadPreset(PRESET_KEYS[i]);
+    e.preventDefault(); return;
+  }
+
+  // keyboard painting on the canvas
+  if (document.activeElement === view){
+    let dx=0, dy=0;
+    if (k === 'ArrowLeft') dx=-1; else if (k === 'ArrowRight') dx=1;
+    else if (k === 'ArrowUp') dy=-1; else if (k === 'ArrowDown') dy=1;
+    if (dx||dy){
+      const stepPx = e.shiftKey ? 10 : 2;
+      cursorGX = Math.max(0, Math.min(GW-1, cursorGX + dx*stepPx));
+      cursorGY = Math.max(0, Math.min(GH-1, cursorGY + dy*stepPx));
+      cursorVisible = true;
+      e.preventDefault(); return;
+    }
+    if (k === 'Enter'){
+      const m = eraseMode ? EMPTY : selected;
+      if (e.shiftKey && lastGX !== null) paintLine(lastGX,lastGY,cursorGX,cursorGY,m);
+      else paintDot(cursorGX, cursorGY, m);
+      lastGX = cursorGX; lastGY = cursorGY;
+      e.preventDefault(); return;
+    }
+    if (k === 'Backspace' || k === 'Delete'){
+      paintDot(cursorGX, cursorGY, EMPTY);
+      e.preventDefault(); return;
+    }
+  }
+});
+
+/* system reduced-motion preference is honoured on load */
+(function(){
+  const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const apply = () => {
+    if (mq.matches){
+      opt.reduced = true;
+      el.btnMotion.setAttribute('aria-pressed','true');
+    }
+  };
+  apply();
+  if (mq.addEventListener) mq.addEventListener('change', apply);
+})();
+
+/* ============================== main loop =============================== */
+let acc = 0, lastT = 0, fpsAcc = 0, fpsN = 0, lastHud = 0;
+
+function frame(now){
+  requestAnimationFrame(frame);
+  const dt = lastT ? Math.min(100, now - lastT) : 16;
+  lastT = now;
+
+  if (!paused){
+    const sp = SPEEDS[speedIdx];
+    acc += sp;
+    let steps = 0;
+    while (acc >= 1 && steps < 4){ stepSim(); acc -= 1; steps++; }
+    if (acc > 4) acc = 4;
+  }
+
+  render(now);
+
+  fpsAcc += dt; fpsN++;
+  if (now - lastHud > 320){
+    lastHud = now;
+    el.sFps.textContent = (1000 / (fpsAcc / fpsN)).toFixed(0);
+    fpsAcc = 0; fpsN = 0;
+    el.sActive.textContent = activeCells.toLocaleString();
+    if (paused) recount();               // census is refreshed by the tick loop
+    el.sFilled.textContent = filledCells.toLocaleString();
+    el.sTick.textContent = tick;
+  }
+}
+
+/* Debug / test surface. Lets the headless harness in test/headless.mjs drive
+   the exact same code that runs in the browser. */
+window.SandAlchemist = {
+  GW, GH, N, M, MATS:{EMPTY,SAND,WATER,STONE,WOOD,PLANT,FIRE,OIL,ICE,STEAM,LAVA,
+                      SALT,BRINE,ASH,SMOKE,GLASS,ACID,WALL},
+  get mat(){return mat}, get aux(){return aux}, get temp(){return temp},
+  stepSim, loadPreset, clearWorld, fillRect, setCell, paintDot, paintLine,
+  selectMat, setBrush, setSpeed, srand, rnd,
+  PRESET_KEYS, get emitters(){return emitters},
+  count(m){ let c=0; for (let i=0;i<N;i++) if (mat[i]===m) c++; return c; },
+  stats(){ const a=new Array(NMAT).fill(0); for (let i=0;i<N;i++) a[mat[i]]++; return a; },
+  get tick(){return tick}, get activeCells(){return activeCells},
+  get selected(){return selected}, get paused(){return paused},
+  get brushSize(){return brushSize}, get preset(){return currentPreset},
+  get speedIdx(){return speedIdx}, get eraseMode(){return eraseMode},
+  get particleCount(){return pAlive}, PMAX,
+  render, opt
+};
+
+/* ------------------------------- boot ----------------------------------- */
+setBrush(6);
+setSpeed(4);
+selectMat(SAND);
+el.seed.value = currentSeed;
+el.seedOut.textContent = currentSeed;
+el.sSeed.textContent = currentSeed;
+loadPreset('volcano', currentSeed);
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

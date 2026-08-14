@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Latency Forensics — Rollout Regression</title>
+<style>
+:root{--ink:#17201c;--muted:#5e6b64;--paper:#f5f2e9;--panel:#fffdf7;--line:#d8d4c8;--green:#0c7454;--mint:#d9eee4;--red:#a23b34;--rose:#f3dcd6;--amber:#c7771c;--navy:#233f62}
+*{box-sizing:border-box}html{background:var(--paper);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+body{margin:0}.page{max-width:1600px;margin:auto;padding:34px 44px 70px}.topline{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding-bottom:14px}
+.brand{font:700 13px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.12em;text-transform:uppercase}.meta{color:var(--muted);font-size:13px}
+h1{font-size:clamp(42px,4.2vw,72px);line-height:.98;letter-spacing:-.055em;max-width:1050px;margin:42px 0 18px}h2{font-size:29px;letter-spacing:-.03em;margin:0 0 16px}h3{font-size:18px;margin:0}
+.verdict{display:grid;grid-template-columns:1.5fr .8fr;gap:26px;align-items:stretch}.lead{font-size:20px;line-height:1.5;max-width:1000px;color:#334039;margin:0}
+.callout{border-left:5px solid var(--red);background:var(--rose);padding:22px 24px;border-radius:3px 14px 14px 3px}.callout b{display:block;font-size:21px;margin-bottom:8px}.callout p{margin:0;line-height:1.45}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:30px 0}.stat-card{background:var(--panel);border:1px solid var(--line);border-top:5px solid var(--navy);padding:20px;border-radius:12px;min-height:152px}.stat-card.candidate{border-top-color:var(--red)}
+.eyebrow{font:700 12px/1.3 ui-monospace,monospace;text-transform:uppercase;color:var(--muted)}.big{font-size:40px;font-weight:760;letter-spacing:-.05em;margin:13px 0 8px}.big span{font-size:14px;letter-spacing:0;color:var(--muted);font-weight:500}.mini{display:flex;gap:12px;font-size:12px;color:var(--muted)}.mini b{color:var(--ink)}.error{margin-top:11px;font-size:13px;color:var(--red);font-weight:700}
+.delta-card{background:var(--ink);color:white;border-color:var(--ink)}.delta-card .eyebrow,.delta-card .mini{color:#b7c3bc}.delta-card .big{color:#ffd1c7}.adjusted-card{border-top-color:var(--amber)}
+.overview-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:18px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px}.panel-head{display:flex;justify-content:space-between;gap:12px;align-items:end;margin-bottom:10px}.panel-head p{margin:0;color:var(--muted);font-size:12px}
+table{width:100%;border-collapse:collapse;font-size:13px}th{text-align:left;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.08em;padding:9px 10px;border-bottom:1px solid var(--line)}td{padding:10px;border-bottom:1px solid #e7e3d9}tr:last-child td{border:0}small{color:var(--muted)}.good{color:var(--green)}.bad{color:var(--red)}
+.note{margin:14px 0 0;padding:12px 14px;border-radius:8px;background:var(--mint);font-size:13px;line-height:1.45}.section{margin-top:28px}.wide-grid{display:grid;grid-template-columns:1.45fr .55fr;gap:18px}
+.scatter{width:100%;height:auto}.grid line{stroke:#dedbd2;stroke-width:1}.grid text,.axis-label{fill:var(--muted);font-size:12px}.risk-zone{fill:#f3dcd6;opacity:.55}.point{stroke:var(--panel);stroke-width:1.5}.control-point{fill:var(--navy)}.candidate-point{fill:var(--green)}.risk-point{fill:var(--amber)}.error-point{fill:var(--red);stroke:var(--ink);stroke-width:2}
+.legend{display:flex;gap:15px;flex-wrap:wrap;font-size:12px;color:var(--muted)}.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px}.dot.control{background:var(--navy)}.dot.candidate{background:var(--green)}.dot.risk{background:var(--amber)}.dot.err{background:var(--red)}
+.finding{padding:15px 0;border-bottom:1px solid var(--line)}.finding:last-child{border:0}.finding .tag{font:700 10px ui-monospace,monospace;color:var(--muted);text-transform:uppercase}.finding p{margin:5px 0 0;line-height:1.45}.status{background:var(--rose);color:var(--red);font-weight:800;padding:3px 7px;border-radius:5px}
+.bottom-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.list{margin:0;padding-left:20px}.list li{margin:9px 0;line-height:1.45}.recommend{border:2px solid var(--green);background:#f4fff9}.recommend h2{color:var(--green)}
+.foot{display:flex;justify-content:space-between;margin-top:28px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:12px}
+@media(max-width:950px){.page{padding:24px}.verdict,.overview-grid,.wide-grid,.bottom-grid{grid-template-columns:1fr}.cards{grid-template-columns:1fr 1fr}h1{font-size:44px}}@media print{body{background:white}.page{padding:20px}.panel,.stat-card{break-inside:avoid}}
+</style>
+</head>
+<body><main class="page">
+  <header class="topline"><div class="brand">Rollout observatory / 01</div><div class="meta">80 requests · deterministic analysis · all statuses retained</div></header>
+  <section class="verdict">
+    <div><h1>A localized regression,<br>amplified by traffic mix.</h1>
+      <p class="lead">Candidate is faster in <b>3 of 4</b> comparable slices, but EU mobile cold traffic is <b>418.7 ms slower</b> on mean and contains all four 504s. Mix worsens the headline; it does not explain it away.</p>
+    </div>
+    <aside class="callout"><b>Decision: do not roll forward unrestricted.</b><p>Pause or guard the EU mobile cold slice. Preserve the faster slices only inside a controlled, concurrent follow-up. Association is strong; causality is not established.</p></aside>
+  </section>
+  <section class="cards">
+    <article class="stat-card control">
+    <div class="eyebrow">Control · n=40</div>
+    <div class="big">316.8<span> ms mean</span></div>
+    <div class="mini"><b>235.5</b> median <b>787.3</b> p95 <b>854</b> max</div>
+    <div class="error">0 non-200 · 0.0%</div>
+  </article>
+    <article class="stat-card candidate">
+    <div class="eyebrow">Candidate · n=40</div>
+    <div class="big">604.7<span> ms mean</span></div>
+    <div class="mini"><b>416.5</b> median <b>1,457.9</b> p95 <b>1,584</b> max</div>
+    <div class="error">4 non-200 · 10.0%</div>
+  </article>
+    <article class="stat-card delta-card"><div class="eyebrow">Raw aggregate gap</div><div class="big">+288.0<span> ms</span></div><div class="mini">candidate − control mean</div><div class="error">Headline is mix-sensitive</div></article>
+    <article class="stat-card adjusted-card"><div class="eyebrow">Mix-standardized gap</div><div class="big">+69.9<span> ms</span></div><div class="mini">combined stratum weights</div><div class="error">Regression remains</div></article>
+  </section>
+  <section class="overview-grid">
+    <article class="panel"><div class="panel-head"><h2>Comparable strata</h2><p>Exact n and mean · all statuses</p></div>
+      <table><thead><tr><th>Region · device · cache</th><th>Control</th><th>Candidate</th><th>Delta</th></tr></thead><tbody><tr><td><b>EU</b> · desktop · warm</td><td>n=12<br><b>238.5</b> ms</td><td>n=8<br><b>211.4</b> ms</td><td class="good"><b>-27.1 ms</b><br>-11.4%</td></tr><tr><td><b>EU</b> · mobile · cold</td><td>n=4<br><b>798.3</b> ms</td><td>n=14<br><b>1,216.9</b> ms</td><td class="bad"><b>+418.7 ms</b><br>+52.4%</td></tr><tr><td><b>US</b> · desktop · warm</td><td>n=16<br><b>180.0</b> ms</td><td>n=8<br><b>155.4</b> ms</td><td class="good"><b>-24.6 ms</b><br>-13.7%</td></tr><tr><td><b>US</b> · mobile · cold</td><td>n=8<br><b>466.9</b> ms</td><td>n=10<br><b>421.7</b> ms</td><td class="good"><b>-45.2 ms</b><br>-9.7%</td></tr></tbody></table>
+      <p class="note"><b>Simpson-like mix effect:</b> candidate has more weight in the slow EU mobile cold slice (n=14 vs n=4). Standardizing reduces the mean gap from +288.0 to +69.9 ms, but does not reverse it.</p>
+    </article>
+    <article class="panel"><div class="panel-head"><h2>Traffic mix</h2><p>Share of each 40-row variant</p></div>
+      <table><thead><tr><th>Dimension</th><th>Category</th><th>Control</th><th>Candidate</th><th>Δ share</th></tr></thead><tbody>
+      <tr><td>Region</td><td>eu</td><td>16 <small>40.0%</small></td><td>22 <small>55.0%</small></td><td class="bad">+15.0 pp</td></tr><tr><td>Region</td><td>us</td><td>24 <small>60.0%</small></td><td>18 <small>45.0%</small></td><td class="">-15.0 pp</td></tr><tr><td>Device</td><td>desktop</td><td>28 <small>70.0%</small></td><td>16 <small>40.0%</small></td><td class="">-30.0 pp</td></tr><tr><td>Device</td><td>mobile</td><td>12 <small>30.0%</small></td><td>24 <small>60.0%</small></td><td class="bad">+30.0 pp</td></tr><tr><td>Cache</td><td>cold</td><td>12 <small>30.0%</small></td><td>24 <small>60.0%</small></td><td class="bad">+30.0 pp</td></tr><tr><td>Cache</td><td>warm</td><td>28 <small>70.0%</small></td><td>16 <small>40.0%</small></td><td class="">-30.0 pp</td></tr><tr><td>Payload KB</td><td>0000-0255</td><td>30 <small>75.0%</small></td><td>16 <small>40.0%</small></td><td class="">-35.0 pp</td></tr><tr><td>Payload KB</td><td>0256-0511</td><td>6 <small>15.0%</small></td><td>8 <small>20.0%</small></td><td class="bad">+5.0 pp</td></tr><tr><td>Payload KB</td><td>0512-0767</td><td>1 <small>2.5%</small></td><td>6 <small>15.0%</small></td><td class="bad">+12.5 pp</td></tr><tr><td>Payload KB</td><td>0768+</td><td>3 <small>7.5%</small></td><td>10 <small>25.0%</small></td><td class="bad">+17.5 pp</td></tr>
+      </tbody></table>
+    </article>
+  </section>
+  <section class="section wide-grid">
+    <article class="panel"><div class="panel-head"><div><h2>Payload vs latency</h2><div class="legend"><span><i class="dot control"></i>control</span><span><i class="dot candidate"></i>candidate, other</span><span><i class="dot risk"></i>candidate EU mobile cold</span><span><i class="dot err"></i>504</span></div></div><p>Hover points for request details</p></div>
+      <svg class="scatter" viewBox="0 0 920 390" role="img" aria-label="Payload versus latency scatter plot">
+    <g class="grid"><line x1="64" y1="338" x2="896" y2="338"/><text x="54" y="342" text-anchor="end">0</text><line x1="64" y1="262.3636363636364" x2="896" y2="262.3636363636364"/><text x="54" y="266.3636363636364" text-anchor="end">400</text><line x1="64" y1="186.72727272727272" x2="896" y2="186.72727272727272"/><text x="54" y="190.72727272727272" text-anchor="end">800</text><line x1="64" y1="111.09090909090908" x2="896" y2="111.09090909090908"/><text x="54" y="115.09090909090908" text-anchor="end">1200</text><line x1="64" y1="35.45454545454545" x2="896" y2="35.45454545454545"/><text x="54" y="39.45454545454545" text-anchor="end">1600</text><line x1="64" y1="26" x2="64" y2="338"/><text x="64" y="366" text-anchor="middle">0</text><line x1="249.2104347826087" y1="26" x2="249.2104347826087" y2="338"/><text x="249.2104347826087" y="366" text-anchor="middle">256</text><line x1="434.4208695652174" y1="26" x2="434.4208695652174" y2="338"/><text x="434.4208695652174" y="366" text-anchor="middle">512</text><line x1="619.6313043478261" y1="26" x2="619.6313043478261" y2="338"/><text x="619.6313043478261" y="366" text-anchor="middle">768</text><line x1="804.8417391304348" y1="26" x2="804.8417391304348" y2="338"/><text x="804.8417391304348" y="366" text-anchor="middle">1024</text></g>
+    <text class="axis-label" x="480" y="387" text-anchor="middle">Payload (KB)</text>
+    <text class="axis-label" transform="translate(15 182) rotate(-90)" text-anchor="middle">Latency (ms)</text>
+    <rect class="risk-zone" x="570.4347826086957" y="26" width="325.56521739130426" height="160.72727272727272"/>
+    <circle class="point control-point" cx="98.7" cy="305.5" r="4.2">
+      <title>r001 · control · 48 KB · 172 ms · 200</title>
+    </circle><circle class="point control-point" cx="110.3" cy="303.8" r="4.2">
+      <title>r002 · control · 64 KB · 181 ms · 200</title>
+    </circle><circle class="point control-point" cx="121.9" cy="304.7" r="4.2">
+      <title>r003 · control · 80 KB · 176 ms · 200</title>
+    </circle><circle class="point control-point" cx="133.5" cy="302.5" r="4.2">
+      <title>r004 · control · 96 KB · 188 ms · 200</title>
+    </circle><circle class="point control-point" cx="98.7" cy="306.0" r="4.2">
+      <title>r005 · control · 48 KB · 169 ms · 200</title>
+    </circle><circle class="point control-point" cx="110.3" cy="303.2" r="4.2">
+      <title>r006 · control · 64 KB · 184 ms · 200</title>
+    </circle><circle class="point control-point" cx="121.9" cy="304.2" r="4.2">
+      <title>r007 · control · 80 KB · 179 ms · 200</title>
+    </circle><circle class="point control-point" cx="133.5" cy="301.9" r="4.2">
+      <title>r008 · control · 96 KB · 191 ms · 200</title>
+    </circle><circle class="point control-point" cx="98.7" cy="305.5" r="4.2">
+      <title>r009 · control · 48 KB · 172 ms · 200</title>
+    </circle><circle class="point control-point" cx="110.3" cy="303.8" r="4.2">
+      <title>r010 · control · 64 KB · 181 ms · 200</title>
+    </circle><circle class="point control-point" cx="121.9" cy="304.7" r="4.2">
+      <title>r011 · control · 80 KB · 176 ms · 200</title>
+    </circle><circle class="point control-point" cx="133.5" cy="302.5" r="4.2">
+      <title>r012 · control · 96 KB · 188 ms · 200</title>
+    </circle><circle class="point control-point" cx="98.7" cy="306.0" r="4.2">
+      <title>r013 · control · 48 KB · 169 ms · 200</title>
+    </circle><circle class="point control-point" cx="110.3" cy="303.2" r="4.2">
+      <title>r014 · control · 64 KB · 184 ms · 200</title>
+    </circle><circle class="point control-point" cx="121.9" cy="304.2" r="4.2">
+      <title>r015 · control · 80 KB · 179 ms · 200</title>
+    </circle><circle class="point control-point" cx="133.5" cy="301.9" r="4.2">
+      <title>r016 · control · 96 KB · 191 ms · 200</title>
+    </circle><circle class="point control-point" cx="179.8" cy="295.3" r="4.2">
+      <title>r017 · control · 160 KB · 226 ms · 200</title>
+    </circle><circle class="point control-point" cx="202.9" cy="292.4" r="4.2">
+      <title>r018 · control · 192 KB · 241 ms · 200</title>
+    </circle><circle class="point control-point" cx="226.1" cy="293.9" r="4.2">
+      <title>r019 · control · 224 KB · 233 ms · 200</title>
+    </circle><circle class="point control-point" cx="179.8" cy="290.9" r="4.2">
+      <title>r020 · control · 160 KB · 249 ms · 200</title>
+    </circle><circle class="point control-point" cx="202.9" cy="293.0" r="4.2">
+      <title>r021 · control · 192 KB · 238 ms · 200</title>
+    </circle><circle class="point control-point" cx="226.1" cy="291.9" r="4.2">
+      <title>r022 · control · 224 KB · 244 ms · 200</title>
+    </circle><circle class="point control-point" cx="179.8" cy="295.3" r="4.2">
+      <title>r023 · control · 160 KB · 226 ms · 200</title>
+    </circle><circle class="point control-point" cx="202.9" cy="292.4" r="4.2">
+      <title>r024 · control · 192 KB · 241 ms · 200</title>
+    </circle><circle class="point control-point" cx="226.1" cy="293.9" r="4.2">
+      <title>r025 · control · 224 KB · 233 ms · 200</title>
+    </circle><circle class="point control-point" cx="179.8" cy="290.9" r="4.2">
+      <title>r026 · control · 160 KB · 249 ms · 200</title>
+    </circle><circle class="point control-point" cx="202.9" cy="293.0" r="4.2">
+      <title>r027 · control · 192 KB · 238 ms · 200</title>
+    </circle><circle class="point control-point" cx="226.1" cy="291.9" r="4.2">
+      <title>r028 · control · 224 KB · 244 ms · 200</title>
+    </circle><circle class="point control-point" cx="237.6" cy="255.2" r="4.2">
+      <title>r029 · control · 240 KB · 438 ms · 200</title>
+    </circle><circle class="point control-point" cx="295.5" cy="248.7" r="4.2">
+      <title>r030 · control · 320 KB · 472 ms · 200</title>
+    </circle><circle class="point control-point" cx="353.4" cy="252.7" r="4.2">
+      <title>r031 · control · 400 KB · 451 ms · 200</title>
+    </circle><circle class="point control-point" cx="411.3" cy="245.5" r="4.2">
+      <title>r032 · control · 480 KB · 489 ms · 200</title>
+    </circle><circle class="point control-point" cx="237.6" cy="251.0" r="4.2">
+      <title>r033 · control · 240 KB · 460 ms · 200</title>
+    </circle><circle class="point control-point" cx="295.5" cy="243.3" r="4.2">
+      <title>r034 · control · 320 KB · 501 ms · 200</title>
+    </circle><circle class="point control-point" cx="353.4" cy="253.7" r="4.2">
+      <title>r035 · control · 400 KB · 446 ms · 200</title>
+    </circle><circle class="point control-point" cx="411.3" cy="247.6" r="4.2">
+      <title>r036 · control · 480 KB · 478 ms · 200</title>
+    </circle><circle class="point control-point" cx="584.9" cy="197.7" r="4.2">
+      <title>r037 · control · 720 KB · 742 ms · 200</title>
+    </circle><circle class="point control-point" cx="642.8" cy="184.6" r="4.2">
+      <title>r038 · control · 800 KB · 811 ms · 200</title>
+    </circle><circle class="point control-point" cx="700.7" cy="189.4" r="4.2">
+      <title>r039 · control · 880 KB · 786 ms · 200</title>
+    </circle><circle class="point control-point" cx="758.5" cy="176.5" r="4.2">
+      <title>r040 · control · 960 KB · 854 ms · 200</title>
+    </circle><circle class="point candidate-point" cx="98.7" cy="310.0" r="4.2">
+      <title>r041 · candidate · 48 KB · 148 ms · 200</title>
+    </circle><circle class="point candidate-point" cx="110.3" cy="307.9" r="4.2">
+      <title>r042 · candidate · 64 KB · 159 ms · 200</title>
+    </circle><circle class="point candidate-point" cx="121.9" cy="309.4" r="4.2">
+      <title>r043 · candidate · 80 KB · 151 ms · 200</title>
+    </circle><circle class="point candidate-point" cx="133.5" cy="307.2" r="4.2">
+      <title>r044 · candidate · 96 KB · 163 ms · 200</title>
+    </circle><circle class="point candidate-point" cx="98.7" cy="310.4" r="4.2">
+      <title>r045 · candidate · 48 KB · 146 ms · 200</title>
+    </circle><circle class="point candidate-point" cx="110.3" cy="308.5" r="4.2">
+      <title>r046 · candidate · 64 KB · 156 ms · 200</title>
+    </circle><circle class="point candidate-point" cx="121.9" cy="308.9" r="4.2">
+      <title>r047 · candidate · 80 KB · 154 ms · 200</title>
+    </circle><circle class="point candidate-point" cx="133.5" cy="306.6" r="4.2">
+      <title>r048 · candidate · 96 KB · 166 ms · 200</title>
+    </circle><circle class="point candidate-point" cx="179.8" cy="300.6" r="4.2">
+      <title>r049 · candidate · 160 KB · 198 ms · 200</title>
+    </circle><circle class="point candidate-point" cx="202.9" cy="297.5" r="4.2">
+      <title>r050 · candidate · 192 KB · 214 ms · 200</title>
+    </circle><circle class="point candidate-point" cx="226.1" cy="299.2" r="4.2">
+      <title>r051 · candidate · 224 KB · 205 ms · 200</title>
+    </circle><circle class="point candidate-point" cx="249.2" cy="296.2" r="4.2">
+      <title>r052 · candidate · 256 KB · 221 ms · 200</title>
+    </circle><circle class="point candidate-point" cx="179.8" cy="299.8" r="4.2">
+      <title>r053 · candidate · 160 KB · 202 ms · 200</title>
+    </circle><circle class="point candidate-point" cx="202.9" cy="297.0" r="4.2">
+      <title>r054 · candidate · 192 KB · 217 ms · 200</title>
+    </circle><circle class="point candidate-point" cx="226.1" cy="298.5" r="4.2">
+      <title>r055 · candidate · 224 KB · 209 ms · 200</title>
+    </circle><circle class="point candidate-point" cx="249.2" cy="295.5" r="4.2">
+      <title>r056 · candidate · 256 KB · 225 ms · 200</title>
+    </circle><circle class="point candidate-point" cx="237.6" cy="262.9" r="4.2">
+      <title>r057 · candidate · 240 KB · 397 ms · 200</title>
+    </circle><circle class="point candidate-point" cx="295.5" cy="258.4" r="4.2">
+      <title>r058 · candidate · 320 KB · 421 ms · 200</title>
+    </circle><circle class="point candidate-point" cx="353.4" cy="261.4" r="4.2">
+      <title>r059 · candidate · 400 KB · 405 ms · 200</title>
+    </circle><circle class="point candidate-point" cx="411.3" cy="255.2" r="4.2">
+      <title>r060 · candidate · 480 KB · 438 ms · 200</title>
+    </circle><circle class="point candidate-point" cx="469.1" cy="259.7" r="4.2">
+      <title>r061 · candidate · 560 KB · 414 ms · 200</title>
+    </circle><circle class="point candidate-point" cx="237.6" cy="253.5" r="4.2">
+      <title>r062 · candidate · 240 KB · 447 ms · 200</title>
+    </circle><circle class="point candidate-point" cx="295.5" cy="262.0" r="4.2">
+      <title>r063 · candidate · 320 KB · 402 ms · 200</title>
+    </circle><circle class="point candidate-point" cx="353.4" cy="256.5" r="4.2">
+      <title>r064 · candidate · 400 KB · 431 ms · 200</title>
+    </circle><circle class="point candidate-point" cx="411.3" cy="258.8" r="4.2">
+      <title>r065 · candidate · 480 KB · 419 ms · 200</title>
+    </circle><circle class="point candidate-point" cx="469.1" cy="254.2" r="4.2">
+      <title>r066 · candidate · 560 KB · 443 ms · 200</title>
+    </circle><circle class="point risk-point" cx="584.9" cy="167.4" r="4.2">
+      <title>r067 · candidate · 720 KB · 902 ms · 200</title>
+    </circle><circle class="point risk-point" cx="642.8" cy="145.5" r="4.2">
+      <title>r068 · candidate · 800 KB · 1018 ms · 200</title>
+    </circle><circle class="point risk-point" cx="700.7" cy="123.2" r="4.2">
+      <title>r069 · candidate · 880 KB · 1136 ms · 200</title>
+    </circle><circle class="point error-point" cx="758.5" cy="99.0" r="6">
+      <title>r070 · candidate · 960 KB · 1264 ms · 504</title>
+    </circle><circle class="point risk-point" cx="816.4" cy="75.5" r="4.2">
+      <title>r071 · candidate · 1040 KB · 1388 ms · 200</title>
+    </circle><circle class="point error-point" cx="874.3" cy="52.1" r="6">
+      <title>r072 · candidate · 1120 KB · 1512 ms · 504</title>
+    </circle><circle class="point risk-point" cx="613.8" cy="159.5" r="4.2">
+      <title>r073 · candidate · 760 KB · 944 ms · 200</title>
+    </circle><circle class="point risk-point" cx="584.9" cy="133.4" r="4.2">
+      <title>r074 · candidate · 720 KB · 1082 ms · 200</title>
+    </circle><circle class="point risk-point" cx="642.8" cy="111.8" r="4.2">
+      <title>r075 · candidate · 800 KB · 1196 ms · 200</title>
+    </circle><circle class="point error-point" cx="700.7" cy="86.9" r="6">
+      <title>r076 · candidate · 880 KB · 1328 ms · 504</title>
+    </circle><circle class="point risk-point" cx="758.5" cy="62.9" r="4.2">
+      <title>r077 · candidate · 960 KB · 1455 ms · 200</title>
+    </circle><circle class="point error-point" cx="816.4" cy="38.5" r="6">
+      <title>r078 · candidate · 1040 KB · 1584 ms · 504</title>
+    </circle><circle class="point risk-point" cx="874.3" cy="151.6" r="4.2">
+      <title>r079 · candidate · 1120 KB · 986 ms · 200</title>
+    </circle><circle class="point risk-point" cx="613.8" cy="103.1" r="4.2">
+      <title>r080 · candidate · 760 KB · 1242 ms · 200</title>
+    </circle>
+  </svg>
+    </article>
+    <article class="panel"><h2>What the pattern says</h2>
+      <div class="finding"><span class="tag">computed fact</span><p>Candidate aggregate mean and tail latency are higher than control when all requests, including errors, are retained.</p></div><div class="finding"><span class="tag">interpretation</span><p>Traffic mix explains part of the aggregate gap: candidate has more mobile/cold and EU-mobile-cold observations, but standardization does not remove the regression.</p></div><div class="finding"><span class="tag">computed fact</span><p>Candidate is faster in three of four comparable strata and materially slower in EU × mobile × cold.</p></div><div class="finding"><span class="tag">interpretation</span><p>The regression and all observed errors are concentrated in candidate EU × mobile × cold traffic; payload size is entangled with that stratum and time.</p></div>
+      <div class="finding"><span class="tag">Counter-evidence</span><p>Payload, region, device, cache, time, and variant are bundled. Control has only n=4 in the suspect slice, and latency is not monotonic with payload.</p></div>
+    </article>
+  </section>
+  <section class="section panel"><div class="panel-head"><h2>Error rows</h2><p>No non-200 request was discarded</p></div>
+    <table><thead><tr><th>Request</th><th>Minute</th><th>Slice</th><th>Payload</th><th>Latency</th><th>Status</th></tr></thead><tbody><tr><td>r070</td><td>27</td><td>eu · mobile · cold</td><td>960 KB</td><td>1264 ms</td><td><span class="status">504</span></td></tr><tr><td>r072</td><td>29</td><td>eu · mobile · cold</td><td>1120 KB</td><td>1512 ms</td><td><span class="status">504</span></td></tr><tr><td>r076</td><td>33</td><td>eu · mobile · cold</td><td>880 KB</td><td>1328 ms</td><td><span class="status">504</span></td></tr><tr><td>r078</td><td>35</td><td>eu · mobile · cold</td><td>1040 KB</td><td>1584 ms</td><td><span class="status">504</span></td></tr></tbody></table>
+  </section>
+  <section class="section bottom-grid">
+    <article class="panel"><h2>Why this is not causal</h2><ul class="list"><li>Variant is perfectly separated by time (control minutes 0–15; candidate minutes 20–37), so temporal drift is confounded with treatment.</li><li>Traffic was not balanced or randomized across strata; stratum sample sizes differ, especially EU × mobile × cold (control n=4, candidate n=14).</li><li>Payload distributions do not overlap well inside EU × mobile × cold, limiting like-for-like payload comparisons.</li><li>Region, device, and cache occur only in four bundled combinations, so their individual effects and interactions are not separately identifiable.</li><li>The dataset is small, contains no repeated rollout cycles, and supplies no server/resource/network telemetry.</li><li>Status 504 may be part of the latency mechanism; excluding it would condition on an outcome, so primary statistics retain all rows.</li></ul></article>
+    <article class="panel recommend"><h2>Next move</h2><p><b>Do not continue the candidate for EU mobile cold traffic on this dataset alone; pause that slice or constrain it behind a guardrail while preserving the faster strata for a controlled follow-up.</b></p><ol class="list"><li>Run a concurrent randomized control/candidate comparison within region × device × cache, with balanced payload bands and predefined latency/error guardrails.</li><li>Instrument stage-level latency, timeout origin, payload bytes, network timing, and resource saturation for EU mobile cold requests, keyed by request ID.</li></ol></article>
+  </section>
+  <footer class="foot"><span>Quantile: linear interpolation, h=(n−1)p</span><span>Source: data/requests.csv · generated with Bun/TypeScript · no external assets</span></footer>
+</main></body></html>
