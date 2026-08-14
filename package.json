@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "capture:previews": "bun scripts/capture-previews.ts",
-    "start": "next start"
+    "start": "next start",
+    "assert:decision-lab-copy": "bun scripts/assert-decision-lab-copy.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

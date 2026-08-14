@@ -80,7 +80,7 @@ const presets: Array<{ name: string; description: string; weights: WeightMap }> 
   },
   {
     name: "Quality + cost",
-    description: "Rank all three agents on quality and published-rate cost; omit time.",
+    description: "Zero the time weight and rank on quality and published-rate cost.",
     weights: { quality: 60, speed: 0, cost: 40 },
   },
 ];
@@ -201,9 +201,9 @@ export function DecisionLab({ metrics }: DecisionLabProps) {
             </h2>
           </div>
           <p className="max-w-3xl text-sm leading-6 text-muted-foreground xl:justify-self-end">
-            Weight quality, recorded build time, and published-rate cost. Quality
-            and cost include all three agents. Time compares only Opus and Sol.
-            A Quality + cost preset ranks all three agents.
+            Weight quality, recorded build time, and published-rate cost. Quality,
+            time, and cost include all three agents. The Quality + cost preset
+            zeros the time weight.
           </p>
         </div>
 
