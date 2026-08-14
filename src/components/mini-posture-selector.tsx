@@ -354,23 +354,21 @@ export function MiniPostureSelector({
  * A persistent top or hero-level banner highlighting the active posture.
  */
 export function GlobalPostureBanner() {
-  const { displayName, displayBadge, postureResult, selectPreset, activePresetId } = usePosture();
+  const { postureResult, selectPreset, activePresetId } = usePosture();
   const leader = postureResult.leader;
 
   return (
     <div className="border-b border-border/80 bg-black/90 px-4 py-2.5">
       <div className="mx-auto flex max-w-[1600px] flex-wrap items-center justify-between gap-3 text-xs">
-        <div className="flex flex-wrap items-center gap-2.5">
+        <div className="flex items-center gap-3">
           <span className="flex items-center gap-1.5 font-mono text-[11px] font-semibold text-foreground uppercase tracking-wider">
-            <Sliders className="size-3 text-mega-blue-text" /> Active Posture:
+            <Sliders className="size-3 text-mega-blue-text" /> Posture:
           </span>
-          <span className="font-mono text-xs font-bold text-foreground tabular-nums inline-block min-w-[125px]">
-            {displayName}
-          </span>
-          <PostureWeightBar className="h-1.5 w-12" />
 
-          {/* Quick presets buttons */}
-          <div className="hidden items-center gap-1 sm:flex">
+          <PostureWeightBar className="h-1.5 w-12 shrink-0" />
+
+          {/* Quick presets buttons — placed immediately after the static label and weight bar so they NEVER shift */}
+          <div className="flex items-center gap-1">
             {POSTURE_PRESETS.map((p) => {
               const active = activePresetId === p.id;
               return (
@@ -378,7 +376,7 @@ export function GlobalPostureBanner() {
                   key={p.id}
                   type="button"
                   onClick={() => selectPreset(p)}
-                  className={`border px-2 py-0.5 font-mono text-[10px] uppercase transition-colors ${
+                  className={`border px-2.5 py-0.5 font-mono text-[10px] uppercase transition-colors ${
                     active
                       ? "border-foreground bg-foreground font-bold text-background"
                       : "border-border bg-card text-muted-foreground hover:border-border/80 hover:text-foreground"
@@ -395,10 +393,10 @@ export function GlobalPostureBanner() {
           <div className="flex items-center gap-1.5 font-mono text-[11px]">
             <span className="text-muted-foreground">#1 Leader:</span>
             <span
-              className="font-bold"
+              className="font-bold inline-block min-w-[70px]"
               style={{ color: PROVIDER_COLOR[leader.provider] }}
             >
-              {PROVIDER_SHORT[leader.provider]} ({leader.score.toFixed(1)} / 100)
+              {PROVIDER_SHORT[leader.provider]}
             </span>
           </div>
 
