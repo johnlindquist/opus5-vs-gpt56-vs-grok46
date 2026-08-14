@@ -128,20 +128,18 @@ export function DemoShowcase({ items }: DemoShowcaseProps) {
       <div className="mx-auto max-w-[1600px] px-4 py-14 sm:px-6 lg:px-8 lg:py-20">
         <div className="grid gap-7 lg:grid-cols-[.72fr_1.28fr] lg:items-end">
           <div>
-            <div className="mega-label mb-3 text-foreground">Artifact signal · before the charts</div>
+            <div className="mega-label mb-3 text-foreground">Artifact Gallery</div>
             <h2 id="showcase-heading" className="pixel-heading text-3xl font-semibold sm:text-5xl">
-              Twenty briefs became real products.
+              Staged artifact gallery.
             </h2>
           </div>
           <div className="lg:justify-self-end">
             <p className="max-w-3xl text-sm leading-6 text-muted-foreground">
-              A representative six-cell cut across local toys, developer tools,
-              and AI workflows. Every image is a static capture of a byte-staged
-              artifact and links to the exact receipted spec deep dive.
+              Representative captures across local instruments, developer tools, and AI workflows. Each card links directly to its receipted deep dive.
             </p>
             <div className="mt-4 flex items-center gap-2 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
               <MousePointer2 className="size-3.5 text-foreground" aria-hidden="true" />
-              No submitted code loads or runs in this gallery
+              Static captures · Sandboxed preview
             </div>
           </div>
         </div>

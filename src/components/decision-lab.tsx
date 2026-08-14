@@ -541,9 +541,9 @@ export function DecisionLab({ metrics }: DecisionLabProps) {
           </div>
 
           <aside className="border border-border bg-black p-5 sm:p-6" aria-labelledby="decision-limits-heading">
-            <div className="mega-label">Comparability firewall</div>
+            <div className="mega-label">Comparability scope</div>
             <h3 id="decision-limits-heading" className="mt-2 text-xl font-semibold">
-              What the composite refuses to pretend.
+              Comparability & scope boundaries.
             </h3>
             <div className="mt-6 space-y-5 text-sm leading-6 text-muted-foreground">
               <p>

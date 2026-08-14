@@ -116,7 +116,7 @@ export default async function SpecPage({ params }: { params: Promise<{ id: strin
         <article className="border border-border bg-card p-4 sm:p-6">
           <div className="mb-6">
             <div className="mega-label mb-2">Category comparison</div>
-            <h2 className="pixel-heading text-2xl font-semibold sm:text-3xl">Where the points came from.</h2>
+            <h2 className="pixel-heading text-2xl font-semibold sm:text-3xl">Rubric score breakdown.</h2>
           </div>
           <div className="overflow-x-auto">
             <div className="min-w-[650px]"><RubricChart spec={spec} /></div>
@@ -142,7 +142,7 @@ export default async function SpecPage({ params }: { params: Promise<{ id: strin
         <div className="mx-auto max-w-[1600px] px-4 py-14 sm:px-6 lg:px-8 lg:py-20">
           <div className="mb-7">
             <div className="mega-label mb-2">Run receipts</div>
-            <h2 className="pixel-heading text-2xl font-semibold sm:text-3xl">Trace every submitted cell.</h2>
+            <h2 className="pixel-heading text-2xl font-semibold sm:text-3xl">Run execution receipts.</h2>
           </div>
           <div className="grid gap-px border border-border bg-border lg:grid-cols-3">
             {PROVIDER_ORDER.map((provider) => {
@@ -183,7 +183,7 @@ export default async function SpecPage({ params }: { params: Promise<{ id: strin
         <div className="grid gap-6 lg:grid-cols-[.7fr_1.3fr]">
           <div>
             <div className="mega-label mb-2">Frozen input</div>
-            <h2 className="pixel-heading text-2xl font-semibold sm:text-3xl">Read the frozen specification.</h2>
+            <h2 className="pixel-heading text-2xl font-semibold sm:text-3xl">Frozen specification prompt.</h2>
             <div className="mt-5 space-y-3 font-mono text-[10px] leading-5 text-muted-foreground">
               <div className="flex items-start gap-2"><Hash className="mt-0.5 size-3 shrink-0" /><span className="break-all">{spec.spec_sha256}</span></div>
               <div className="flex items-start gap-2"><FileJson2 className="mt-0.5 size-3 shrink-0" /><span>{spec.triad.receipt}</span></div>

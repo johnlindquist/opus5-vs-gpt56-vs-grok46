@@ -291,10 +291,10 @@ export default function Home() {
       <section className="border-y border-border bg-[#050505]">
         <div className="mx-auto grid max-w-[1600px] gap-8 px-4 py-16 sm:px-6 lg:grid-cols-[1fr_1.4fr] lg:px-8 lg:py-24">
           <div>
-            <div className="mega-label mb-2">What the wins mean</div>
-            <h2 className="pixel-heading text-3xl font-semibold sm:text-4xl">Pairwise calls, not a merged podium.</h2>
+            <div className="mega-label mb-2">Evaluation protocol</div>
+            <h2 className="pixel-heading text-3xl font-semibold sm:text-4xl">Blinded pairwise decisions.</h2>
             <p className="mt-5 max-w-xl text-sm leading-6 text-muted-foreground">
-              A single reviewer scored Alpha, Beta, and Gamma without provider identity. Higher total wins each pair; equal totals tie. The same context avoids score drift between separate reviews.
+              Each spec was judged blind in a single shared context under Alpha, Beta, and Gamma aliases. Direct point totals determine pairwise outcomes.
             </p>
             <Link
               href="/methodology#grading"
@@ -335,8 +335,8 @@ export default function Home() {
       <section id="matrix" className="scroll-mt-20 mx-auto max-w-[1600px] px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
         <div className="mb-8 flex flex-wrap items-end justify-between gap-5">
           <div>
-            <div className="mega-label mb-2">The complete matrix</div>
-            <h2 className="pixel-heading text-3xl font-semibold sm:text-4xl">Dig into every build.</h2>
+            <div className="mega-label mb-2">Specification matrix</div>
+            <h2 className="pixel-heading text-3xl font-semibold sm:text-4xl">All 20 benchmark specifications.</h2>
           </div>
           <div className="flex gap-4 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
             <ProviderMark provider="claude" compact />
@@ -414,12 +414,12 @@ export default function Home() {
         <div className="mx-auto max-w-[1600px] px-4 py-20 sm:px-6 lg:px-8">
           <div className="grid gap-10 lg:grid-cols-[1fr_1fr] lg:items-center">
             <div>
-              <div className="mega-label mb-3">Evidence before conclusion</div>
+              <div className="mega-label mb-3">Provenance & Artifacts</div>
               <h2 className="pixel-heading max-w-2xl text-3xl font-semibold sm:text-5xl">
-                Don&apos;t trust the chart. Open the work.
+                Inspect every staged artifact.
               </h2>
               <p className="mt-5 max-w-xl text-sm leading-6 text-muted-foreground">
-                Each deep dive puts all three staged artifacts, full rubric scores, judge rationales, receipt metadata, validator status, and the frozen prompt on one page.
+                Each spec detail page includes all three staged artifacts, full rubric breakdowns, evaluator rationales, telemetry receipts, and the frozen prompt.
               </p>
             </div>
             <div className="grid gap-px border border-border bg-border sm:grid-cols-3">

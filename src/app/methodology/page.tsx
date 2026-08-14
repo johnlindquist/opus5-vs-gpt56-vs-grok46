@@ -87,9 +87,9 @@ export default function MethodologyPage() {
             <ArrowLeft className="size-4" /> Results
           </Link>
           <div className="mega-label mb-4 text-muted-foreground">Protocol · Evidence · Limits</div>
-          <h1 className="pixel-heading max-w-4xl text-4xl font-semibold text-balance sm:text-6xl">How the battle actually worked.</h1>
+          <h1 className="pixel-heading max-w-4xl text-4xl font-semibold text-balance sm:text-6xl">Benchmark protocol & provenance.</h1>
           <p className="mt-7 max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
-            This was an artifact benchmark, not a vibes poll. The protocol separates what was frozen, what each harness observed, what a validator proved, and what one independent reviewer judged.
+            The benchmark enforces strict provenance across four distinct stages: committed specification prompts, isolated execution telemetry, automated replay validation, and blinded frontier-model evaluations.
           </p>
           <div className="mt-8 flex flex-wrap gap-4">
             <ProviderMark provider="claude" />
@@ -201,7 +201,7 @@ export default function MethodologyPage() {
         <div className="mx-auto max-w-[1200px] px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
           <div className="mb-10 max-w-3xl">
             <div className="mega-label mb-2">Evidence taxonomy</div>
-            <h2 className="pixel-heading text-3xl font-semibold sm:text-4xl">What each layer can prove.</h2>
+            <h2 className="pixel-heading text-3xl font-semibold sm:text-4xl">Evidence layer taxonomy.</h2>
           </div>
           <div className="overflow-hidden border border-border font-mono text-xs">
             {[
@@ -224,8 +224,8 @@ export default function MethodologyPage() {
       <section className="mx-auto max-w-[1200px] px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
         <div className="grid gap-10 lg:grid-cols-[.7fr_1.3fr]">
           <div>
-            <div className="mega-label mb-2">Questions worth asking</div>
-            <h2 className="pixel-heading text-3xl font-semibold sm:text-4xl">Limits and disclosures.</h2>
+            <div className="mega-label mb-2">Disclosures & Scope</div>
+            <h2 className="pixel-heading text-3xl font-semibold sm:text-4xl">Methodology disclosures.</h2>
           </div>
           <Accordion multiple className="border-t border-border">
             <AccordionItem value="pairwise" className="border-border">

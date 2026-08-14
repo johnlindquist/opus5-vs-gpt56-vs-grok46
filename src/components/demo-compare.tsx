@@ -15,12 +15,10 @@ export function DemoCompare({ spec }: { spec: SpecRow }) {
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
           <div className="mega-label mb-2">Artifact inspection</div>
-          <h2 id="playable-heading" className="pixel-heading text-2xl font-semibold sm:text-3xl">Inspect all three submitted artifacts</h2>
+          <h2 id="playable-heading" className="pixel-heading text-2xl font-semibold sm:text-3xl">Side-by-side artifact inspection</h2>
         </div>
         <p className="max-w-lg text-xs leading-5 text-muted-foreground">
-          Static first-view captures make every artifact comparable at a
-          glance without loading submitted code. Open any capture to run the
-          staged artifact on its isolated demo origin.
+          Static first-view captures for side-by-side review. Open any artifact to execute it on its isolated demo origin.
         </p>
       </div>
       <div className="grid gap-3 xl:grid-cols-3">
