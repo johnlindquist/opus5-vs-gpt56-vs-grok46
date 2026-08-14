@@ -79,14 +79,45 @@ interface GrokRow {
   session_id: string | null;
   reported_model: string | null;
   pairwise: Record<string, string>;
+  cost_equivalents?: {
+    list_rate_equivalent_usd: string;
+    launch_discount_equivalent_usd: string;
+  };
+  usage?: {
+    input: number;
+    cache_read: number;
+    cache_write: number;
+    output: number;
+  };
 }
 interface GrokResultsDoc {
+  schema_version?: string;
   specs: GrokRow[];
   tallies: Record<string, unknown> & {
     claude_vs_grok: unknown;
     grok_vs_codex: unknown;
   };
   disclosures: string[];
+  resource_summary?: {
+    api_key_source: string;
+    reported_model: string;
+    pricing: {
+      list_rate_equivalent_usd: string;
+      launch_discount_equivalent_usd: string;
+      billing_disclosure: string;
+      basis: string;
+    };
+    tokens: {
+      input: number;
+      cache_read: number;
+      cache_write: number;
+      output: number;
+    };
+    timing: {
+      summed_runtime_seconds: number;
+      elapsed_campaign_seconds: number;
+    };
+  };
 }
 interface ConditionsDoc {
   conditions: Record<string, unknown>;
@@ -356,9 +387,11 @@ for (const meta of specMeta) {
     verdict: grokRow.verdict,
     session_id: grokRow.session_id,
     reported_model: grokRow.reported_model,
-    cost_usd: null,
-    cost_source: "cursor-subscription (no per-run receipt)",
-    output_tokens: null,
+    cost_usd: grokRow.cost_equivalents?.list_rate_equivalent_usd ?? null,
+    cost_source: grokRow.cost_equivalents
+      ? "cursor-grok-4.6-list-rate-equivalent"
+      : "cursor-subscription (no per-run receipt)",
+    output_tokens: grokRow.usage?.output ?? null,
   };
 
   // Staged demos -> public/demos
@@ -537,7 +570,7 @@ const metrics = {
       scope:
         "The weighted composite compares only the canonical Claude and Sol artifacts, whose twenty duration and provider-cost receipts share the frozen canonical matrix.",
       grok_cost_exclusion:
-        "Grok ran later through a Cursor subscription and has no per-run provider-cost receipt, so it is never assigned a cost utility or weighted composite score.",
+        "Grok now has Cursor Grok 4.6 token-rate equivalents ($2 / $0.50 / $6 per million; 50% launch discount the week of August 12, 2026). Those figures are not invoices or comparable cash charges, so Grok is never assigned a cost utility or weighted composite score.",
       grok_speed_exclusion:
         "Condition G ran later under different host state and concurrency, so Grok durations remain provenance only and are excluded from controlled speed weighting.",
       missing_values:
@@ -676,6 +709,7 @@ const data = {
     grok_vs_codex: grokResults.tallies.grok_vs_codex,
   },
   disclosures: grokResults.disclosures,
+  grok_resource_summary: grokResults.resource_summary ?? null,
   conditions: conditions.conditions,
   grade_disclosure_line: conditions.grade_disclosure_line,
   methodology_statements: conditions.methodology_statements,

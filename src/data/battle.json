@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-08-14T09:28:40.983Z",
+ "generated_at": "2026-08-14T17:32:33.998Z",
  "providers": {
   "claude": {
    "label": "Claude Opus 5",
@@ -51,10 +51,44 @@
  },
  "disclosures": [
   "Triad letter grades and scores are the opinion of one independent frontier-model review per spec, with all three artifacts assessed blind in a single shared context; they are not objective measurements or a consensus.",
-  "Condition G ran in August 2026, after the canonical Opus-vs-Sol battle closed; it is a rerun third arm under the frozen specs, not a concurrent competitor.",
-  "Wall-clock durations are recorded per cell for provenance only and are never compared across arms.",
-  "The frozen canonical pairwise tally (Opus 19, Sol 1, ties 0) is unchanged by this file; Condition G contributes zero results to it and is reported only as separate Opus-vs-Grok and Grok-vs-Sol pairwise tallies."
+  "Condition G ran in August 2026, after the canonical Opus-vs-Sol battle closed; it is a later rerun third arm under the frozen specs, not a concurrent competitor.",
+  "Wall-clock durations are receipt provenance only and are never used as a controlled cross-arm speed comparison.",
+  "Token-rate equivalents are not necessarily marginal cash charges, provider invoices, or subscription spend: these runs authenticated through Cursor login and used Cursor's first-party model pool.",
+  "The frozen canonical pairwise tally (Opus 19, Sol 1, ties 0) is unchanged; Condition G contributes zero canonical results and is reported only in separate Opus-vs-Grok and Grok-vs-Sol tallies."
  ],
+ "grok_resource_summary": {
+  "api_key_source": "login",
+  "canonical_contribution_count": 0,
+  "cells_with_result_receipts": 20,
+  "pricing": {
+   "basis": "Cursor Grok 4.6 standard token rates; 50% launch discount for one week beginning August 12, 2026",
+   "billing_disclosure": "Token-rate equivalents are not necessarily marginal cash charges, provider invoices, or subscription spend; selected runs used Cursor login and the first-party model pool.",
+   "cache_read_rate_usd": "0.500000",
+   "currency": "USD",
+   "discount_window_started_at": "2026-08-12T00:00:00Z",
+   "input_rate_usd": "2.000000",
+   "launch_discount_equivalent_usd": "16.648450",
+   "launch_discount_fraction": "0.500000",
+   "list_rate_equivalent_usd": "33.296900",
+   "output_rate_usd": "6.000000",
+   "selected_runs_within_discount_window": true,
+   "unit": "per_million_tokens"
+  },
+  "reported_model": "Cursor Grok 4.6 Medium",
+  "requested_model": "cursor-grok-4.6-medium",
+  "timing": {
+   "earliest_started_at": "2026-08-13T20:58:32.925000Z",
+   "elapsed_campaign_seconds": 10678.278,
+   "latest_ended_at": "2026-08-13T23:56:31.203000Z",
+   "summed_runtime_seconds": 15432.818
+  },
+  "tokens": {
+   "cache_read": 34528768,
+   "cache_write": 0,
+   "input": 5178117,
+   "output": 946047
+  }
+ },
  "conditions": {
   "A": {
    "meaning": "Original 01/08/02 runs: 35-minute cap, shared user configuration",
@@ -174,8 +208,8 @@
     "total_duration_seconds": 15432.818,
     "median_duration_seconds": 822.1525,
     "duration_receipts": 20,
-    "total_cost_usd": null,
-    "cost_receipts": 0
+    "total_cost_usd": 33.2969,
+    "cost_receipts": 20
    },
    "codex": {
     "mean_score": 77.1,
@@ -243,7 +277,7 @@
    },
    "comparability": {
     "scope": "The weighted composite compares only the canonical Claude and Sol artifacts, whose twenty duration and provider-cost receipts share the frozen canonical matrix.",
-    "grok_cost_exclusion": "Grok ran later through a Cursor subscription and has no per-run provider-cost receipt, so it is never assigned a cost utility or weighted composite score.",
+    "grok_cost_exclusion": "Grok now has Cursor Grok 4.6 token-rate equivalents ($2 / $0.50 / $6 per million; 50% launch discount the week of August 12, 2026). Those figures are not invoices or comparable cash charges, so Grok is never assigned a cost utility or weighted composite score.",
     "grok_speed_exclusion": "Condition G ran later under different host state and concurrency, so Grok durations remain provenance only and are excluded from controlled speed weighting.",
     "missing_values": "A missing source value remains unavailable. It is never converted to zero, one, or best-in-class utility."
    }
@@ -576,9 +610,9 @@
      "verdict": "ran",
      "session_id": "a561ea3f-5c5e-4a66-a9be-6fccd846a1c3",
      "reported_model": "Cursor Grok 4.6 Medium",
-     "cost_usd": null,
-     "cost_source": "cursor-subscription (no per-run receipt)",
-     "output_tokens": null
+     "cost_usd": "0.818452",
+     "cost_source": "cursor-grok-4.6-list-rate-equivalent",
+     "output_tokens": 33313
     }
    },
    "demos": {
@@ -714,9 +748,9 @@
      "verdict": "ran",
      "session_id": "f3e65bba-1861-4446-b675-dd21892e9189",
      "reported_model": "Cursor Grok 4.6 Medium",
-     "cost_usd": null,
-     "cost_source": "cursor-subscription (no per-run receipt)",
-     "output_tokens": null
+     "cost_usd": "1.145972",
+     "cost_source": "cursor-grok-4.6-list-rate-equivalent",
+     "output_tokens": 41943
     }
    },
    "demos": {
@@ -853,9 +887,9 @@
      "verdict": "ran",
      "session_id": "dcb3c0cf-bcfe-4441-95e2-e7680d0961bb",
      "reported_model": "Cursor Grok 4.6 Medium",
-     "cost_usd": null,
-     "cost_source": "cursor-subscription (no per-run receipt)",
-     "output_tokens": null
+     "cost_usd": "0.855652",
+     "cost_source": "cursor-grok-4.6-list-rate-equivalent",
+     "output_tokens": 37612
     }
    },
    "demos": {
@@ -991,9 +1025,9 @@
      "verdict": "ran",
      "session_id": "5fc614e9-7f54-49ba-93fd-211a19ba6d43",
      "reported_model": "Cursor Grok 4.6 Medium",
-     "cost_usd": null,
-     "cost_source": "cursor-subscription (no per-run receipt)",
-     "output_tokens": null
+     "cost_usd": "0.836146",
+     "cost_source": "cursor-grok-4.6-list-rate-equivalent",
+     "output_tokens": 39083
     }
    },
    "demos": {
@@ -1129,9 +1163,9 @@
      "verdict": "ran",
      "session_id": "2f178760-de0e-4940-88ce-313a93b19be3",
      "reported_model": "Cursor Grok 4.6 Medium",
-     "cost_usd": null,
-     "cost_source": "cursor-subscription (no per-run receipt)",
-     "output_tokens": null
+     "cost_usd": "2.031708",
+     "cost_source": "cursor-grok-4.6-list-rate-equivalent",
+     "output_tokens": 54402
     }
    },
    "demos": {
@@ -1267,9 +1301,9 @@
      "verdict": "ran",
      "session_id": "0a543cd8-4c3e-4034-86be-72e6a4d25026",
      "reported_model": "Cursor Grok 4.6 Medium",
-     "cost_usd": null,
-     "cost_source": "cursor-subscription (no per-run receipt)",
-     "output_tokens": null
+     "cost_usd": "1.518512",
+     "cost_source": "cursor-grok-4.6-list-rate-equivalent",
+     "output_tokens": 43689
     }
    },
    "demos": {
@@ -1405,9 +1439,9 @@
      "verdict": "ran",
      "session_id": "2fbe67ad-da64-462c-a783-10bdf67d533b",
      "reported_model": "Cursor Grok 4.6 Medium",
-     "cost_usd": null,
-     "cost_source": "cursor-subscription (no per-run receipt)",
-     "output_tokens": null
+     "cost_usd": "0.692642",
+     "cost_source": "cursor-grok-4.6-list-rate-equivalent",
+     "output_tokens": 21315
     }
    },
    "demos": {
@@ -1544,9 +1578,9 @@
      "verdict": "ran",
      "session_id": "83c0a94e-9f11-47b5-b8d0-91fb3ae89b36",
      "reported_model": "Cursor Grok 4.6 Medium",
-     "cost_usd": null,
-     "cost_source": "cursor-subscription (no per-run receipt)",
-     "output_tokens": null
+     "cost_usd": "0.785902",
+     "cost_source": "cursor-grok-4.6-list-rate-equivalent",
+     "output_tokens": 25370
     }
    },
    "demos": {
@@ -1683,9 +1717,9 @@
      "verdict": "ran",
      "session_id": "71c75077-89b6-4505-a9da-feffe911a5fd",
      "reported_model": "Cursor Grok 4.6 Medium",
-     "cost_usd": null,
-     "cost_source": "cursor-subscription (no per-run receipt)",
-     "output_tokens": null
+     "cost_usd": "0.662372",
+     "cost_source": "cursor-grok-4.6-list-rate-equivalent",
+     "output_tokens": 21343
     }
    },
    "demos": {
@@ -1821,9 +1855,9 @@
      "verdict": "ran",
      "session_id": "df2f4c18-be12-4a0e-ba51-19f7ee1940eb",
      "reported_model": "Cursor Grok 4.6 Medium",
-     "cost_usd": null,
-     "cost_source": "cursor-subscription (no per-run receipt)",
-     "output_tokens": null
+     "cost_usd": "0.557582",
+     "cost_source": "cursor-grok-4.6-list-rate-equivalent",
+     "output_tokens": 26219
     }
    },
    "demos": {
@@ -1965,9 +1999,9 @@
      "verdict": "ran",
      "session_id": "3176cb58-a2b8-4498-83df-5e757bd1dc8a",
      "reported_model": "Cursor Grok 4.6 Medium",
-     "cost_usd": null,
-     "cost_source": "cursor-subscription (no per-run receipt)",
-     "output_tokens": null
+     "cost_usd": "1.918664",
+     "cost_source": "cursor-grok-4.6-list-rate-equivalent",
+     "output_tokens": 57004
     }
    },
    "demos": {
@@ -2110,9 +2144,9 @@
      "verdict": "ran",
      "session_id": "5ed27be4-a13d-42b0-a571-a514219055da",
      "reported_model": "Cursor Grok 4.6 Medium",
-     "cost_usd": null,
-     "cost_source": "cursor-subscription (no per-run receipt)",
-     "output_tokens": null
+     "cost_usd": "2.697026",
+     "cost_source": "cursor-grok-4.6-list-rate-equivalent",
+     "output_tokens": 72537
     }
    },
    "demos": {
@@ -2255,9 +2289,9 @@
      "verdict": "ran",
      "session_id": "474fe0ec-c7da-41d2-becb-7d28f4c13853",
      "reported_model": "Cursor Grok 4.6 Medium",
-     "cost_usd": null,
-     "cost_source": "cursor-subscription (no per-run receipt)",
-     "output_tokens": null
+     "cost_usd": "2.617178",
+     "cost_source": "cursor-grok-4.6-list-rate-equivalent",
+     "output_tokens": 73364
     }
    },
    "demos": {
@@ -2400,9 +2434,9 @@
      "verdict": "failed",
      "session_id": "39923021-b5e2-4c65-886c-b893c7db412c",
      "reported_model": "Cursor Grok 4.6 Medium",
-     "cost_usd": null,
-     "cost_source": "cursor-subscription (no per-run receipt)",
-     "output_tokens": null
+     "cost_usd": "2.241332",
+     "cost_source": "cursor-grok-4.6-list-rate-equivalent",
+     "output_tokens": 56813
     }
    },
    "demos": {
@@ -2545,9 +2579,9 @@
      "verdict": "ran",
      "session_id": "ecc3fa77-07f1-47ca-8f79-8974e4e4c06c",
      "reported_model": "Cursor Grok 4.6 Medium",
-     "cost_usd": null,
-     "cost_source": "cursor-subscription (no per-run receipt)",
-     "output_tokens": null
+     "cost_usd": "2.317506",
+     "cost_source": "cursor-grok-4.6-list-rate-equivalent",
+     "output_tokens": 59169
     }
    },
    "demos": {
@@ -2690,9 +2724,9 @@
      "verdict": "ran",
      "session_id": "88efd911-cc3d-4d6e-bd22-9f4abfa1fe43",
      "reported_model": "Cursor Grok 4.6 Medium",
-     "cost_usd": null,
-     "cost_source": "cursor-subscription (no per-run receipt)",
-     "output_tokens": null
+     "cost_usd": "2.493858",
+     "cost_source": "cursor-grok-4.6-list-rate-equivalent",
+     "output_tokens": 67623
     }
    },
    "demos": {
@@ -2835,9 +2869,9 @@
      "verdict": "ran",
      "session_id": "cab7819d-08f8-4d03-9a6e-65f4d3033023",
      "reported_model": "Cursor Grok 4.6 Medium",
-     "cost_usd": null,
-     "cost_source": "cursor-subscription (no per-run receipt)",
-     "output_tokens": null
+     "cost_usd": "2.622202",
+     "cost_source": "cursor-grok-4.6-list-rate-equivalent",
+     "output_tokens": 70090
     }
    },
    "demos": {
@@ -2981,9 +3015,9 @@
      "verdict": "ran",
      "session_id": "5c806211-e903-403d-abc2-e677e2d8ea6c",
      "reported_model": "Cursor Grok 4.6 Medium",
-     "cost_usd": null,
-     "cost_source": "cursor-subscription (no per-run receipt)",
-     "output_tokens": null
+     "cost_usd": "1.816404",
+     "cost_source": "cursor-grok-4.6-list-rate-equivalent",
+     "output_tokens": 52802
     }
    },
    "demos": {
@@ -3125,9 +3159,9 @@
      "verdict": "failed",
      "session_id": "f02ab9fc-7f73-4527-bc72-382c62e09de8",
      "reported_model": "Cursor Grok 4.6 Medium",
-     "cost_usd": null,
-     "cost_source": "cursor-subscription (no per-run receipt)",
-     "output_tokens": null
+     "cost_usd": "2.504770",
+     "cost_source": "cursor-grok-4.6-list-rate-equivalent",
+     "output_tokens": 71454
     }
    },
    "demos": {
@@ -3270,9 +3304,9 @@
      "verdict": "ran",
      "session_id": "05795c33-dc04-475b-9a12-63be575e1468",
      "reported_model": "Cursor Grok 4.6 Medium",
-     "cost_usd": null,
-     "cost_source": "cursor-subscription (no per-run receipt)",
-     "output_tokens": null
+     "cost_usd": "2.163020",
+     "cost_source": "cursor-grok-4.6-list-rate-equivalent",
+     "output_tokens": 20902
     }
    },
    "demos": {

@@ -157,7 +157,15 @@ export default async function SpecPage({ params }: { params: Promise<{ id: strin
                     <div className="flex items-start justify-between gap-3"><dt className="text-muted-foreground">Condition</dt><dd>{cell.condition}</dd></div>
                     <div className="flex items-start justify-between gap-3"><dt className="text-muted-foreground">Outcome</dt><dd>{cell.classification ?? cell.verdict ?? "—"}</dd></div>
                     <div className="flex items-start justify-between gap-3"><dt className="text-muted-foreground">Duration</dt><dd>{formatDuration(cell.duration_seconds)}</dd></div>
-                    <div className="flex items-start justify-between gap-3"><dt className="text-muted-foreground">Cost</dt><dd>{cell.cost_usd ? `$${Number(cell.cost_usd).toFixed(2)}` : "not metered"}</dd></div>
+                    <div className="flex items-start justify-between gap-3">
+                      <dt className="text-muted-foreground">Cost</dt>
+                      <dd className="text-right">
+                        {cell.cost_usd ? `$${Number(cell.cost_usd).toFixed(2)}` : "not metered"}
+                        {cell.cost_source?.includes("list-rate-equivalent") ? (
+                          <div className="mt-1 text-[10px] text-muted-foreground">list-rate equivalent</div>
+                        ) : null}
+                      </dd>
+                    </div>
                     {cell.reported_model && <div className="flex items-start justify-between gap-3"><dt className="text-muted-foreground">Resolved</dt><dd className="max-w-[180px] text-right">{cell.reported_model}</dd></div>}
                   </dl>
                 </article>
@@ -165,7 +173,7 @@ export default async function SpecPage({ params }: { params: Promise<{ id: strin
             })}
           </div>
           <p className="mt-4 text-xs leading-5 text-muted-foreground">
-            Durations are shown for provenance only. Condition G ran later and is not cross-arm speed evidence. Grok used a Cursor subscription, so no per-run provider cost receipt exists.
+            Durations are shown for provenance only. Condition G ran later and is not cross-arm speed evidence. Grok costs are Cursor Grok 4.6 token-rate equivalents, not invoices, and stay out of the decision-lab composite.
           </p>
         </div>
       </section>

@@ -175,6 +175,26 @@ export interface BattleData {
     grok_vs_codex: Tally;
   };
   disclosures: string[];
+  grok_resource_summary?: {
+    api_key_source: string;
+    reported_model: string;
+    pricing: {
+      list_rate_equivalent_usd: string;
+      launch_discount_equivalent_usd: string;
+      billing_disclosure: string;
+      basis: string;
+    };
+    tokens: {
+      input: number;
+      cache_read: number;
+      cache_write: number;
+      output: number;
+    };
+    timing: {
+      summed_runtime_seconds: number;
+      elapsed_campaign_seconds: number;
+    };
+  } | null;
   conditions: Record<string, Record<string, unknown>>;
   grade_disclosure_line: string;
   methodology_statements: string[];
@@ -346,7 +366,7 @@ function deriveBattleMetrics(specs: SpecRow[]): BattleMetrics {
         scope:
           "The weighted composite compares only the canonical Claude and Sol artifacts, whose twenty duration and provider-cost receipts share the frozen canonical matrix.",
         grok_cost_exclusion:
-          "Grok ran later through a Cursor subscription and has no per-run provider-cost receipt, so it is never assigned a cost utility or weighted composite score.",
+          "Grok now has Cursor Grok 4.6 token-rate equivalents ($2 / $0.50 / $6 per million; 50% launch discount the week of August 12, 2026). Those figures are not invoices or comparable cash charges, so Grok is never assigned a cost utility or weighted composite score.",
         grok_speed_exclusion:
           "Condition G ran later under different host state and concurrency, so Grok durations remain provenance only and are excluded from controlled speed weighting.",
         missing_values:

@@ -245,6 +245,12 @@ export default function MethodologyPage() {
                 Not across these arms. Providers report tokens with different tokenizers, and Condition G ran later under different host state and concurrency. Both are provenance signals only—not interchangeable units of work or clean speed evidence.
               </AccordionContent>
             </AccordionItem>
+            <AccordionItem value="grok-cost" className="border-border">
+              <AccordionTrigger className="text-left text-sm">Does Grok have a cost figure now?</AccordionTrigger>
+              <AccordionContent className="text-sm leading-6 text-muted-foreground">
+                Yes, as a token-rate equivalent only. Twenty Cursor Grok 4.6 Medium receipts sum to {data.grok_resource_summary?.pricing.list_rate_equivalent_usd ?? "33.296900"} USD at list rates, or {data.grok_resource_summary?.pricing.launch_discount_equivalent_usd ?? "16.648450"} USD at the 50% launch discount. Auth was Cursor login / first-party pool. Those numbers are not invoices and never enter the decision-lab cost utility.
+              </AccordionContent>
+            </AccordionItem>
             <AccordionItem value="network" className="border-border">
               <AccordionTrigger className="text-left text-sm">What did “offline” mean for modern apps?</AccordionTrigger>
               <AccordionContent className="text-sm leading-6 text-muted-foreground">
