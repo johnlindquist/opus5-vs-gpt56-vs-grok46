@@ -13,6 +13,8 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { RubricChart } from "@/components/battle-charts";
+import { SpecPostureCards } from "@/components/spec-posture-cards";
+import { MiniPostureSelector } from "@/components/mini-posture-selector";
 import { DemoCompare } from "@/components/demo-compare";
 import { PairwiseMark, WinnerMark } from "@/components/provider-icon";
 import { ProviderGradeCard, ProviderMark } from "@/components/provider-result";
@@ -55,9 +57,12 @@ export default async function SpecPage({ params }: { params: Promise<{ id: strin
     <>
       <section className="mega-grid border-b border-border">
         <div className="mx-auto max-w-[1600px] px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
-          <Link href="/#matrix" className="mb-9 inline-flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="size-4" /> All results
-          </Link>
+          <div className="mb-9 flex flex-wrap items-center justify-between gap-4">
+            <Link href="/#matrix" className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-muted-foreground hover:text-foreground">
+              <ArrowLeft className="size-4" /> All results
+            </Link>
+            <MiniPostureSelector variant="compact" showLeader={false} />
+          </div>
           <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
             <div>
               <div className="mega-label mb-3 text-mega-blue-text">Spec {spec.id} · {eraLabel(spec.era)} · {spec.track ?? spec.kind}</div>
@@ -88,20 +93,7 @@ export default async function SpecPage({ params }: { params: Promise<{ id: strin
         </div>
       </section>
 
-      <section className="mx-auto max-w-[1600px] px-4 py-14 sm:px-6 lg:px-8 lg:py-20">
-        <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <div className="mega-label mb-2">Blind triad grade</div>
-            <h2 className="pixel-heading text-2xl font-semibold sm:text-3xl">Three artifacts, one review context.</h2>
-          </div>
-          <div className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Receipt: {spec.triad.receipt}</div>
-        </div>
-        <div className="grid gap-3 lg:grid-cols-3">
-          {PROVIDER_ORDER.map((provider) => (
-            <ProviderGradeCard key={provider} spec={spec} provider={provider} />
-          ))}
-        </div>
-      </section>
+      <SpecPostureCards spec={spec} />
 
       <section className="border-y border-border bg-[#050505]">
         <div className="mx-auto max-w-[1600px] px-4 py-14 sm:px-6 lg:px-8 lg:py-20">

@@ -15,6 +15,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { PairwiseMark, ProviderMark } from "@/components/provider-icon";
+import { MiniPostureSelector } from "@/components/mini-posture-selector";
 import { data } from "@/lib/data";
 
 export const metadata: Metadata = {
@@ -83,10 +84,12 @@ export default function MethodologyPage() {
     <>
       <section className="mega-grid border-b border-border">
         <div className="mx-auto max-w-[1200px] px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
-          <Link href="/" className="mb-10 inline-flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="size-4" /> Results
-          </Link>
-          <div className="mega-label mb-4 text-muted-foreground">Protocol · Evidence · Limits</div>
+          <div className="mb-10 flex flex-wrap items-center justify-between gap-4">
+            <Link href="/" className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-muted-foreground hover:text-foreground">
+              <ArrowLeft className="size-4" /> Results
+            </Link>
+            <MiniPostureSelector variant="compact" showLeader={false} />
+          </div>
           <h1 className="pixel-heading max-w-4xl text-4xl font-semibold text-balance sm:text-6xl">Benchmark protocol & provenance.</h1>
           <p className="mt-7 max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
             The benchmark enforces strict provenance across four distinct stages: committed specification prompts, isolated execution telemetry, automated replay validation, and blinded frontier-model evaluations.

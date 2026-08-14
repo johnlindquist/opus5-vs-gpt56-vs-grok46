@@ -1,52 +1,30 @@
 import Link from "next/link";
 import {
   ArrowRight,
-  ChevronRight,
   Layers3,
   LockKeyhole,
   Play,
   Sliders,
-  Sparkles,
-  Trophy,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { ScoreChart, TallyDonut } from "@/components/battle-charts";
+import { ScoreChart } from "@/components/battle-charts";
 import { DecisionLab } from "@/components/decision-lab";
 import { DemoShowcase } from "@/components/demo-showcase";
-import {
-  PairwiseMark,
-  ProviderIcon,
-  ProviderMark,
-  WinnerMark,
-} from "@/components/provider-icon";
-import { ProviderModel, ScoreBar } from "@/components/provider-result";
-import { RunThisPrompt } from "@/components/run-this-prompt";
+import { PairwiseArena } from "@/components/pairwise-arena";
+import { ModelOverviewCards } from "@/components/model-overview-cards";
+import { PairwiseDonutsSection } from "@/components/pairwise-donuts";
+import { SpecificationMatrix } from "@/components/specification-matrix";
+import { GlobalPostureBanner, MiniPostureSelector } from "@/components/mini-posture-selector";
+import { ProviderIcon } from "@/components/provider-icon";
 import {
   PROVIDER_COLOR,
-  PROVIDER_ORDER,
-  PROVIDER_SHORT,
-  averageScore,
-  artifactFailed,
   battleMetrics,
   data,
-  eraLabel,
   showcaseItems,
-  type ProviderKey,
 } from "@/lib/data";
 
-const resultCopy: Record<ProviderKey, string> = {
-  claude: "Most consistent: 18 pairwise wins against Grok and 19 against Sol.",
-  grok: "A strong middle: 14 wins against Sol, one win and one tie against Claude.",
-  codex: "Won six of the twenty pairwise reviews against Grok; the remaining fourteen went to Grok.",
-};
-
 export default function Home() {
-  const opusSol = data.tallies.canonical;
-  const claudeGrok = data.tallies.claude_vs_grok;
-  const grokCodex = data.tallies.grok_vs_codex;
-
   return (
     <>
       {/* 1. HERO SECTION */}
@@ -107,176 +85,32 @@ export default function Home() {
             </div>
           </div>
         </div>
+
+        {/* Global Posture Control Strip in Hero */}
+        <GlobalPostureBanner />
       </section>
 
       {/* 2. DECISION LAB (CUSTOM PRIORITIES & RANKING) — Positioned directly above results */}
       <DecisionLab metrics={battleMetrics} />
 
       {/* 3. PAIRWISE BATTLE ARENA */}
-      <section className="border-b border-border bg-[#050505]">
-        <div className="mx-auto max-w-[1600px] px-4 py-14 sm:px-6 lg:px-8">
-          <div className="mb-8 flex flex-wrap items-end justify-between gap-5">
-            <div>
-              <div className="mega-label mb-2">Pairwise battle arena</div>
-              <h2 className="pixel-heading text-3xl font-semibold sm:text-4xl">Three pairwise head-to-head views.</h2>
-            </div>
-            <Badge variant="outline" className="rounded-none border-border px-3 py-1 font-mono text-[10px] uppercase text-muted-foreground">
-              Blind Review Decisions · 20 Specs
-            </Badge>
-          </div>
-
-          <div className="grid gap-4 lg:grid-cols-3">
-            {/* Matchup 1: Opus vs Sol */}
-            <Card
-              className="corner-marks relative rounded-none border-border bg-black p-6 transition-colors hover:border-border/80"
-              style={{ borderTop: `3px solid ${PROVIDER_COLOR.claude}` }}
-            >
-              <span className="cm" />
-              <div className="mb-5 flex items-center justify-between">
-                <PairwiseMark left="claude" right="codex" className="font-mono text-xs font-semibold" />
-                <span className="font-mono text-[10px] text-muted-foreground uppercase">95% Win Rate</span>
-              </div>
-              <div className="flex items-baseline gap-4">
-                <strong className="font-mono text-6xl font-bold" style={{ color: PROVIDER_COLOR.claude }}>
-                  {opusSol.claude}
-                </strong>
-                <span className="font-mono text-2xl text-muted-foreground">–</span>
-                <strong className="font-mono text-4xl font-semibold" style={{ color: PROVIDER_COLOR.codex }}>
-                  {opusSol.codex}
-                </strong>
-              </div>
-
-              {/* Win Share Visual Bar */}
-              <div className="mt-5 space-y-1.5">
-                <div className="flex h-2 w-full overflow-hidden bg-border">
-                  <div style={{ width: "95%", backgroundColor: PROVIDER_COLOR.claude }} />
-                  <div style={{ width: "5%", backgroundColor: PROVIDER_COLOR.codex }} />
-                </div>
-                <div className="flex justify-between font-mono text-[10px] text-muted-foreground">
-                  <span style={{ color: PROVIDER_COLOR.claude }}>Opus: 19 wins (95%)</span>
-                  <span style={{ color: PROVIDER_COLOR.codex }}>Sol: 1 win (5%)</span>
-                </div>
-              </div>
-
-              <p className="mt-4 text-xs leading-5 text-muted-foreground">
-                Pairwise wins derived from the same twenty briefs and the same blind review receipts.
-              </p>
-            </Card>
-
-            {/* Matchup 2: Opus vs Grok */}
-            <Card
-              className="rounded-none border-border bg-black p-6 transition-colors hover:border-border/80"
-              style={{ borderTop: `3px solid ${PROVIDER_COLOR.claude}` }}
-            >
-              <div className="mb-5 flex items-center justify-between">
-                <PairwiseMark left="claude" right="grok" className="font-mono text-xs font-semibold" />
-                <span className="font-mono text-[10px] text-muted-foreground uppercase">90% Win Rate</span>
-              </div>
-              <div className="flex items-baseline gap-4">
-                <strong className="font-mono text-6xl font-bold" style={{ color: PROVIDER_COLOR.claude }}>
-                  {claudeGrok.claude}
-                </strong>
-                <span className="font-mono text-2xl text-muted-foreground">–</span>
-                <strong className="font-mono text-4xl font-semibold" style={{ color: PROVIDER_COLOR.grok }}>
-                  {claudeGrok.grok}
-                </strong>
-                <span className="font-mono text-xs text-muted-foreground">+ {claudeGrok.ties} tie</span>
-              </div>
-
-              {/* Win Share Visual Bar */}
-              <div className="mt-5 space-y-1.5">
-                <div className="flex h-2 w-full overflow-hidden bg-border">
-                  <div style={{ width: "90%", backgroundColor: PROVIDER_COLOR.claude }} />
-                  <div style={{ width: "5%", backgroundColor: "#555" }} />
-                  <div style={{ width: "5%", backgroundColor: PROVIDER_COLOR.grok }} />
-                </div>
-                <div className="flex justify-between font-mono text-[10px] text-muted-foreground">
-                  <span style={{ color: PROVIDER_COLOR.claude }}>Opus: 18 (90%)</span>
-                  <span>1 Tie (5%)</span>
-                  <span style={{ color: PROVIDER_COLOR.grok }}>Grok: 1 (5%)</span>
-                </div>
-              </div>
-
-              <p className="mt-4 text-xs leading-5 text-muted-foreground">
-                One blind review context per spec. Both pairwise decisions come directly from that receipt.
-              </p>
-            </Card>
-
-            {/* Matchup 3: Grok vs Sol */}
-            <Card
-              className="rounded-none border-border bg-black p-6 transition-colors hover:border-border/80"
-              style={{ borderTop: `3px solid ${PROVIDER_COLOR.grok}` }}
-            >
-              <div className="mb-5 flex items-center justify-between">
-                <PairwiseMark left="grok" right="codex" className="font-mono text-xs font-semibold" />
-                <span className="font-mono text-[10px] text-muted-foreground uppercase">70% Win Rate</span>
-              </div>
-              <div className="flex items-baseline gap-4">
-                <strong className="font-mono text-6xl font-bold" style={{ color: PROVIDER_COLOR.grok }}>
-                  {grokCodex.grok}
-                </strong>
-                <span className="font-mono text-2xl text-muted-foreground">–</span>
-                <strong className="font-mono text-4xl font-semibold" style={{ color: PROVIDER_COLOR.codex }}>
-                  {grokCodex.codex}
-                </strong>
-              </div>
-
-              {/* Win Share Visual Bar */}
-              <div className="mt-5 space-y-1.5">
-                <div className="flex h-2 w-full overflow-hidden bg-border">
-                  <div style={{ width: "70%", backgroundColor: PROVIDER_COLOR.grok }} />
-                  <div style={{ width: "30%", backgroundColor: PROVIDER_COLOR.codex }} />
-                </div>
-                <div className="flex justify-between font-mono text-[10px] text-muted-foreground">
-                  <span style={{ color: PROVIDER_COLOR.grok }}>Grok: 14 (70%)</span>
-                  <span style={{ color: PROVIDER_COLOR.codex }}>Sol: 6 (30%)</span>
-                </div>
-              </div>
-
-              <p className="mt-4 text-xs leading-5 text-muted-foreground">
-                Grok won 14 specs in the blind reviews, with Sol taking 6 specs in local artifacts and AI UX.
-              </p>
-            </Card>
-          </div>
-        </div>
-      </section>
+      <PairwiseArena />
 
       {/* 4. INTERACTIVE BENCHMARK SUITE & TRIAD GRADEBOOK */}
       <section id="analytics" className="scroll-mt-20 mx-auto max-w-[1600px] px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
-        <div className="mb-10 grid gap-6 lg:grid-cols-[.7fr_1.3fr] lg:items-end">
+        <div className="mb-10 flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
           <div>
             <div className="mega-label mb-2">Triad gradebook & analytics</div>
-            <h2 className="pixel-heading text-3xl font-semibold sm:text-4xl">Explore every score & trajectory.</h2>
+            <h2 className="pixel-heading text-3xl font-semibold sm:text-4xl">Explore every score & margin.</h2>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+              Scores adapt dynamically to your active posture weights. Switch between grouped bars, pairwise spread, and the rubric matrix.
+            </p>
           </div>
-          <p className="max-w-3xl text-sm leading-6 text-muted-foreground lg:justify-self-end">
-            Scores below are from the blind triad receipts, where all three artifacts were judged together against the frozen specification. Switch between grouped bars, pairwise spread, point progression, and the rubric matrix.
-          </p>
+          <MiniPostureSelector variant="bar" showLeader={true} showModeToggle={true} />
         </div>
 
         {/* 3 Model Overview Summary Cards */}
-        <div className="grid gap-px border border-border bg-border md:grid-cols-3">
-          {PROVIDER_ORDER.map((provider) => {
-            const color = PROVIDER_COLOR[provider];
-            const avg = averageScore(provider);
-            return (
-              <div
-                key={provider}
-                className="bg-card p-6 transition-colors hover:bg-surface-1"
-                style={{ borderTop: `3px solid ${color}` }}
-              >
-                <ProviderModel provider={provider} />
-                <div className="my-8 flex items-end gap-2">
-                  <span className="font-mono text-5xl font-bold" style={{ color }}>
-                    {avg.toFixed(1)}
-                  </span>
-                  <span className="pb-1 font-mono text-xs text-muted-foreground">/ 100 avg</span>
-                </div>
-                <ScoreBar provider={provider} score={Math.round(avg)} />
-                <p className="mt-5 text-xs leading-5 text-muted-foreground">{resultCopy[provider]}</p>
-              </div>
-            );
-          })}
-        </div>
+        <ModelOverviewCards />
 
         {/* The Interactive Chart Container */}
         <div className="mt-6 border border-border bg-card p-4 sm:p-6">
@@ -288,126 +122,10 @@ export default function Home() {
       <DemoShowcase items={showcaseItems} />
 
       {/* 6. DONUT & METHODOLOGY BREAKDOWN */}
-      <section className="border-y border-border bg-[#050505]">
-        <div className="mx-auto grid max-w-[1600px] gap-8 px-4 py-16 sm:px-6 lg:grid-cols-[1fr_1.4fr] lg:px-8 lg:py-24">
-          <div>
-            <div className="mega-label mb-2">Evaluation protocol</div>
-            <h2 className="pixel-heading text-3xl font-semibold sm:text-4xl">Blinded pairwise decisions.</h2>
-            <p className="mt-5 max-w-xl text-sm leading-6 text-muted-foreground">
-              Each spec was judged blind in a single shared context under Alpha, Beta, and Gamma aliases. Direct point totals determine pairwise outcomes.
-            </p>
-            <Link
-              href="/methodology#grading"
-              className="mt-7 inline-flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-foreground hover:underline"
-            >
-              Inspect the grading contract <ArrowRight className="size-4" />
-            </Link>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="border border-border bg-black p-4">
-              <div className="mega-label flex justify-center pb-2"><PairwiseMark left="claude" right="grok" /></div>
-              <TallyDonut
-                tally={[
-                  { key: "claude", value: claudeGrok.claude ?? 0 },
-                  { key: "grok", value: claudeGrok.grok ?? 0 },
-                  { key: "ties", value: claudeGrok.ties },
-                ]}
-                center={`${claudeGrok.claude}–${claudeGrok.grok}`}
-                labels="wins"
-              />
-            </div>
-            <div className="border border-border bg-black p-4">
-              <div className="mega-label flex justify-center pb-2"><PairwiseMark left="grok" right="codex" /></div>
-              <TallyDonut
-                tally={[
-                  { key: "grok", value: grokCodex.grok ?? 0 },
-                  { key: "codex", value: grokCodex.codex ?? 0 },
-                ]}
-                center={`${grokCodex.grok}–${grokCodex.codex}`}
-                labels="wins"
-              />
-            </div>
-          </div>
-        </div>
-      </section>
+      <PairwiseDonutsSection />
 
       {/* 7. COMPLETE MATRIX SECTION */}
-      <section id="matrix" className="scroll-mt-20 mx-auto max-w-[1600px] px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
-        <div className="mb-8 flex flex-wrap items-end justify-between gap-5">
-          <div>
-            <div className="mega-label mb-2">Specification matrix</div>
-            <h2 className="pixel-heading text-3xl font-semibold sm:text-4xl">All 20 benchmark specifications.</h2>
-          </div>
-          <div className="flex gap-4 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-            <ProviderMark provider="claude" compact />
-            <ProviderMark provider="grok" compact />
-            <ProviderMark provider="codex" compact />
-          </div>
-        </div>
-
-        <div className="overflow-hidden border border-border">
-          <div className="hidden grid-cols-[70px_minmax(240px,1fr)_repeat(3,90px)_160px_88px] border-b border-border bg-surface-1 px-4 py-3 font-mono text-[10px] uppercase tracking-wider text-muted-foreground md:grid">
-            <span>Spec</span>
-            <span>Product</span>
-            <span className="inline-flex items-center"><ProviderMark provider="claude" compact /></span>
-            <span className="inline-flex items-center"><ProviderMark provider="grok" compact /></span>
-            <span className="inline-flex items-center"><ProviderMark provider="codex" compact /></span>
-            <span>Pairwise Calls</span>
-            <span className="text-right">Action</span>
-          </div>
-          {data.specs.map((spec) => (
-            <div
-              key={spec.id}
-              className="group relative grid gap-4 border-b border-border bg-card p-4 transition-colors last:border-b-0 hover:bg-surface-1 md:grid-cols-[70px_minmax(240px,1fr)_repeat(3,90px)_160px_88px] md:items-center md:gap-0"
-            >
-              <Link
-                href={`/specs/${spec.id}`}
-                aria-label={`Open spec ${spec.id}: ${spec.title}`}
-                className="absolute inset-0 z-0"
-              />
-              <div className="font-mono text-lg font-bold text-foreground">{spec.id}</div>
-              <div className="min-w-0 pr-5">
-                <div className="truncate text-sm font-semibold text-foreground group-hover:underline">{spec.title}</div>
-                <div className="mt-1 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                  {eraLabel(spec.era)} · {spec.track ?? spec.kind}
-                </div>
-              </div>
-              {PROVIDER_ORDER.map((provider) => {
-                const failed = artifactFailed(spec, provider);
-                const score = spec.triad.providers[provider].score;
-                const color = PROVIDER_COLOR[provider];
-                return (
-                  <div key={provider} className="flex items-center justify-between gap-3 md:block">
-                    <span className="mega-label md:hidden"><ProviderMark provider={provider} compact /></span>
-                    <span
-                      className="font-mono text-lg font-bold"
-                      style={{ color: failed ? "#f43f5e" : color }}
-                    >
-                      {score}
-                    </span>
-                    {failed && (
-                      <span className="ml-2 font-mono text-[9px] font-bold uppercase text-destructive md:ml-0 md:block">
-                        DNF
-                      </span>
-                    )}
-                  </div>
-                );
-              })}
-              <div className="text-xs leading-5 text-muted-foreground">
-                <span className="inline-flex flex-wrap items-center gap-1 font-mono text-foreground">
-                  <WinnerMark value={spec.pairwise.claude_vs_grok} />
-                  <span className="text-muted-foreground">/</span>
-                  <WinnerMark value={spec.pairwise.grok_vs_codex} />
-                </span>
-              </div>
-              <div className="relative z-10 flex items-center justify-end gap-2">
-                <RunThisPrompt spec={spec} variant="icon" />
-                <ChevronRight className="hidden size-4 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-foreground md:block" />
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
+      <SpecificationMatrix specs={data.specs} />
 
       {/* 8. FOOTER CALLOUT */}
       <section className="mega-grid border-t border-border">

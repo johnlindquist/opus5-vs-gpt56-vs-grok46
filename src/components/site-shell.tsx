@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowUpRight, Braces } from "lucide-react";
 import { ProviderIcon } from "@/components/provider-icon";
+import { MiniPostureSelector } from "@/components/mini-posture-selector";
 import { PROVIDER_ORDER } from "@/lib/data";
 
 export function SiteHeader() {
@@ -17,7 +18,10 @@ export function SiteHeader() {
             Frontier Build Battle
           </span>
         </Link>
-        <nav className="flex items-center gap-1 text-xs font-medium" aria-label="Primary navigation">
+        <nav className="flex items-center gap-2 text-xs font-medium" aria-label="Primary navigation">
+          <div className="hidden md:flex items-center">
+            <MiniPostureSelector variant="compact" showLeader={false} />
+          </div>
           <Link className="px-3 py-2 text-muted-foreground transition-colors hover:text-foreground" href="/#matrix">
             Results
           </Link>

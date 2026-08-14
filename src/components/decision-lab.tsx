@@ -9,6 +9,10 @@ import {
   Sparkles,
   TimerReset,
 } from "lucide-react";
+import { usePosture } from "@/context/posture-context";
+import { POSTURE_PRESETS } from "@/lib/posture";
+import { RankedCardsGrid } from "@/components/ranked-cards-grid";
+import { AnimatedNumber } from "@/components/animated-number";
 import { ProviderMark } from "@/components/provider-icon";
 import {
   PROVIDER_COLOR,
@@ -123,15 +127,13 @@ function sameWeights(left: WeightMap, right: WeightMap): boolean {
 }
 
 export function DecisionLab({ metrics }: DecisionLabProps) {
-  const [weights, setWeights] = useState<WeightMap>(presets[1].weights);
-  const weightTotal = metricOrder.reduce((sum, metric) => sum + weights[metric], 0);
-  const normalizedWeights = Object.fromEntries(
-    metricOrder.map((metric) => [
-      metric,
-      weightTotal === 0 ? 0 : weights[metric] / weightTotal,
-    ]),
-  ) as Record<DecisionMetricKey, number>;
-
+  const {
+    weights,
+    setWeights,
+    setMetricWeight,
+    normalizedWeights,
+    weightTotal,
+  } = usePosture();
   const ranking = useMemo(() => {
     if (weightTotal === 0) return [];
 
@@ -180,9 +182,8 @@ export function DecisionLab({ metrics }: DecisionLabProps) {
       : null;
 
   const updateWeight = (metric: DecisionMetricKey, value: number) => {
-    setWeights((current) => ({ ...current, [metric]: value }));
+    setMetricWeight(metric, value);
   };
-
   return (
     <section
       id="decision-lab"
@@ -326,74 +327,22 @@ export function DecisionLab({ metrics }: DecisionLabProps) {
               <Scale className="size-5 text-foreground" aria-hidden="true" />
             </div>
 
-            <div className="mt-7 grid gap-3 lg:grid-cols-3" aria-live="polite" aria-atomic="true">
-              {ranking.length > 0 ? (
-                ranking.map((result, index) => (
-                  <article
-                    key={result.provider}
-                    className="relative overflow-hidden border border-border bg-black p-5"
-                  >
-                    <div
-                      className="absolute inset-x-0 top-0 h-1 origin-left"
-                      style={{
-                        backgroundColor: PROVIDER_COLOR[result.provider],
-                        transform: `scaleX(${result.score === null ? 0 : result.score / 100})`,
-                      }}
-                      aria-hidden="true"
-                    />
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <div className="mega-label">Rank {index + 1}</div>
-                        <div className="mt-2 text-base font-semibold">
-                          <ProviderMark provider={result.provider} />
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-mono text-4xl font-semibold tabular-nums">
-                          {result.score === null ? "—" : result.score.toFixed(1)}
-                        </div>
-                        <div className="mega-label">weighted utility / 100</div>
-                      </div>
-                    </div>
-                    <div className="mt-6 grid grid-cols-3 gap-px bg-border">
-                      {metricOrder.map((metric) => {
-                        const contribution = result.contributions[metric];
-                        return (
-                          <div key={metric} className="bg-card p-3">
-                            <div className="mega-label">{metricMeta[metric].shortLabel}</div>
-                            <div className="mt-1 font-mono text-sm tabular-nums">
-                              {contribution === null ? "n/a" : contribution.toFixed(1)}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                    {result.provider === "grok" &&
-                    data.grok_resource_summary?.timing ? (
-                      <div className="mt-px bg-card p-3">
-                        <div className="mega-label">Campaign elapsed · overlap, not the ranking input</div>
-                        <p className="mt-2 font-mono text-sm tabular-nums whitespace-nowrap">
-                          {formatRawValue(
-                            "speed",
-                            data.grok_resource_summary.timing.elapsed_campaign_seconds,
-                          )}
-                        </p>
-                      </div>
-                    ) : null}
-                  </article>
-                ))
-              ) : (
-                <div className="col-span-full grid min-h-48 place-items-center border border-border bg-black p-8 text-center">
-                  <div>
-                    <Gauge className="mx-auto size-6 text-muted-foreground" aria-hidden="true" />
-                    <p className="mt-3 font-mono text-xs uppercase tracking-wider text-muted-foreground">
-                      Waiting for a non-zero priority
-                    </p>
-                  </div>
+            {ranking.length > 0 ? (
+              <RankedCardsGrid
+                ranking={ranking}
+                metricOrder={metricOrder}
+                metricMeta={metricMeta}
+              />
+            ) : (
+              <div className="mt-7 col-span-full grid min-h-48 place-items-center border border-border bg-black p-8 text-center">
+                <div>
+                  <Gauge className="mx-auto size-6 text-muted-foreground" aria-hidden="true" />
+                  <p className="mt-3 font-mono text-xs uppercase tracking-wider text-muted-foreground">
+                    Waiting for a non-zero priority
+                  </p>
                 </div>
-              )}
-            </div>
-
+              </div>
+            )}
             <div className="mt-4 border border-border bg-black p-4">
               <div className="mega-label">Recorded session totals · all three enter the time ranking</div>
               <p className="mt-2 text-sm leading-6 text-muted-foreground">
