@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useRef, useEffect, useState } from "react";
+import { useLayoutEffect, useRef } from "react";
 import { ProviderMark } from "@/components/provider-icon";
 import { AnimatedNumber } from "@/components/animated-number";
 import {
@@ -8,7 +8,7 @@ import {
   type ComparableProviderKey,
   type DecisionMetricKey,
 } from "@/lib/data";
-import { Trophy, TrendingUp, TrendingDown, Minus, Sparkles, TimerReset, BadgeDollarSign } from "lucide-react";
+import { Sparkles, TimerReset, BadgeDollarSign } from "lucide-react";
 
 interface RankedResultItem {
   provider: ComparableProviderKey;
@@ -39,22 +39,6 @@ export function RankedCardsGrid({
   const containerRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<Map<string, HTMLElement>>(new Map());
   const prevRectsRef = useRef<Map<string, DOMRect>>(new Map());
-  const prevRanksRef = useRef<Map<string, number>>(new Map());
-  const [rankDeltas, setRankDeltas] = useState<Record<string, number>>({});
-
-  // Compute rank changes
-  useEffect(() => {
-    const newDeltas: Record<string, number> = {};
-    ranking.forEach((item, index) => {
-      const currentRank = index + 1;
-      const prevRank = prevRanksRef.current.get(item.provider);
-      if (prevRank !== undefined) {
-        newDeltas[item.provider] = prevRank - currentRank; // Positive = climbed, negative = dropped
-      }
-      prevRanksRef.current.set(item.provider, currentRank);
-    });
-    setRankDeltas(newDeltas);
-  }, [ranking]);
 
   // FLIP Layout Animation (Strictly locked to X axis)
   useLayoutEffect(() => {
@@ -112,10 +96,8 @@ export function RankedCardsGrid({
       aria-atomic="true"
     >
       {ranking.map((result, index) => {
-        const rank = index + 1;
-        const delta = rankDeltas[result.provider] ?? 0;
         const color = PROVIDER_COLOR[result.provider];
-        const isLeader = rank === 1;
+        const isLeader = index === 0;
 
         return (
           <article
@@ -141,71 +123,23 @@ export function RankedCardsGrid({
             />
 
             <div>
-              {/* Row 1: Rank header & delta badge on left, utility subtitle on right */}
-              <div className="flex items-center justify-between gap-2 border-b border-border/40 pb-2.5">
-                <div className="flex items-center gap-2">
-                  <span
-                    className={`mega-label whitespace-nowrap ${
-                      isLeader ? "text-foreground font-bold" : "text-muted-foreground"
-                    }`}
-                  >
-                    {isLeader ? (
-                      <span className="inline-flex items-center gap-1 text-amber-300 font-bold">
-                        <Trophy className="size-3 text-amber-400" /> Rank 1 · Leader
-                      </span>
-                    ) : (
-                      `Rank ${rank}`
-                    )}
-                  </span>
-
-                  {/* Rank change badge */}
-                  {delta !== 0 && (
-                    <span
-                      className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 font-mono text-[9px] font-bold ${
-                        delta > 0
-                          ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
-                          : "bg-rose-500/15 text-rose-400 border border-rose-500/30"
-                      }`}
-                      title={
-                        delta > 0
-                          ? `Climbed ${delta} ${delta === 1 ? "position" : "positions"}`
-                          : `Dropped ${Math.abs(delta)} ${Math.abs(delta) === 1 ? "position" : "positions"}`
-                      }
-                    >
-                      {delta > 0 ? (
-                        <>
-                          <TrendingUp className="size-2.5" /> +{delta}
-                        </>
-                      ) : (
-                        <>
-                          <TrendingDown className="size-2.5" /> {delta}
-                        </>
-                      )}
-                    </span>
-                  )}
-                </div>
-
-                <span className="font-mono text-[9px] uppercase tracking-wider text-muted-foreground whitespace-nowrap">
-                  utility / 100
-                </span>
-              </div>
-
-              {/* Row 2: Provider name on left, Big bold score on right */}
-              <div className="my-4 flex items-center justify-between gap-3">
+              {/* Clean Provider & Score Row */}
+              <div className="flex items-center justify-between gap-3 pt-1">
                 <div className="min-w-0">
                   <ProviderMark provider={result.provider} />
                 </div>
-                <div className="shrink-0 text-right font-mono text-4xl font-bold tabular-nums tracking-tight">
+                <div className="shrink-0 text-right font-mono text-5xl font-bold tabular-nums tracking-tight">
                   {result.score === null ? (
                     "—"
                   ) : (
-                    <span style={{ color: isLeader ? color : undefined }}>
+                    <span style={{ color: isLeader ? color : "#ffffff" }}>
                       <AnimatedNumber value={result.score} decimals={1} />
                     </span>
                   )}
                 </div>
               </div>
             </div>
+
             {/* Metric breakdown grid: Quality, Speed, Cost */}
             <div className="mt-6 grid grid-cols-3 gap-px bg-border">
               {metricOrder.map((metric) => {

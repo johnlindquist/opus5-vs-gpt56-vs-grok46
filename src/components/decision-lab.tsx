@@ -346,7 +346,7 @@ export function DecisionLab({ metrics }: DecisionLabProps) {
             <div className="mt-4 border border-border bg-black p-4">
               <div className="mega-label">Recorded session totals · all three enter the time ranking</div>
               <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                Each total is the sum of twenty session receipts. Grok ran on the same machine after the August 13 reboot. Campaign elapsed is overlap only.
+                Each total is the sum of twenty session runtimes recorded in the benchmark receipts.
               </p>
               <dl className="mt-4 grid gap-3 sm:grid-cols-3">
                 {PROVIDER_ORDER.map((provider) => {
@@ -367,11 +367,6 @@ export function DecisionLab({ metrics }: DecisionLabProps) {
                   );
                 })}
               </dl>
-              {data.grok_resource_summary?.timing ? (
-                <p className="mt-3 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                  Grok campaign elapsed {formatRawValue("speed", data.grok_resource_summary.timing.elapsed_campaign_seconds)} · overlap, not a ranking input
-                </p>
-              ) : null}
             </div>
 
             <div className="mt-4 border-l-2 border-border bg-black p-4" aria-live="polite">
@@ -539,29 +534,29 @@ export function DecisionLab({ metrics }: DecisionLabProps) {
             <h3 id="decision-limits-heading" className="mt-2 text-xl font-semibold">
               Comparability & scope boundaries.
             </h3>
-            <div className="mt-6 space-y-5 text-sm leading-6 text-muted-foreground">
+            <div className="mt-6 space-y-4 text-sm leading-6 text-muted-foreground">
               <p>
-                <strong className="text-foreground">Grok cost:</strong>{" "}
-                {metrics.decision_lab.comparability.grok_cost_exclusion}
+                <strong className="text-foreground">Cost basis:</strong>{" "}
+                Quality, time, and cost include all three agents. Cost uses Anthropic provider receipts for Opus and published token-rate equivalents for Sol and Grok.
               </p>
               <p>
-                <strong className="text-foreground">Grok speed:</strong>{" "}
-                {metrics.decision_lab.comparability.grok_speed_exclusion}
+                <strong className="text-foreground">Timing basis:</strong>{" "}
+                Wall-clock durations are the sum of twenty recorded session runtimes across all three agents.
               </p>
               <p>
                 <strong className="text-foreground">Time variability:</strong>{" "}
-                {metrics.decision_lab.comparability.speed_variability}
+                Each agent ran each spec once through its main programming tool. Wall times move with provider load and time of day. Treat the ranking as a single-run observation, not a repeated-trial speed estimate.
               </p>
               <p>
                 <strong className="text-foreground">Missing data:</strong>{" "}
-                {metrics.decision_lab.comparability.missing_values}
+                A missing source value remains unavailable. It is never converted to zero, one, or best-in-class utility.
               </p>
-              <div className="border-t border-border pt-5">
+              <div className="border-t border-border pt-4">
                 <p>
-                  <strong className="text-foreground">Turn counts were audited, then excluded.</strong>{" "}
-                  {metrics.turn_count_exclusion.reason}
+                  <strong className="text-foreground">Turn counts:</strong>{" "}
+                  Harness-native turn signals use different instrumentation units and are excluded from the ranking.
                 </p>
-                <ul className="mt-3 space-y-2 font-mono text-[10px] uppercase tracking-wider">
+                <ul className="mt-2.5 space-y-1.5 font-mono text-[10px] uppercase tracking-wider">
                   <li className="flex items-center gap-2"><ProviderMark provider="claude" compact /> · {metrics.turn_count_exclusion.units.claude}</li>
                   <li className="flex items-center gap-2"><ProviderMark provider="codex" compact /> · {metrics.turn_count_exclusion.units.codex}</li>
                   <li className="flex items-center gap-2"><ProviderMark provider="grok" compact /> · {metrics.turn_count_exclusion.units.grok}</li>

@@ -166,7 +166,7 @@ export default async function SpecPage({ params }: { params: Promise<{ id: strin
             })}
           </div>
           <p className="mt-4 text-xs leading-5 text-muted-foreground">
-            Grok, Opus, and Sol durations enter the decision-lab time weight as summed recorded wall seconds. Grok ran on the same machine after the August 13 reboot. Each spec was run once through each agent&apos;s main tool, so provider load and time of day remain in the clocks. Grok and Sol costs are published token-rate math, not invoices; both enter the cost composite. Opus costs are Anthropic provider receipts.
+            Durations and costs reflect recorded session receipts and published token-rate equivalents across all three agents.
           </p>
         </div>
       </section>
