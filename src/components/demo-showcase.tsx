@@ -3,8 +3,11 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ArrowUpRight, ImageOff, MousePointer2 } from "lucide-react";
+import { RunThisPrompt } from "@/components/run-this-prompt";
 import {
   PROVIDER_COLOR,
+  eraLabel,
+  specById,
   type ShowcaseItem,
 } from "@/lib/data";
 
@@ -23,11 +26,13 @@ function ShowcaseCard({
   failed: boolean;
   onImageError: () => void;
 }) {
+  const spec = specById(item.spec_id);
   return (
+    <article className="group relative flex min-w-0 flex-col overflow-hidden border border-border bg-card">
     <Link
       href={item.deep_dive_path}
       aria-label={`Open spec ${item.spec_id}: ${item.title}, featuring the ${item.provider_label} artifact`}
-      className="group relative flex min-w-0 flex-col overflow-hidden border border-border bg-card outline-none transition-colors hover:border-mega-blue-text focus-visible:border-mega-blue-text focus-visible:ring-2 focus-visible:ring-mega-blue-text/40"
+      className="flex min-w-0 flex-1 flex-col outline-none transition-colors focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-mega-blue-text/40"
     >
       <div
         className={`showcase-frame relative overflow-hidden bg-[#080808] ${
@@ -90,7 +95,7 @@ function ShowcaseCard({
             {item.provider_label} · {item.label}
           </div>
           <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-            {item.era} · {item.kind}
+            {eraLabel(item.era)} · {item.kind}
           </span>
         </div>
         <h3 className={`mt-4 font-semibold leading-tight ${featured ? "text-2xl sm:text-3xl" : "text-lg"}`}>
@@ -107,6 +112,8 @@ function ShowcaseCard({
         </div>
       </div>
     </Link>
+    <RunThisPrompt spec={spec} variant="strip" />
+    </article>
   );
 }
 
@@ -131,8 +138,8 @@ export function DemoShowcase({ items }: DemoShowcaseProps) {
           </div>
           <div className="lg:justify-self-end">
             <p className="max-w-3xl text-sm leading-6 text-muted-foreground">
-              A representative six-cell cut across legacy experiments, developer tools,
-              and modern AI workflows. Every image is a static capture of a byte-staged
+              A representative six-cell cut across local toys, developer tools,
+              and AI workflows. Every image is a static capture of a byte-staged
               artifact and links to the exact receipted spec deep dive.
             </p>
             <div className="mt-4 flex items-center gap-2 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">

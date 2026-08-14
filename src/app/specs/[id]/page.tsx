@@ -12,14 +12,15 @@ import {
   Trophy,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { RubricChart } from "@/components/battle-charts";
 import { DemoCompare } from "@/components/demo-compare";
 import { ProviderGradeCard, ProviderMark } from "@/components/provider-result";
+import { RunThisPrompt } from "@/components/run-this-prompt";
 import {
   PROVIDER_ORDER,
   PROVIDER_SHORT,
   data,
+  eraLabel,
   formatDuration,
   type ProviderKey,
 } from "@/lib/data";
@@ -67,7 +68,7 @@ export default async function SpecPage({ params }: { params: Promise<{ id: strin
           </Link>
           <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
             <div>
-              <div className="mega-label mb-3 text-mega-blue-text">Spec {spec.id} · {spec.era} · {spec.track ?? spec.kind}</div>
+              <div className="mega-label mb-3 text-mega-blue-text">Spec {spec.id} · {eraLabel(spec.era)} · {spec.track ?? spec.kind}</div>
               <h1 className="pixel-heading max-w-5xl text-4xl font-semibold text-balance sm:text-6xl">{spec.title}</h1>
               <div className="mt-6 flex flex-wrap items-center gap-2">
                 <Badge variant="outline" className="rounded-none font-mono text-[10px] uppercase">Frozen prompt</Badge>
@@ -111,6 +112,9 @@ export default async function SpecPage({ params }: { params: Promise<{ id: strin
       <section className="border-y border-border bg-[#050505]">
         <div className="mx-auto max-w-[1600px] px-4 py-14 sm:px-6 lg:px-8 lg:py-20">
           <DemoCompare spec={spec} />
+          <div className="mt-10">
+            <RunThisPrompt spec={spec} variant="panel" />
+          </div>
         </div>
       </section>
 
@@ -154,7 +158,6 @@ export default async function SpecPage({ params }: { params: Promise<{ id: strin
                   <ProviderMark provider={provider} />
                   <dl className="mt-6 space-y-3 font-mono text-[11px]">
                     <div className="flex items-start justify-between gap-3"><dt className="text-muted-foreground">Cell</dt><dd className="text-right">{cell.cell_id}</dd></div>
-                    <div className="flex items-start justify-between gap-3"><dt className="text-muted-foreground">Condition</dt><dd>{cell.condition}</dd></div>
                     <div className="flex items-start justify-between gap-3"><dt className="text-muted-foreground">Outcome</dt><dd>{cell.classification ?? cell.verdict ?? "—"}</dd></div>
                     <div className="flex items-start justify-between gap-3"><dt className="text-muted-foreground">Duration</dt><dd>{formatDuration(cell.duration_seconds)}</dd></div>
                     <div className="flex items-start justify-between gap-3">
@@ -177,7 +180,7 @@ export default async function SpecPage({ params }: { params: Promise<{ id: strin
             })}
           </div>
           <p className="mt-4 text-xs leading-5 text-muted-foreground">
-            Grok durations are later-run receipt clocks, not a controlled speed comparison with Opus or Sol, so they stay out of the decision-lab time weight. Grok and Sol costs are published token-rate math, not invoices; both enter the cost composite. Opus costs are Anthropic provider receipts.
+            Grok durations are receipt clocks, not a controlled speed comparison with Opus or Sol, so they stay out of the decision-lab time weight. Grok and Sol costs are published token-rate math, not invoices; both enter the cost composite. Opus costs are Anthropic provider receipts.
           </p>
         </div>
       </section>
@@ -193,14 +196,7 @@ export default async function SpecPage({ params }: { params: Promise<{ id: strin
               <div className="flex items-start gap-2"><Check className="mt-0.5 size-3 shrink-0" /><span>{spec.triad.schema}</span></div>
             </div>
           </div>
-          <details className="group border border-border bg-card" open={false}>
-            <summary className="flex cursor-pointer list-none items-center justify-between p-5 font-mono text-xs uppercase tracking-wider hover:bg-surface-1">
-              Show frozen prompt
-              <span className="text-mega-blue-text group-open:hidden">+</span><span className="hidden text-mega-blue-text group-open:inline">−</span>
-            </summary>
-            <Separator />
-            <pre className="max-h-[720px] overflow-auto whitespace-pre-wrap p-5 font-mono text-[11px] leading-5 text-muted-foreground">{spec.spec_markdown}</pre>
-          </details>
+          <RunThisPrompt spec={spec} variant="panel" />
         </div>
       </section>
 

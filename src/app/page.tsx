@@ -13,6 +13,7 @@ import { ScoreChart, TallyDonut } from "@/components/battle-charts";
 import { DecisionLab } from "@/components/decision-lab";
 import { DemoShowcase } from "@/components/demo-showcase";
 import { ProviderModel, ScoreBar } from "@/components/provider-result";
+import { RunThisPrompt } from "@/components/run-this-prompt";
 import {
   PROVIDER_ORDER,
   PROVIDER_SHORT,
@@ -20,14 +21,15 @@ import {
   artifactFailed,
   battleMetrics,
   data,
+  eraLabel,
   showcaseItems,
   type ProviderKey,
 } from "@/lib/data";
 
 const resultCopy: Record<ProviderKey, string> = {
-  claude: "Most consistent: 18 pairwise wins against Grok and the frozen 19–1 canonical result against Sol.",
-  grok: "A strong middle arm: 14 wins against Sol, one win and one tie against Claude.",
-  codex: "Won six of the twenty fresh pairwise reviews against Grok; the remaining fourteen went to Grok.",
+  claude: "Most consistent: 18 pairwise wins against Grok and 19 against Sol.",
+  grok: "A strong middle: 14 wins against Sol, one win and one tie against Claude.",
+  codex: "Won six of the twenty pairwise reviews against Grok; the remaining fourteen went to Grok.",
 };
 
 function winnerLabel(value: string) {
@@ -36,7 +38,7 @@ function winnerLabel(value: string) {
 }
 
 export default function Home() {
-  const canonical = data.tallies.canonical;
+  const opusSol = data.tallies.canonical;
   const claudeGrok = data.tallies.claude_vs_grok;
   const grokCodex = data.tallies.grok_vs_codex;
 
@@ -45,7 +47,7 @@ export default function Home() {
       <section className="mega-grid border-b border-border">
         <div className="mx-auto max-w-[1600px] px-4 py-16 sm:px-6 sm:py-24 lg:px-8 lg:py-32">
           <div className="mega-label mb-6 flex items-center gap-3 text-mega-blue-text">
-            <span className="h-px w-8 bg-mega-blue-text" /> Condition G · 20 frozen specifications
+            <span className="h-px w-8 bg-mega-blue-text" /> 20 frozen specifications
           </div>
           <h1 className="pixel-heading max-w-6xl text-4xl font-semibold text-balance sm:text-6xl lg:text-[5.4rem]">
             Three frontier agents.
@@ -77,26 +79,26 @@ export default function Home() {
         <div className="mx-auto max-w-[1600px] px-4 py-14 sm:px-6 lg:px-8">
           <div className="mb-8 flex flex-wrap items-end justify-between gap-5">
             <div>
-              <div className="mega-label mb-2">The headline, correctly scoped</div>
-              <h2 className="pixel-heading text-3xl font-semibold sm:text-4xl">One frozen result. Two additive views.</h2>
+              <div className="mega-label mb-2">Pairwise tallies</div>
+              <h2 className="pixel-heading text-3xl font-semibold sm:text-4xl">Three views of the same twenty briefs.</h2>
             </div>
             <Badge variant="outline" className="rounded-none border-mega-blue-text px-3 py-1 font-mono text-[10px] uppercase text-mega-blue-text">
-              No cross-arm speed claims
+              No cross-agent speed claims
             </Badge>
           </div>
           <div className="grid gap-3 lg:grid-cols-3">
             <Card className="corner-marks relative rounded-none border-border bg-black p-6">
               <span className="cm" />
-              <div className="mega-label mb-6">Canonical · Opus vs Sol</div>
+              <div className="mega-label mb-6">Opus vs Sol</div>
               <div className="flex items-end gap-4">
-                <strong className="font-mono text-6xl font-semibold text-mega-blue-text">{canonical.claude}</strong>
+                <strong className="font-mono text-6xl font-semibold text-mega-blue-text">{opusSol.claude}</strong>
                 <span className="pb-2 font-mono text-2xl text-muted-foreground">–</span>
-                <strong className="font-mono text-4xl font-semibold">{canonical.codex}</strong>
+                <strong className="font-mono text-4xl font-semibold">{opusSol.codex}</strong>
               </div>
-              <p className="mt-5 text-sm leading-6 text-muted-foreground">The original closed 20-spec matrix remains byte-for-byte frozen. Condition G does not alter its tally.</p>
+              <p className="mt-5 text-sm leading-6 text-muted-foreground">Pairwise wins from the same twenty briefs and the same blind reviews.</p>
             </Card>
             <Card className="rounded-none border-border bg-black p-6">
-              <div className="mega-label mb-6">Fresh triad · Opus vs Grok</div>
+              <div className="mega-label mb-6">Opus vs Grok</div>
               <div className="flex items-end gap-4">
                 <strong className="font-mono text-6xl font-semibold text-mega-blue-text">{claudeGrok.claude}</strong>
                 <span className="pb-2 font-mono text-2xl text-muted-foreground">–</span>
@@ -106,13 +108,13 @@ export default function Home() {
               <p className="mt-5 text-sm leading-6 text-muted-foreground">One blind review context per spec. Both pairwise decisions come from that same receipt.</p>
             </Card>
             <Card className="rounded-none border-border bg-black p-6">
-              <div className="mega-label mb-6">Fresh triad · Grok vs Sol</div>
+              <div className="mega-label mb-6">Grok vs Sol</div>
               <div className="flex items-end gap-4">
                 <strong className="font-mono text-6xl font-semibold text-mega-green">{grokCodex.grok}</strong>
                 <span className="pb-2 font-mono text-2xl text-muted-foreground">–</span>
                 <strong className="font-mono text-4xl font-semibold">{grokCodex.codex}</strong>
               </div>
-              <p className="mt-5 text-sm leading-6 text-muted-foreground">Grok was added later under the frozen specs, not retrofitted into the canonical chain.</p>
+              <p className="mt-5 text-sm leading-6 text-muted-foreground">Pairwise wins from the same twenty briefs and the same blind reviews.</p>
             </Card>
           </div>
         </div>
@@ -127,7 +129,7 @@ export default function Home() {
             <h2 className="pixel-heading text-3xl font-semibold sm:text-4xl">Score every shipped artifact.</h2>
           </div>
           <p className="max-w-3xl text-sm leading-6 text-muted-foreground lg:justify-self-end">
-            Scores below are from the new blind triad receipts, where all three artifacts were judged together against the frozen specification. They support artifact comparison—not claims about model intelligence in general.
+            Scores below are from the blind triad receipts, where all three artifacts were judged together against the frozen specification. They support artifact comparison—not claims about model intelligence in general.
           </p>
         </div>
 
@@ -149,7 +151,7 @@ export default function Home() {
           <div className="mb-4 flex items-center justify-between gap-4">
             <div>
               <div className="mega-label">Scores by spec</div>
-              <p className="mt-1 text-xs text-muted-foreground">01–10 legacy · 11–20 modern AI UX</p>
+              <p className="mt-1 text-xs text-muted-foreground">01–10 local artifacts · 11–20 AI UX</p>
             </div>
             <span className="hidden font-mono text-[10px] uppercase tracking-wider text-muted-foreground sm:block">One receipt per group of three</span>
           </div>
@@ -217,19 +219,23 @@ export default function Home() {
         </p>
 
         <div className="overflow-hidden border border-border">
-          <div className="hidden grid-cols-[70px_minmax(240px,1fr)_repeat(3,88px)_150px_48px] border-b border-border bg-surface-1 px-4 py-3 font-mono text-[10px] uppercase tracking-wider text-muted-foreground md:grid">
-            <span>Spec</span><span>Product</span><span>Opus</span><span>Grok</span><span>Sol</span><span>Pairwise</span><span />
+          <div className="hidden grid-cols-[70px_minmax(240px,1fr)_repeat(3,88px)_150px_88px] border-b border-border bg-surface-1 px-4 py-3 font-mono text-[10px] uppercase tracking-wider text-muted-foreground md:grid">
+            <span>Spec</span><span>Product</span><span>Opus</span><span>Grok</span><span>Sol</span><span>Pairwise</span><span>Prompt</span>
           </div>
           {data.specs.map((spec) => (
-            <Link
+            <div
               key={spec.id}
-              href={`/specs/${spec.id}`}
-              className="group grid gap-4 border-b border-border bg-card p-4 transition-colors last:border-b-0 hover:bg-surface-1 md:grid-cols-[70px_minmax(240px,1fr)_repeat(3,88px)_150px_48px] md:items-center md:gap-0"
+              className="group relative grid gap-4 border-b border-border bg-card p-4 transition-colors last:border-b-0 hover:bg-surface-1 md:grid-cols-[70px_minmax(240px,1fr)_repeat(3,88px)_150px_88px] md:items-center md:gap-0"
             >
+              <Link
+                href={`/specs/${spec.id}`}
+                aria-label={`Open spec ${spec.id}: ${spec.title}`}
+                className="absolute inset-0 z-0"
+              />
               <div className="font-mono text-lg font-semibold text-mega-blue-text">{spec.id}</div>
               <div className="min-w-0 pr-5">
                 <div className="truncate text-sm font-medium">{spec.title}</div>
-                <div className="mt-1 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">{spec.era} · {spec.track ?? spec.kind}</div>
+                <div className="mt-1 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">{eraLabel(spec.era)} · {spec.track ?? spec.kind}</div>
               </div>
               {PROVIDER_ORDER.map((provider) => {
                 const failed = artifactFailed(spec, provider);
@@ -244,8 +250,11 @@ export default function Home() {
               <div className="text-xs leading-5 text-muted-foreground">
                 <span className="text-foreground">{winnerLabel(spec.pairwise.claude_vs_grok)}</span> / {winnerLabel(spec.pairwise.grok_vs_codex)}
               </div>
-              <ChevronRight className="hidden size-4 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-foreground md:block" />
-            </Link>
+              <div className="relative z-10 flex items-center justify-end gap-2">
+                <RunThisPrompt spec={spec} variant="icon" />
+                <ChevronRight className="hidden size-4 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-foreground md:block" />
+              </div>
+            </div>
           ))}
         </div>
       </section>
@@ -262,7 +271,7 @@ export default function Home() {
               {[
                 [Play, "60", "staged artifacts"],
                 [LockKeyhole, "20", "blind triad receipts"],
-                [Layers3, "3", "provider arms"],
+                [Layers3, "3", "providers"],
               ].map(([Icon, value, label]) => (
                 <div key={String(label)} className="bg-black p-6">
                   <Icon className="mb-7 size-5 text-mega-blue-text" />
