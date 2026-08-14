@@ -29,38 +29,60 @@ export default function Home() {
     <>
       {/* 1. HERO SECTION */}
       <section className="mega-grid border-b border-border">
-        <div className="mx-auto max-w-[1600px] px-4 py-16 sm:px-6 sm:py-24 lg:px-8 lg:py-32">
-          {/* Tri-Brand Identity Header */}
-          <div className="mb-6 flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-2 border border-border bg-black/80 px-3 py-1.5 font-mono text-xs">
-              <span className="flex items-center gap-1.5">
-                <ProviderIcon provider="claude" className="size-3.5" />
-                <span style={{ color: PROVIDER_COLOR.claude }}>Anthropic Opus 5</span>
-              </span>
-              <span className="text-muted-foreground">vs</span>
-              <span className="flex items-center gap-1.5">
-                <ProviderIcon provider="grok" className="size-3.5" />
-                <span style={{ color: PROVIDER_COLOR.grok }}>xAI Grok 4.6</span>
-              </span>
-              <span className="text-muted-foreground">vs</span>
-              <span className="flex items-center gap-1.5">
-                <ProviderIcon provider="codex" className="size-3.5" />
-                <span style={{ color: PROVIDER_COLOR.codex }}>OpenAI GPT-5.6 Sol</span>
-              </span>
-            </div>
+        <div className="mx-auto max-w-[1600px] px-4 py-10 sm:px-6 sm:py-14 lg:px-8 lg:py-16">
+          {/* Top Label */}
+          <div className="mb-4 flex flex-wrap items-center gap-3">
+            <div className="mega-label text-foreground">Frontier Build Benchmark</div>
             <Badge variant="outline" className="rounded-none border-border font-mono text-[10px] uppercase text-muted-foreground">
               20 Frozen Specifications
             </Badge>
           </div>
 
-          <h1 className="pixel-heading max-w-6xl text-4xl font-semibold text-balance sm:text-6xl lg:text-[5.2rem]">
-            The frontier build benchmark:
-            <br />
-            <span className="text-foreground">Opus 5 vs Grok 4.6 vs GPT-5.6 Sol</span>
+          {/* Compact H1 with brand colors & faded background icons */}
+          <h1 className="pixel-heading max-w-6xl text-3xl font-semibold tracking-tight text-balance sm:text-5xl lg:text-6xl flex flex-wrap items-center gap-x-3 gap-y-2.5">
+            {/* Opus 5 */}
+            <span className="relative inline-flex items-center overflow-hidden border border-border/80 bg-black/60 px-3 py-1 transition-colors">
+              <ProviderIcon
+                provider="claude"
+                className="pointer-events-none absolute -right-3 -bottom-3 size-16 opacity-15"
+              />
+              <span style={{ color: PROVIDER_COLOR.claude }} className="relative z-10 flex items-center gap-2">
+                <ProviderIcon provider="claude" className="size-5 shrink-0" />
+                Opus 5
+              </span>
+            </span>
+
+            <span className="text-xl font-normal text-muted-foreground sm:text-2xl lg:text-3xl">vs</span>
+
+            {/* Grok 4.6 */}
+            <span className="relative inline-flex items-center overflow-hidden border border-border/80 bg-black/60 px-3 py-1 transition-colors">
+              <ProviderIcon
+                provider="grok"
+                className="pointer-events-none absolute -right-3 -bottom-3 size-16 opacity-15"
+              />
+              <span style={{ color: PROVIDER_COLOR.grok }} className="relative z-10 flex items-center gap-2">
+                <ProviderIcon provider="grok" className="size-5 shrink-0" />
+                Grok 4.6
+              </span>
+            </span>
+
+            <span className="text-xl font-normal text-muted-foreground sm:text-2xl lg:text-3xl">vs</span>
+
+            {/* GPT-5.6 Sol */}
+            <span className="relative inline-flex items-center overflow-hidden border border-border/80 bg-black/60 px-3 py-1 transition-colors">
+              <ProviderIcon
+                provider="codex"
+                className="pointer-events-none absolute -right-3 -bottom-3 size-16 opacity-15"
+              />
+              <span style={{ color: PROVIDER_COLOR.codex }} className="relative z-10 flex items-center gap-2">
+                <ProviderIcon provider="codex" className="size-5 shrink-0" />
+                GPT-5.6 Sol
+              </span>
+            </span>
           </h1>
 
-          <div className="mt-8 grid max-w-6xl gap-8 md:grid-cols-[1.35fr_.65fr] md:items-end">
-            <p className="max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
+          <div className="mt-6 grid max-w-6xl gap-6 md:grid-cols-[1.35fr_.65fr] md:items-end">
+            <p className="max-w-3xl text-sm leading-6 text-muted-foreground sm:text-base sm:leading-7">
               Twenty real-world applications built from scratch in clean, isolated environments. Every run was receipted, replay-tested, and blindly evaluated to measure true autonomous software engineering across Anthropic, xAI, and OpenAI.
             </p>
             <div className="flex flex-wrap gap-3 md:justify-end">
