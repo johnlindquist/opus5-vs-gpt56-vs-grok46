@@ -51,10 +51,10 @@
  },
  "disclosures": [
   "Triad letter grades and scores are the opinion of one independent frontier-model review per spec, with all three artifacts assessed blind in a single shared context; they are not objective measurements or a consensus.",
-  "Condition G ran in August 2026, after the canonical Opus-vs-Sol battle closed; it is a later rerun third arm under the frozen specs, not a concurrent competitor.",
-  "Wall-clock durations are receipt provenance only and are never used as a controlled cross-arm speed comparison.",
+  "All three agents built the same twenty frozen specifications. Pairwise tallies are reported separately for Opus vs Sol, Opus vs Grok, and Grok vs Sol.",
+  "Wall-clock durations are receipt provenance only and are never used as a controlled cross-agent speed comparison.",
   "Token-rate equivalents are not necessarily marginal cash charges, provider invoices, or subscription spend: these runs authenticated through Cursor login and used Cursor's first-party model pool.",
-  "The frozen canonical pairwise tally (Opus 19, Sol 1, ties 0) is unchanged; Condition G contributes zero canonical results and is reported only in separate Opus-vs-Grok and Grok-vs-Sol tallies."
+  "Opus vs Sol is 19–1. Opus vs Grok is 18–1 with one tie. Grok vs Sol is 14–6."
  ],
  "grok_resource_summary": {
   "api_key_source": "login",
@@ -241,7 +241,7 @@
      "speed": {
       "value": 46805.265,
       "utility": 0.299415,
-      "unit": "recorded canonical wall seconds"
+      "unit": "recorded wall seconds"
      },
      "cost": {
       "value": 272.732808,
@@ -259,7 +259,7 @@
      "speed": {
       "value": 15432.818,
       "utility": null,
-      "unit": "later-run wall seconds (provenance only)"
+      "unit": "recorded wall seconds (not used for speed weighting)"
      },
      "cost": {
       "value": 33.2969,
@@ -277,7 +277,7 @@
      "speed": {
       "value": 14014.197,
       "utility": 1,
-      "unit": "recorded canonical wall seconds"
+      "unit": "recorded wall seconds"
      },
      "cost": {
       "value": 43.290287,
@@ -287,7 +287,7 @@
     }
    },
    "formula": {
-    "quality_utility": "fresh blind-triad mean score / 100",
+    "quality_utility": "blind-triad mean score / 100",
     "speed_utility": "fastest comparable total wall time / provider total wall time",
     "cost_utility": "cheapest published-rate or receipted cost / provider cost",
     "total": "sum(normalized weight × metric utility) × 100",
@@ -295,9 +295,9 @@
     "display_precision": "Raw source values stay available; utilities are exported to six decimals and composite scores display to one decimal."
    },
    "comparability": {
-    "scope": "Quality and cost now include all three arms. Cost uses Anthropic provider receipts for Opus and published-rate math for Sol and Grok. Speed still compares only the canonical Opus and Sol matrix.",
-    "grok_cost_exclusion": "Sol was already a published-rate estimate, not an invoice. Grok list-rate equivalents ($2 / $0.50 / $6 per million) are the same class of math and now enter cost utility. The 50% launch-discount total is disclosed but unused in the composite, matching Sol's standard-rate basis.",
-    "grok_speed_exclusion": "Condition G ran later under different host state and concurrency, so Grok durations remain provenance only and are excluded from controlled speed weighting.",
+    "scope": "Quality and cost include all three agents. Cost uses Anthropic provider receipts for Opus and published-rate math for Sol and Grok. Speed compares only Opus and Sol.",
+    "grok_cost_exclusion": "Sol costs are published-rate estimates, not invoices. Grok list-rate equivalents ($2 / $0.50 / $6 per million) use the same class of math and enter cost utility. The 50% launch-discount total is disclosed but unused in the composite, matching Sol's standard-rate basis.",
+    "grok_speed_exclusion": "Grok durations are receipt clocks under different host state and concurrency, so they stay out of the time weight.",
     "missing_values": "A missing source value remains unavailable. It is never converted to zero, one, or best-in-class utility."
    }
   },

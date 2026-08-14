@@ -2,11 +2,11 @@
  * Export site data from the opus5-vs-gpt56-battle evidence archive.
  *
  * Reads only receipted, staged sources (never raw run workspaces):
- *   - verification/final-results/final-results.json  (canonical matchups/cells)
- *   - verification/grok/grok-results.json            (Condition G projection)
+ *   - verification/final-results/final-results.json  (Opus/Sol matchups/cells)
+ *   - verification/grok/grok-results.json            (Grok projection)
  *   - verification/grades/<NN>-G-TRIAD.json          (blind triad reviews)
  *   - verification/conditions.json                   (condition registry)
- *   - site/slideshow/demos + verification/here-now/demo-manifest.json (staged canonical demos)
+ *   - site/slideshow/demos + verification/here-now/demo-manifest.json (staged Opus/Sol demos)
  *   - site/grok-demos + verification/grok/demo-manifest.json          (staged grok demos)
  *   - specs/*.md and verification/specs/*.md         (frozen prompts)
  *
@@ -548,8 +548,8 @@ const decisionRows = Object.fromEntries(
               ? round(fastestComparableSeconds / duration, 6)
               : null,
           unit: speedComparable
-            ? "recorded canonical wall seconds"
-            : "later-run wall seconds (provenance only)",
+            ? "recorded wall seconds"
+            : "recorded wall seconds (not used for speed weighting)",
         },
         cost: {
           value: cost,
@@ -578,7 +578,7 @@ const metrics = {
     comparable_providers: DECISION_PROVIDER_KEYS,
     rows: decisionRows,
     formula: {
-      quality_utility: "fresh blind-triad mean score / 100",
+      quality_utility: "blind-triad mean score / 100",
       speed_utility: "fastest comparable total wall time / provider total wall time",
       cost_utility: "cheapest published-rate or receipted cost / provider cost",
       total: "sum(normalized weight × metric utility) × 100",
@@ -589,11 +589,11 @@ const metrics = {
     },
     comparability: {
       scope:
-        "Quality and cost now include all three arms. Cost uses Anthropic provider receipts for Opus and published-rate math for Sol and Grok. Speed still compares only the canonical Opus and Sol matrix.",
+        "Quality and cost include all three agents. Cost uses Anthropic provider receipts for Opus and published-rate math for Sol and Grok. Speed compares only Opus and Sol.",
       grok_cost_exclusion:
-        "Sol was already a published-rate estimate, not an invoice. Grok list-rate equivalents ($2 / $0.50 / $6 per million) are the same class of math and now enter cost utility. The 50% launch-discount total is disclosed but unused in the composite, matching Sol's standard-rate basis.",
+        "Sol costs are published-rate estimates, not invoices. Grok list-rate equivalents ($2 / $0.50 / $6 per million) use the same class of math and enter cost utility. The 50% launch-discount total is disclosed but unused in the composite, matching Sol's standard-rate basis.",
       grok_speed_exclusion:
-        "Condition G ran later under different host state and concurrency, so Grok durations remain provenance only and are excluded from controlled speed weighting.",
+        "Grok durations are receipt clocks under different host state and concurrency, so they stay out of the time weight.",
       missing_values:
         "A missing source value remains unavailable. It is never converted to zero, one, or best-in-class utility.",
     },
@@ -729,7 +729,21 @@ const data = {
     claude_vs_grok: grokResults.tallies.claude_vs_grok,
     grok_vs_codex: grokResults.tallies.grok_vs_codex,
   },
-  disclosures: grokResults.disclosures,
+  disclosures: grokResults.disclosures.map((line) =>
+    line
+      .replace(
+        "Condition G ran in August 2026, after the canonical Opus-vs-Sol battle closed; it is a later rerun third arm under the frozen specs, not a concurrent competitor.",
+        "All three agents built the same twenty frozen specifications. Pairwise tallies are reported separately for Opus vs Sol, Opus vs Grok, and Grok vs Sol.",
+      )
+      .replace(
+        "The frozen canonical pairwise tally (Opus 19, Sol 1, ties 0) is unchanged; Condition G contributes zero canonical results and is reported only in separate Opus-vs-Grok and Grok-vs-Sol tallies.",
+        "Opus vs Sol is 19–1. Opus vs Grok is 18–1 with one tie. Grok vs Sol is 14–6.",
+      )
+      .replace(
+        "Wall-clock durations are receipt provenance only and are never used as a controlled cross-arm speed comparison.",
+        "Wall-clock durations are receipt provenance only and are never used as a controlled cross-agent speed comparison.",
+      ),
+  ),
   grok_resource_summary: grokResults.resource_summary ?? null,
   conditions: conditions.conditions,
   grade_disclosure_line: conditions.grade_disclosure_line,

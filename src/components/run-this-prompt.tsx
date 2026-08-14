@@ -6,6 +6,24 @@ import { PROVIDER_SHORT, type SpecRow } from "@/lib/data";
 
 type Variant = "icon" | "strip" | "panel";
 
+const LAUNCH_RECIPES = [
+  {
+    provider: "Opus 5",
+    command:
+      'claude -p "$(cat spec.md)" --model claude-opus-5 --effort medium --safe-mode --dangerously-skip-permissions --output-format stream-json --verbose',
+  },
+  {
+    provider: "Sol",
+    command:
+      'codex exec --dangerously-bypass-approvals-and-sandbox -m gpt-5.6-sol -c \'model_reasoning_effort="medium"\' -C . "$(cat spec.md)"',
+  },
+  {
+    provider: "Grok 4.6",
+    command:
+      'cursor-agent --print --output-format stream-json --model cursor-grok-4.6-medium --force --trust --sandbox disabled "$(cat spec.md)"',
+  },
+] as const;
+
 async function copyExactPrompt(text: string): Promise<void> {
   try {
     await navigator.clipboard.writeText(text);
@@ -39,8 +57,8 @@ export function RunThisPrompt({
     window.setTimeout(() => setCopied(false), 1800);
   }
 
-  const buttonLabel = copied ? "Copied exact prompt" : "Copy exact prompt";
-  const aria = `Copy the exact frozen prompt used for spec ${spec.id}`;
+  const buttonLabel = copied ? "Copied frozen spec" : "Copy frozen spec";
+  const aria = `Copy the frozen specification bytes for spec ${spec.id}`;
 
   if (variant === "icon") {
     return (
@@ -48,7 +66,7 @@ export function RunThisPrompt({
         type="button"
         onClick={onCopy}
         aria-label={aria}
-        title="Run this benchmark yourself — copy the exact frozen prompt"
+        title="Copy the frozen specification all three agents received as their prompt argument"
         className="relative z-10 inline-flex size-8 items-center justify-center border border-border bg-black text-muted-foreground hover:border-mega-blue-text hover:text-foreground"
       >
         {copied ? <Check className="size-3.5 text-mega-green" /> : <Copy className="size-3.5" />}
@@ -62,7 +80,7 @@ export function RunThisPrompt({
         <div className="min-w-0">
           <div className="mega-label text-mega-blue-text">Run this benchmark yourself</div>
           <p className="mt-1 truncate font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-            Exact frozen prompt · SHA {spec.spec_sha256.slice(0, 12)}
+            Frozen spec only · SHA {spec.spec_sha256.slice(0, 12)}
           </p>
         </div>
         <button
@@ -84,12 +102,12 @@ export function RunThisPrompt({
         <div>
           <div className="mega-label mb-2 text-mega-blue-text">Run this benchmark yourself</div>
           <h2 id={`run-prompt-${spec.id}`} className="pixel-heading text-2xl font-semibold sm:text-3xl">
-            Paste the exact brief the agents received.
+            Copy the frozen specification.
           </h2>
           <p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground">
             {PROVIDER_SHORT.claude}, {PROVIDER_SHORT.grok}, and {PROVIDER_SHORT.codex} each
-            got these same specification bytes in an empty isolated workspace. The copy
-            button puts that prompt on the clipboard with no added instructions.
+            received these same specification bytes as their prompt argument. The clipboard
+            is that spec only. Harness flags differ by agent and are not copied.
           </p>
         </div>
         <button
@@ -115,6 +133,17 @@ export function RunThisPrompt({
         <pre className="max-h-[520px] overflow-auto whitespace-pre-wrap p-5 font-mono text-[11px] leading-5 text-muted-foreground">
           {spec.spec_markdown}
         </pre>
+      </div>
+      <div className="mt-4 border border-border bg-[#050505] p-4">
+        <div className="mega-label mb-3">Recorded launch wrappers — not on the clipboard</div>
+        <ul className="space-y-3 font-mono text-[11px] leading-5 text-muted-foreground">
+          {LAUNCH_RECIPES.map((recipe) => (
+            <li key={recipe.provider}>
+              <div className="text-foreground">{recipe.provider}</div>
+              <code className="mt-1 block whitespace-pre-wrap break-all">{recipe.command}</code>
+            </li>
+          ))}
+        </ul>
       </div>
     </section>
   );

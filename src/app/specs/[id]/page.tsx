@@ -189,7 +189,7 @@ export default async function SpecPage({ params }: { params: Promise<{ id: strin
         <div className="grid gap-6 lg:grid-cols-[.7fr_1.3fr]">
           <div>
             <div className="mega-label mb-2">Frozen input</div>
-            <h2 className="pixel-heading text-2xl font-semibold sm:text-3xl">Read the exact brief.</h2>
+            <h2 className="pixel-heading text-2xl font-semibold sm:text-3xl">Read the frozen specification.</h2>
             <div className="mt-5 space-y-3 font-mono text-[10px] leading-5 text-muted-foreground">
               <div className="flex items-start gap-2"><Hash className="mt-0.5 size-3 shrink-0" /><span className="break-all">{spec.spec_sha256}</span></div>
               <div className="flex items-start gap-2"><FileJson2 className="mt-0.5 size-3 shrink-0" /><span>{spec.triad.receipt}</span></div>

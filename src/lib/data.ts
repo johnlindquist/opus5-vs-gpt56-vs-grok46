@@ -326,8 +326,8 @@ function deriveBattleMetrics(specs: SpecRow[]): BattleMetrics {
                 ? utility(fastest, aggregate.total_duration_seconds)
                 : null,
             unit: SPEED_COMPARABLE_ORDER.includes(provider)
-              ? "recorded canonical wall seconds"
-              : "later-run wall seconds (provenance only)",
+              ? "recorded wall seconds"
+              : "recorded wall seconds (not used for speed weighting)",
           },
           cost: {
             value:
@@ -362,7 +362,7 @@ function deriveBattleMetrics(specs: SpecRow[]): BattleMetrics {
       comparable_providers: COMPARABLE_PROVIDER_ORDER,
       rows,
       formula: {
-        quality_utility: "fresh blind-triad mean score / 100",
+        quality_utility: "blind-triad mean score / 100",
         speed_utility: "fastest comparable total wall time / provider total wall time",
         cost_utility: "cheapest published-rate or receipted cost / provider cost",
         total: "sum(normalized weight × metric utility) × 100",
@@ -373,11 +373,11 @@ function deriveBattleMetrics(specs: SpecRow[]): BattleMetrics {
       },
       comparability: {
         scope:
-          "Quality and cost now include all three arms. Cost uses Anthropic provider receipts for Opus and published-rate math for Sol and Grok. Speed still compares only the canonical Opus and Sol matrix.",
+          "Quality and cost include all three agents. Cost uses Anthropic provider receipts for Opus and published-rate math for Sol and Grok. Speed compares only Opus and Sol.",
         grok_cost_exclusion:
-          "Sol was already a published-rate estimate, not an invoice. Grok list-rate equivalents ($2 / $0.50 / $6 per million) are the same class of math and now enter cost utility. The 50% launch-discount total is disclosed but unused in the composite, matching Sol's standard-rate basis.",
+          "Sol costs are published-rate estimates, not invoices. Grok list-rate equivalents ($2 / $0.50 / $6 per million) use the same class of math and enter cost utility. The 50% launch-discount total is disclosed but unused in the composite, matching Sol's standard-rate basis.",
         grok_speed_exclusion:
-          "Condition G ran later under different host state and concurrency, so Grok durations remain provenance only and are excluded from controlled speed weighting.",
+          "Grok durations are receipt clocks under different host state and concurrency, so they stay out of the time weight.",
         missing_values:
           "A missing source value remains unavailable. It is never converted to zero, one, or best-in-class utility.",
       },
@@ -462,6 +462,10 @@ export function specById(id: string): SpecRow {
   const spec = data.specs.find((row) => row.id === id);
   if (!spec) throw new Error(`unknown spec ${id}`);
   return spec;
+}
+
+export function eraLabel(era: "legacy" | "modern"): string {
+  return era === "legacy" ? "local artifacts" : "AI UX";
 }
 
 export function averageScore(provider: ProviderKey, era?: "legacy" | "modern"): number {

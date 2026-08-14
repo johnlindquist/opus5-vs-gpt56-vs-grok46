@@ -78,7 +78,7 @@ export function ProviderGradeCard({ spec, provider }: { spec: SpecRow; provider:
       <p className="flex-1 p-4 text-sm leading-6 text-muted-foreground">{grade.rationale}</p>
       <div className="grid grid-cols-2 border-t border-border text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
         <div className="border-r border-border p-3">Checks<br /><span className="text-foreground">{grade.checks_assessment}</span></div>
-        <div className="p-3">Condition<br /><span className="text-foreground">{cell.condition}</span></div>
+        <div className="p-3">Cell<br /><span className="text-foreground">{cell.cell_id}</span></div>
       </div>
     </article>
   );

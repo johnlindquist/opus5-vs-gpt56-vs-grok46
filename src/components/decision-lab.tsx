@@ -38,13 +38,13 @@ const metricMeta: Record<
   quality: {
     label: "Shipped-artifact quality",
     shortLabel: "Quality",
-    description: "Fresh blind-triad mean grade across all twenty briefs.",
+    description: "Blind-triad mean grade across all twenty briefs.",
     icon: Sparkles,
   },
   speed: {
     label: "Comparable build time",
     shortLabel: "Time",
-    description: "Total canonical wall time; lower is better.",
+    description: "Total recorded wall time for Opus and Sol; lower is better.",
     icon: TimerReset,
   },
   cost: {
@@ -78,7 +78,7 @@ const presets: Array<{ name: string; description: string; weights: WeightMap }> 
   },
   {
     name: "Quality + cost",
-    description: "Rank all three arms on quality and published-rate cost; omit later-run time.",
+    description: "Rank all three agents on quality and published-rate cost; omit time.",
     weights: { quality: 60, speed: 0, cost: 40 },
   },
 ];
@@ -105,7 +105,7 @@ function coverageLabel(
     return `${aggregate.quality_receipts}/${aggregate.artifact_count} triad grades`;
   }
   if (metric === "speed") {
-    return `${aggregate.duration_receipts}/${aggregate.artifact_count} canonical durations`;
+    return `${aggregate.duration_receipts}/${aggregate.artifact_count} recorded durations`;
   }
   if (provider === "grok") {
     return `${aggregate.cost_receipts}/${aggregate.artifact_count} list-rate equivalents`;
@@ -199,9 +199,9 @@ export function DecisionLab({ metrics }: DecisionLabProps) {
             </h2>
           </div>
           <p className="max-w-3xl text-sm leading-6 text-muted-foreground xl:justify-self-end">
-            Weight quality, canonical build time, and published-rate cost. Quality
-            and cost now include Grok. Time still compares only Opus and Sol because
-            Condition G ran later. A Quality + cost preset ranks all three arms.
+            Weight quality, recorded build time, and published-rate cost. Quality
+            and cost include all three agents. Time compares only Opus and Sol.
+            A Quality + cost preset ranks all three agents.
           </p>
         </div>
 
@@ -503,11 +503,11 @@ export function DecisionLab({ metrics }: DecisionLabProps) {
               <div>
                 <div className="mega-label">Three-provider quality context</div>
                 <h3 className="pixel-heading mt-2 text-2xl font-semibold sm:text-3xl">
-                  All three arms now carry quality and cost.
+                  Quality and cost include all three agents.
                 </h3>
               </div>
               <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                Fresh blind triad · 20 specs
+                Blind triad · 20 specs
               </span>
             </div>
             <div className="grid gap-px border border-border bg-border sm:grid-cols-3">

@@ -157,7 +157,7 @@ export default function Home() {
           </div>
           <div className="overflow-x-auto pb-2"><ScoreChart specs={data.specs} /></div>
           <p className="mt-4 border-l-2 border-destructive pl-4 text-xs leading-5 text-muted-foreground">
-            Grok cells 14 and 19 are inspectable DNF artifacts whose recorded modern validator failed. Their blind artifact-quality scores remain visible but never change the failed run status.
+            Grok cells 14 and 19 are inspectable DNF artifacts whose recorded validator failed. Their blind artifact-quality scores remain visible but never change the failed run status.
           </p>
         </div>
       </section>

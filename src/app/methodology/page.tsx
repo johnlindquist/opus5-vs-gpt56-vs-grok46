@@ -26,7 +26,7 @@ const steps = [
     icon: Fingerprint,
     n: "01",
     title: "Freeze the work",
-    body: "Each prompt was committed and SHA-256 identified before launch. All three arms receive the same specification bytes for a given product.",
+    body: "Each prompt was committed and SHA-256 identified before launch. All three agents receive the same specification bytes for a given product.",
   },
   {
     icon: Box,
@@ -44,7 +44,7 @@ const steps = [
     icon: ShieldCheck,
     n: "04",
     title: "Replay the artifact",
-    body: "The harness validates contract files, installs and builds where required, denies runtime network for modern apps, scans policy constraints, and exercises the shipped surface.",
+    body: "The harness validates contract files, installs and builds where required, denies runtime network for AI UX apps, scans policy constraints, and exercises the shipped surface.",
   },
   {
     icon: Scale,
@@ -56,11 +56,11 @@ const steps = [
     icon: CheckCircle2,
     n: "06",
     title: "Derive pairwise calls",
-    body: "The structured category totals produce two pairwise decisions from the same review context: Opus–Grok and Grok–Sol. Equal totals are ties.",
+    body: "The structured category totals produce three pairwise decisions from the same review context: Opus–Sol, Opus–Grok, and Grok–Sol. Equal totals are ties.",
   },
 ];
 
-const legacyRubric = [
+const localRubric = [
   ["Specification coverage", "25"],
   ["Correctness & robustness", "20"],
   ["Code quality & maintainability", "20"],
@@ -111,29 +111,29 @@ export default function MethodologyPage() {
       <section className="border-y border-border bg-[#050505]">
         <div className="mx-auto max-w-[1200px] px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
           <div className="mb-10 max-w-3xl">
-            <div className="mega-label mb-2">Three arms, two eras</div>
+            <div className="mega-label mb-2">Two spec families</div>
             <h2 className="pixel-heading text-3xl font-semibold sm:text-4xl">Comparable artifacts. Carefully scoped timing.</h2>
           </div>
           <div className="grid gap-4 lg:grid-cols-2">
             <article className="border border-border bg-black p-6 sm:p-8">
               <div className="mb-6 flex items-center justify-between gap-3">
-                <h3 className="text-xl font-semibold">Specs 01–10 · Legacy</h3>
+                <h3 className="text-xl font-semibold">Specs 01–10 · Local artifacts</h3>
                 <Badge variant="outline" className="rounded-none font-mono text-[10px] uppercase">dependency-free</Badge>
               </div>
               <p className="text-sm leading-6 text-muted-foreground">
-                Small games, visual instruments, and developer-analysis tasks designed to ship as direct-open local artifacts. The canonical matrix uses B2 rematches for 01, 02, and 08, then B/B3 for the rest. G-LEGACY ran later, sequentially, with the same frozen prompts and a four-hour cap.
+                Small games, visual instruments, and developer-analysis tasks designed to ship as direct-open local artifacts. All three agents received the same frozen prompts, a four-hour cap, and a clean empty workspace.
               </p>
               <div className="mt-6 border-l-2 border-mega-blue-text pl-4 font-mono text-xs leading-5 text-muted-foreground">
-                G-LEGACY: cursor-agent · cursor-grok-4.6-medium · clean workspace · one cell at a time
+                Grok: cursor-agent · cursor-grok-4.6-medium · clean workspace · one cell at a time
               </div>
             </article>
             <article className="border border-border bg-black p-6 sm:p-8">
               <div className="mb-6 flex items-center justify-between gap-3">
-                <h3 className="text-xl font-semibold">Specs 11–20 · Modern</h3>
+                <h3 className="text-xl font-semibold">Specs 11–20 · AI UX</h3>
                 <Badge variant="outline" className="rounded-none font-mono text-[10px] uppercase">dependency-bearing</Badge>
               </div>
               <p className="text-sm leading-6 text-muted-foreground">
-                Modern AI UX applications with pinned lockfiles and browser-local mock AI. Builders may reach provider APIs and the package registry, but replayed production apps run with network access denied. D-MODERN and G-MODERN allow at most two concurrent sessions.
+                AI UX applications with pinned lockfiles and browser-local mock AI. Builders may reach provider APIs and the package registry, but replayed production apps run with network access denied. At most two concurrent sessions per provider.
               </p>
               <div className="mt-6 border-l-2 border-mega-green pl-4 font-mono text-xs leading-5 text-muted-foreground">
                 modern-static-v2 · bun@1.3.11 · install/build/runtime replay · zero runtime network
@@ -143,7 +143,7 @@ export default function MethodologyPage() {
           <div className="mt-4 flex items-start gap-4 border border-border bg-black p-5">
             <Clock3 className="mt-0.5 size-5 shrink-0 text-mega-blue-text" />
             <p className="text-sm leading-6 text-muted-foreground">
-              <strong className="text-foreground">Timing rule:</strong> Condition G ran in August 2026, weeks after the canonical Opus–Sol battle. Host state and concurrency differ. Durations are preserved as provenance but never treated as cross-arm speed evidence or a grading dimension.
+              <strong className="text-foreground">Timing rule:</strong> Host state and concurrency differ across agents. Durations are preserved as provenance but never treated as cross-agent speed evidence or a grading dimension.
             </p>
           </div>
         </div>
@@ -158,14 +158,14 @@ export default function MethodologyPage() {
               Every spec produces one triad receipt. Source, run evidence, the final response, and self-reported checks are bundled under Alpha/Beta/Gamma. Provider names, model names, durations, and token totals are redacted from the review input.
             </p>
             <p className="mt-4 text-sm leading-6 text-muted-foreground">
-              The judge must emit strict JSON. Schema validation checks category maxima, exact sums, letter mapping, all three aliases, and era-specific rubric keys before a result is accepted.
+              The judge must emit strict JSON. Schema validation checks category maxima, exact sums, letter mapping, all three aliases, and family-specific rubric keys before a result is accepted.
             </p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <article className="border border-border bg-card p-6">
-              <div className="mega-label mb-5">Legacy rubric · 01–10</div>
+              <div className="mega-label mb-5">01–10 rubric</div>
               <div className="space-y-3">
-                {legacyRubric.map(([label, max]) => (
+                {localRubric.map(([label, max]) => (
                   <div key={label} className="flex items-center justify-between gap-4 border-b border-border pb-2 text-xs last:border-0">
                     <span className="text-muted-foreground">{label}</span><span className="font-mono">{max}</span>
                   </div>
@@ -173,7 +173,7 @@ export default function MethodologyPage() {
               </div>
             </article>
             <article className="border border-border bg-card p-6">
-              <div className="mega-label mb-5">Modern shared core · 11–20</div>
+              <div className="mega-label mb-5">11–20 shared core</div>
               <div className="space-y-3">
                 {modernShared.map(([label, max]) => (
                   <div key={label} className="flex items-center justify-between gap-4 border-b border-border pb-2 text-xs last:border-0">
@@ -221,10 +221,10 @@ export default function MethodologyPage() {
             <h2 className="pixel-heading text-3xl font-semibold sm:text-4xl">Limits and disclosures.</h2>
           </div>
           <Accordion multiple className="border-t border-border">
-            <AccordionItem value="canonical" className="border-border">
-              <AccordionTrigger className="text-left text-sm">Why doesn&apos;t Grok change the 19–1 result?</AccordionTrigger>
+            <AccordionItem value="pairwise" className="border-border">
+              <AccordionTrigger className="text-left text-sm">Why three pairwise tallies instead of one podium?</AccordionTrigger>
               <AccordionContent className="text-sm leading-6 text-muted-foreground">
-                The canonical Opus–Sol matrix was already closed, policy-pinned, and hash-receipted. Condition G is an additive third arm run later. It contributes zero canonical results; this site reports separate Opus–Grok and Grok–Sol tallies.
+                Each spec produces one blind review of all three artifacts. That single context yields three pairwise calls—Opus vs Sol, Opus vs Grok, and Grok vs Sol—rather than a merged three-way ranking.
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="judge" className="border-border">
@@ -242,17 +242,17 @@ export default function MethodologyPage() {
             <AccordionItem value="tokens" className="border-border">
               <AccordionTrigger className="text-left text-sm">Can token counts or durations compare efficiency?</AccordionTrigger>
               <AccordionContent className="text-sm leading-6 text-muted-foreground">
-                Not across these arms. Providers report tokens with different tokenizers, and Condition G ran later under different host state and concurrency. Both are provenance signals only—not interchangeable units of work or clean speed evidence.
+                Not across these agents. Providers report tokens with different tokenizers, and host state and concurrency differ. Both are provenance signals only—not interchangeable units of work or clean speed evidence.
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="grok-cost" className="border-border">
-              <AccordionTrigger className="text-left text-sm">Does Grok have a cost figure now?</AccordionTrigger>
+              <AccordionTrigger className="text-left text-sm">Does Grok have a cost figure?</AccordionTrigger>
               <AccordionContent className="text-sm leading-6 text-muted-foreground">
-                Yes. Sol costs were already published-rate estimates, not invoices. Grok uses the same class of math: twenty Cursor Grok 4.6 Medium receipts sum to {data.grok_resource_summary?.pricing.list_rate_equivalent_usd ?? "33.296900"} USD at list rates, or {data.grok_resource_summary?.pricing.launch_discount_equivalent_usd ?? "16.648450"} USD at the 50% launch discount. The decision lab uses the list-rate total so the basis matches Sol. Auth was Cursor login / first-party pool, so neither figure is a cash invoice. Later-run time still stays out of the composite.
+                Yes. Sol costs are published-rate estimates, not invoices. Grok uses the same class of math: twenty Cursor Grok 4.6 Medium receipts sum to {data.grok_resource_summary?.pricing.list_rate_equivalent_usd ?? "33.296900"} USD at list rates, or {data.grok_resource_summary?.pricing.launch_discount_equivalent_usd ?? "16.648450"} USD at the 50% launch discount. The decision lab uses the list-rate total so the basis matches Sol. Auth was Cursor login / first-party pool, so neither figure is a cash invoice. Grok wall times stay out of the time composite.
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="network" className="border-border">
-              <AccordionTrigger className="text-left text-sm">What did “offline” mean for modern apps?</AccordionTrigger>
+              <AccordionTrigger className="text-left text-sm">What did “offline” mean for AI UX apps?</AccordionTrigger>
               <AccordionContent className="text-sm leading-6 text-muted-foreground">
                 Builder sessions could reach provider APIs and npm. The submitted production artifact was replayed with runtime network denied. Results pages never embed or start submitted code; artifacts run only after an explicit new-tab launch. The demo host sends <code>connect-src &apos;none&apos;</code>, no AI credentials are deployed, and every AI-like interaction uses deterministic mock behavior rather than a live service.
               </AccordionContent>
@@ -268,7 +268,7 @@ export default function MethodologyPage() {
             <div>
               <div className="font-medium">The site is an evidence navigator, not a replacement for the archive.</div>
               <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                Each product page names its triad receipt, conditions, cell IDs, prompt hash, check assessment, and judge caveats. The playable copies are staged from those recorded artifacts.
+                Each product page names its triad receipt, cell IDs, prompt hash, check assessment, and judge caveats. The playable copies are staged from those recorded artifacts.
               </p>
             </div>
           </div>

@@ -96,7 +96,7 @@ body {
   background-size: 40px 40px;
 }
 
-/* Tracked terminal label, e.g. "CONDITION G · 20 CELLS". */
+/* Tracked terminal label, e.g. "20 FROZEN SPECIFICATIONS". */
 .mega-label {
   font-family: var(--font-geist-mono), ui-monospace, monospace;
   font-size: 0.6875rem;

@@ -45,7 +45,7 @@ the same origin.
 
 ## Evidence export
 
-`scripts/export-data.ts` reads the sibling `~/dev/opus5-vs-gpt56-battle` evidence archive. It joins the frozen canonical results, Condition G projection, blind triad receipts, condition registry, prompt files, and staged demo manifests into `src/data/battle.json`, then copies all 60 byte-staged demo directories into `public/demos/`.
+`scripts/export-data.ts` reads the sibling `~/dev/opus5-vs-gpt56-battle` evidence archive. It joins the Opus/Sol results, Grok projection, blind triad receipts, prompt files, and staged demo manifests into `src/data/battle.json`, then copies all 60 byte-staged demo directories into `public/demos/`.
 
 ```bash
 bun scripts/export-data.ts
@@ -59,4 +59,4 @@ Do not source arbitrary run workspaces directly. The exporter intentionally acce
 - `/methodology` — execution, replay validation, blind grading, and limitations
 - `/specs/01` through `/specs/20` — three-way grades, staged artifacts with explicit failure labels, rubric detail, receipts, and frozen prompts
 
-Condition G is additive. It never changes the frozen canonical Opus 19–1 Sol result; the site reports Opus–Grok and Grok–Sol as separate pairwise tallies.
+The site reports three pairwise tallies from the same twenty briefs: Opus vs Sol, Opus vs Grok, and Grok vs Sol.
