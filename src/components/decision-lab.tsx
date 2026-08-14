@@ -490,7 +490,7 @@ export function DecisionLab({ metrics }: DecisionLabProps) {
                   </p>
                 </div>
                 <p className="mt-4 font-mono text-[10px] leading-5 uppercase tracking-wider text-muted-foreground">
-                  Sources: {metrics.generated_from.quality}; {metrics.generated_from.canonical_cells}.
+                  Sources: {metrics.generated_from.quality}; {metrics.generated_from.canonical_cells}; {metrics.generated_from.grok_projection}.
                 </p>
               </div>
             </details>

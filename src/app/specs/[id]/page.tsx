@@ -160,9 +160,13 @@ export default async function SpecPage({ params }: { params: Promise<{ id: strin
                     <div className="flex items-start justify-between gap-3">
                       <dt className="text-muted-foreground">Cost</dt>
                       <dd className="text-right">
-                        {cell.cost_usd ? `$${Number(cell.cost_usd).toFixed(2)}` : "not metered"}
+                        {cell.cost_usd ? `$${Number(cell.cost_usd).toFixed(2)}` : "unavailable"}
                         {cell.cost_source?.includes("list-rate-equivalent") ? (
                           <div className="mt-1 text-[10px] text-muted-foreground">list-rate equivalent</div>
+                        ) : cell.cost_source === "provider-receipt" ? (
+                          <div className="mt-1 text-[10px] text-muted-foreground">provider receipt</div>
+                        ) : cell.cost_source ? (
+                          <div className="mt-1 text-[10px] text-muted-foreground">published-rate estimate</div>
                         ) : null}
                       </dd>
                     </div>
@@ -173,7 +177,7 @@ export default async function SpecPage({ params }: { params: Promise<{ id: strin
             })}
           </div>
           <p className="mt-4 text-xs leading-5 text-muted-foreground">
-            Durations are shown for provenance only. Condition G ran later and is not cross-arm speed evidence. Grok costs are Cursor Grok 4.6 token-rate equivalents, not invoices, and stay out of the decision-lab composite.
+            Grok durations are later-run receipt clocks, not a controlled speed comparison with Opus or Sol, so they stay out of the decision-lab time weight. Grok and Sol costs are published token-rate math, not invoices; both enter the cost composite. Opus costs are Anthropic provider receipts.
           </p>
         </div>
       </section>
