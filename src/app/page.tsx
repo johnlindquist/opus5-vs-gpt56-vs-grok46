@@ -38,16 +38,15 @@ export default function Home() {
             </Badge>
           </div>
 
-          {/* Compact H1 with brand colors & faded background icons */}
-          <h1 className="pixel-heading max-w-6xl text-3xl font-semibold tracking-tight text-balance sm:text-5xl lg:text-6xl flex flex-wrap items-center gap-x-3 gap-y-2.5">
+          {/* Compact H1 with white text & branded background watermark logos behind */}
+          <h1 className="pixel-heading max-w-6xl text-3xl font-semibold tracking-tight text-balance sm:text-5xl lg:text-6xl flex flex-wrap items-center gap-x-4 gap-y-3">
             {/* Opus 5 */}
-            <span className="relative inline-flex items-center overflow-hidden border border-border/80 bg-black/60 px-3 py-1 transition-colors">
+            <span className="relative inline-flex items-center">
               <ProviderIcon
                 provider="claude"
-                className="pointer-events-none absolute -right-3 -bottom-3 size-16 opacity-15"
+                className="pointer-events-none absolute -left-2.5 -top-2 size-16 sm:size-20 opacity-25"
               />
-              <span style={{ color: PROVIDER_COLOR.claude }} className="relative z-10 flex items-center gap-2">
-                <ProviderIcon provider="claude" className="size-5 shrink-0" />
+              <span className="relative z-10 text-white font-bold">
                 Opus 5
               </span>
             </span>
@@ -55,13 +54,12 @@ export default function Home() {
             <span className="text-xl font-normal text-muted-foreground sm:text-2xl lg:text-3xl">vs</span>
 
             {/* Grok 4.6 */}
-            <span className="relative inline-flex items-center overflow-hidden border border-border/80 bg-black/60 px-3 py-1 transition-colors">
+            <span className="relative inline-flex items-center">
               <ProviderIcon
                 provider="grok"
-                className="pointer-events-none absolute -right-3 -bottom-3 size-16 opacity-15"
+                className="pointer-events-none absolute -left-2.5 -top-2 size-16 sm:size-20 opacity-25"
               />
-              <span style={{ color: PROVIDER_COLOR.grok }} className="relative z-10 flex items-center gap-2">
-                <ProviderIcon provider="grok" className="size-5 shrink-0" />
+              <span className="relative z-10 text-white font-bold">
                 Grok 4.6
               </span>
             </span>
@@ -69,13 +67,12 @@ export default function Home() {
             <span className="text-xl font-normal text-muted-foreground sm:text-2xl lg:text-3xl">vs</span>
 
             {/* GPT-5.6 Sol */}
-            <span className="relative inline-flex items-center overflow-hidden border border-border/80 bg-black/60 px-3 py-1 transition-colors">
+            <span className="relative inline-flex items-center">
               <ProviderIcon
                 provider="codex"
-                className="pointer-events-none absolute -right-3 -bottom-3 size-16 opacity-15"
+                className="pointer-events-none absolute -left-2.5 -top-2 size-16 sm:size-20 opacity-25"
               />
-              <span style={{ color: PROVIDER_COLOR.codex }} className="relative z-10 flex items-center gap-2">
-                <ProviderIcon provider="codex" className="size-5 shrink-0" />
+              <span className="relative z-10 text-white font-bold">
                 GPT-5.6 Sol
               </span>
             </span>
