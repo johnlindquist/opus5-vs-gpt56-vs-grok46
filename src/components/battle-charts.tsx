@@ -429,10 +429,10 @@ export function ScoreChart({ specs }: { specs: SpecRow[] }) {
 
       {/* VIEW 1: Grouped Bars */}
       {mode === "bars" && (
-        <div className="relative">
+        <div className="relative overflow-x-auto max-w-full">
           <ChartContainer
             config={providerConfig}
-            className="h-[380px] w-full min-w-[700px] aspect-auto"
+            className="h-[380px] w-full min-w-[620px] aspect-auto"
             initialDimension={{ width: 900, height: 380 }}
           >
             <BarChart
@@ -580,12 +580,12 @@ export function ScoreChart({ specs }: { specs: SpecRow[] }) {
               )}
             </div>
           </div>
-
-          <ChartContainer
-            config={providerConfig}
-            className="h-[360px] w-full min-w-[700px] aspect-auto"
-            initialDimension={{ width: 900, height: 360 }}
-          >
+          <div className="overflow-x-auto max-w-full">
+            <ChartContainer
+              config={providerConfig}
+              className="h-[360px] w-full min-w-[620px] aspect-auto"
+              initialDimension={{ width: 900, height: 360 }}
+            >
             <BarChart data={deltaData} margin={{ top: 16, right: 12, left: -14, bottom: 6 }}>
               <CartesianGrid vertical={false} stroke="rgba(255,255,255,0.06)" strokeDasharray="3 3" />
               <XAxis dataKey="spec" tickLine={false} axisLine={{ stroke: "rgba(255,255,255,0.12)" }} tickMargin={8} />
@@ -770,6 +770,7 @@ export function ScoreChart({ specs }: { specs: SpecRow[] }) {
               )}
             </BarChart>
           </ChartContainer>
+          </div>
         </div>
       )}
       {/* VIEW: Rubric Matrix with Multi-Metric Stats (Duration & Cost) */}

@@ -346,8 +346,51 @@ export function DecisionLab({ metrics }: DecisionLabProps) {
                 </h3>
               </div>
               <div className="p-4 sm:p-5">
-                <div className="overflow-x-auto">
-                  <table className="w-full min-w-[760px] border-collapse text-left text-xs">
+                {/* Mobile View: 3 stacked summary cards */}
+                <div className="space-y-3 sm:hidden font-mono text-xs">
+                  {metrics.decision_lab.comparable_providers.map((provider) => {
+                    const row = metrics.decision_lab.rows[provider];
+                    const result = ranking.find((item) => item.provider === provider);
+                    const color = PROVIDER_COLOR[provider];
+
+                    return (
+                      <div
+                        key={provider}
+                        className="border border-border/80 bg-card p-3.5 space-y-2.5"
+                        style={{ borderLeft: `3px solid ${color}` }}
+                      >
+                        <div className="flex items-center justify-between border-b border-border/60 pb-2">
+                          <ProviderMark provider={provider} />
+                          <span className="font-bold text-sm" style={{ color }}>
+                            {result?.score !== null && result !== undefined ? result.score.toFixed(1) : "—"}{" "}
+                            <span className="text-[10px] text-muted-foreground font-normal">pts</span>
+                          </span>
+                        </div>
+                        <div className="space-y-1.5 pt-1">
+                          {metricOrder.map((metric) => (
+                            <div key={metric} className="flex items-center justify-between text-[11px] gap-2">
+                              <span className="text-muted-foreground">{metricMeta[metric].shortLabel}:</span>
+                              <span className="font-bold text-foreground">
+                                {formatRawValue(metric, row[metric].value)}
+                              </span>
+                              <span className="text-muted-foreground text-[10px]">
+                                ({((normalizedWeights[metric] ?? 0) * 100).toFixed(0)}% wt →{" "}
+                                <span className="text-foreground font-semibold">
+                                  {result?.contributions[metric]?.toFixed(1) ?? "—"}
+                                </span>{" "}
+                                pts)
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Desktop View: Full 5-column table */}
+                <div className="hidden sm:block overflow-x-auto max-w-full">
+                  <table className="w-full min-w-[620px] border-collapse text-left text-xs">
                     <caption className="sr-only">
                       Exact decision-lab source values, receipt coverage, utilities,
                       normalized weights, and weighted contributions.
@@ -402,7 +445,6 @@ export function DecisionLab({ metrics }: DecisionLabProps) {
                     </tbody>
                   </table>
                 </div>
-
                 <div className="mt-5 grid gap-3 text-xs leading-5 text-muted-foreground sm:grid-cols-2">
                   <p className="border border-border p-4">
                     <strong className="text-foreground">Quality:</strong>{" "}
